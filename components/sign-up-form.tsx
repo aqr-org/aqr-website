@@ -40,6 +40,29 @@ export function SignUpForm({
     }
 
     try {
+      // verify email exists in beacon 
+      const beaconRes = await fetch("/auth/beacon/membership");
+      if (!beaconRes.ok) {
+        throw new Error("Failed to verify membership with Beacon");
+      }
+      const beaconJson = await beaconRes.json();
+      const results: any[] = beaconJson?.results ?? [];
+      const normalizedEmail = email.trim().toLowerCase();
+      const existsInBeacon = results.some((item) => {
+        const emails = item?.entity?.emails ?? [];
+        return emails.some(
+          (e: any) => 
+            typeof e?.email === "string" &&
+            e.email.trim().toLowerCase() === normalizedEmail
+        );
+      });
+
+      if (!existsInBeacon) {
+        setError("Email address is not connected to an AQR membership account. Please contact support.");
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,

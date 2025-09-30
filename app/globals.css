@@ -1,3 +1,5 @@
+@import '../styles/_variables.scss';                                       
+@import '../styles/_keyframe-animations.scss';    
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -64,5 +66,52 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+
+.ProseMirror {
+  &:focus {
+    @apply outline-none;
+  }
+  & h2 {
+    @apply text-2xl font-bold my-4;
+  }
+  & h3 {
+    @apply text-xl font-bold my-3;
+  }
+  & p {
+    @apply my-2;
+  }
+}
+
+a {
+  @apply text-primary underline;
+}
+
+.form {
+  & label {
+    @apply block mb-2 text-sm text-foreground;
+  }
+  & label > p {
+    @apply mb-1 text-xs text-foreground opacity-40;
+  }
+  & input[type="text"], & input[type="email"], & input[type="number"], & input[type="url"], & select, & textarea {
+    @apply bg-input text-foreground border border-border rounded-md disabled:opacity-50 disabled:cursor-not-allowed w-full p-2 focus:shadow-lg focus:outline-none transition-all;
+  }
+  & input[type="checkbox"] {
+    @apply w-4 h-4;
+    
+    &:checked {
+      @apply bg-primary border-transparent;
+    }
+  }
+  & select {
+    @apply appearance-none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
   }
 }
