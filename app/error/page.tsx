@@ -1,15 +1,8 @@
 import Link from "next/link";
 
-interface ErrorPageProps {
-  searchParams: { 
-    type?: string; 
-    message?: string; 
-    email?: string; 
-  };
-}
-
-export default function ErrorPage({ searchParams }: ErrorPageProps) {
-  const { type, message, email } = searchParams;
+export default function ErrorPage(props: unknown) {
+  const searchParams = (props as { searchParams?: { type?: string; message?: string; email?: string } })?.searchParams;
+  const { type, message, email } = searchParams ?? {};
 
   // Define error types and their messages
   const errorMessages = {

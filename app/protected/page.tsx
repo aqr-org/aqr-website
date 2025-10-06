@@ -4,7 +4,7 @@ import { beaconDataOf } from "@/lib/utils";
 import { Company, CompanyAdminInfo, CompanyArea, CompanyContactInfo, UserBeaconData } from "@/lib/types";
 import ProtectedTabs from "@/components/protected-tabs";
 
-export const beaconOrgHasSupabaseOrg = async (beaconOrgName:string) => {
+const beaconOrgHasSupabaseOrg = async (beaconOrgName:string) => {
   const supabase = await createClient();
   const check = await supabase
     .from('companies')
