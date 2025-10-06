@@ -8,7 +8,7 @@ export default async function ComnpaniesPage() {
 
   // Use Promise.all to prevent waterfall - both requests run in parallel
   const [members] = await Promise.all([
-    supabase.from('members').select('*'),
+    supabase.from('members').select('*').eq('beacon_membership_status', 'Active')
   ]);
 
   if (members.error) {

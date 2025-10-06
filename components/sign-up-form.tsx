@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { checkActiveBeaconMembership } from "@/lib/utils";
+import { UserBeaconData } from "@/lib/types";
 
 export function SignUpForm({
   className,
@@ -40,28 +42,32 @@ export function SignUpForm({
     }
 
     try {
-      // verify email exists in beacon 
-      const beaconRes = await fetch("/auth/beacon/membership");
-      if (!beaconRes.ok) {
-        throw new Error("Failed to verify membership with Beacon");
-      }
-      const beaconJson = await beaconRes.json();
-      const results: any[] = beaconJson?.results ?? [];
-      const normalizedEmail = email.trim().toLowerCase();
-      const existsInBeacon = results.some((item) => {
-        const emails = item?.entity?.emails ?? [];
-        return emails.some(
-          (e: any) => 
-            typeof e?.email === "string" &&
-            e.email.trim().toLowerCase() === normalizedEmail
-        );
-      });
 
-      if (!existsInBeacon) {
-        setError("Email address is not connected to an AQR membership account. Please contact support.");
+      const normalizedEmail = email.trim().toLowerCase();
+      const check = await checkActiveBeaconMembership(normalizedEmail);
+
+      if (!check.ok) {
+        // Map reasons to messages
+        if (check.reason === 'beacon-not-found') {
+          setError("We could not confirm your email address is associated with an AQR membership account. Please contact support.");
+        } else if (check.reason === 'business-directory') {
+          setError("Business Directory members cannot create an account. Please contact support.");
+        } else if (check.reason === 'no-active-membership') {
+          setError("No current AQR membership found for this email address. Please contact support.");
+        } else {
+          setError("We could not confirm your email address is associated with an AQR membership account. Please contact support.");
+        }
         setIsLoading(false);
         return;
       }
+
+      const userBeaconData = check.data as UserBeaconData;
+      const personId = userBeaconData?.id ?? null;
+      console.log("Matched Beacon Person ID:", personId);
+
+      // OK — all checks passed, proceed
+      router.push("/auth/sign-up-success");
+      
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -71,7 +77,8 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
-      router.push("/auth/sign-up-success");
+
+
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

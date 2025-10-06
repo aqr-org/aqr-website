@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { checkActiveBeaconMembership } from "@/lib/utils";
 
 export function LoginForm({
   className,
@@ -33,6 +34,20 @@ export function LoginForm({
     setError(null);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      const check = await checkActiveBeaconMembership(normalizedEmail);
+      if (!check.ok) {
+        if (check.reason === 'beacon-not-found') {
+          setError('No AQR membership found for this email address. Please contact support.');
+        } else if (check.reason === 'no-active-membership') {
+          setError('No active AQR membership found for this email address. Please contact support.');
+        } else {
+          setError('Unable to verify membership status. Please try again later.');
+        }
+        setIsLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,

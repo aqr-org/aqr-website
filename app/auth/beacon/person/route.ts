@@ -1,7 +1,5 @@
-import { NextRequest } from 'next/server';
+export async function GET() {
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
   const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
 
   if (!beaconAuthToken) {
@@ -9,7 +7,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Example of calling an external API with the auth token
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BEACON_API_URL}/entities/membership?${searchParams}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BEACON_API_URL}/entities/person/`, {
     headers: {
       'Authorization': `Bearer ${beaconAuthToken}`,
       'Beacon-Application': 'developer_api',

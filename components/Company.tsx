@@ -120,23 +120,28 @@ export default function Company(props: CompanyProps) {
         p-8 w-full max-w-[1080px] mx-auto box-border
       "
     >
-      <section>
-        <Image 
-          key={`${data.logo.data?.publicUrl || ''}-${Date.now()}`} // Force re-render with timestamp
-          src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
-          alt={data.name + ' logo'}
-          width={240}
-          height={120}
-          className="h-24 w-auto mb-4"
-          unoptimized // Disable Next.js optimization to avoid caching issues
-        />
-        <h1 className="text-xl mb-4 font-bold">{data.name}</h1>
-        <div 
-          className="mb-4 *:my-4" 
-          dangerouslySetInnerHTML={{ __html: data.narrative }} 
-        />
-        {/* {JSON.stringify(data.logo)} */}
-      </section>
+        <section>
+          {data.logo && data.logo.data && data.logo.data.publicUrl 
+            ?
+            <Image 
+              key={`${data.logo.data?.publicUrl || ''}-${Date.now()}`} // Force re-render with timestamp
+              src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
+              alt={data.name + ' logo'}
+              width={240}
+              height={120}
+              className="h-24 w-auto mb-4"
+              unoptimized // Disable Next.js optimization to avoid caching issues
+            />
+            :
+            <div className="bg-gray-100 aspect-square flex justify-center items-center w-24 text-xs text-center p-4 mb-4">No logo available</div>
+          }
+          <h1 className="text-xl mb-4 font-bold">{data.name}</h1>
+          <div 
+            className="mb-4 *:my-4" 
+            dangerouslySetInnerHTML={{ __html: data.narrative }} 
+          />
+          {/* {JSON.stringify(data.logo)} */}
+        </section>
 
       {data.contact_info && (
       <section>

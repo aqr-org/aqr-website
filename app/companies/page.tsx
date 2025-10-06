@@ -6,37 +6,33 @@ import { LoadingAnimation } from "@/components/ui/loading-animation";
 export default async function ComnpaniesPage() {
   const supabase = await createClient();
 
-  // Use Promise.all to prevent waterfall - both requests run in parallel
-  const [companies, contactInfo] = await Promise.all([
-    supabase.from('companies').select('*'),
-    supabase.from('company_contact_info').select('*')
+  const [companies] = await Promise.all([
+    supabase.from('companies').select('*').eq('beacon_membership_status', 'Active')
   ]);
 
   if (companies.error) {
     console.error("Companies error:", companies.error);
   }
 
-  if (contactInfo.error) {
-    console.error("Contact info error:", contactInfo.error);
-  }
+  const companiesWithActiveSubs = companies.data ? [...companies.data] : [];
 
-  companies.data?.sort((a, b) => {
+  companiesWithActiveSubs.sort((a, b) => {
     return a.name.localeCompare(b.name);
   });
-
+  
   return (
     <div>
       <h1>Companies List</h1>
       <div className="mb-4">
         {companies.error && <p className="text-red-500">Companies error: {companies.error.message}</p>}
-        {contactInfo.error && <p className="text-red-500">Contact info error: {contactInfo.error.message}</p>}
       </div>
       <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
         <div className="columns-5">
-          {companies.data && companies.data.length > 0 ? (
-            companies.data.map(company => {
+          {companiesWithActiveSubs && companiesWithActiveSubs.length > 0 ? (
+            companiesWithActiveSubs.map(company => {
+              const finalSlug = company.ident || company.slug;
               return (
-                <Link key={company.id} href={`/companies/${company.ident}`}>
+                <Link key={company.id} href={`/companies/${finalSlug}`}>
                   <h2>{company.name}</h2>
                 </Link>
               );

@@ -5,16 +5,12 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
+import { CompanyArea } from "@/lib/types";
 
-interface CompanyAreaData {
-  id: number;
-  company_id: number;
-  area: string;
-}
 
 interface CompanyAreaUpdateFormProps {
   companyId: string;
-  companyAreas: CompanyAreaData[];
+  companyAreas: CompanyArea[];
 }
 
 export default function CompanyAreaUpdateForm({ companyId, companyAreas }: CompanyAreaUpdateFormProps) {
@@ -44,15 +40,21 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas }: Compa
 
         setAvailableAreas(groupedAreas);
 
-        // Initialize selected areas from company areas
-        const selectedByCategory = companyAreas.reduce((acc, area) => {
+        // Initialize selected areas from company areas with proper fallbacks
+        const selectedByCategory: {[key: string]: string[]} = {};
+        
+        // First, initialize all categories with empty arrays
+        Object.keys(groupedAreas).forEach(category => {
+          selectedByCategory[category] = [];
+        });
+
+        // Then populate with existing company areas
+        companyAreas?.forEach(area => {
           const category = data.find(d => d.area === area.area)?.category;
-          if (category) {
-            if (!acc[category]) acc[category] = [];
-            acc[category].push(area.area);
+          if (category && selectedByCategory[category]) {
+            selectedByCategory[category].push(area.area);
           }
-          return acc;
-        }, {} as {[key: string]: string[]});
+        });
 
         setSelectedAreas(selectedByCategory);
       }

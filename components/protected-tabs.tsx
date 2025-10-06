@@ -1,20 +1,21 @@
 'use client';
 
 import CompanyUpdateForm from "@/components/CompanyUpdateForm";
-import CompanyAreaUpdateForm from "@/components/CompanyAreaUpdateForm";
-import CompanyContactUpdateForm from "@/components/CompanyContactUpdateForm";
+import MemberUpdateForm from "@/components/MemberUpdateForm";
+import MemberCreateForm from "./MemberCreateForm";
+import CompanyCreateForm from "./CompanyCreateForm";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
+import { UserBeaconData } from "@/lib/types";
 
 export default function ProtectedTabs({
-  companiesAdminInfo,
   companyData,
   companyAreas,
   companyContactInfo,
-  membersInfo
+  membersInfo,
+  userEmail,
+  userBeaconData
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  companiesAdminInfo: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   companyData: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,45 +24,64 @@ export default function ProtectedTabs({
   companyContactInfo: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   membersInfo: any;
+  userEmail: string;
+  userBeaconData: UserBeaconData;
 }) {
+
+  const hasDirectoryMembership = (userBeaconData.allMemberships && userBeaconData.allMemberships.includes('Business Directory')) || (userBeaconData.allMemberships && userBeaconData.allMemberships.includes('Business Directory'));
+  const isOnlyDirectoryMember = (
+    userBeaconData.allMemberships 
+    && userBeaconData.allMemberships.length === 1
+    && userBeaconData.allMemberships[0] === 'Business Directory' 
+  );
+
   return(
     <Tabs>
         <TabList>
-          <Tab>Company Admin</Tab>
-          <Tab>Member Info</Tab>
+          {!isOnlyDirectoryMember && <Tab>Edit your personal info</Tab> }
+          {hasDirectoryMembership && <Tab>Edit your organisation info</Tab> }
         </TabList>
-        <TabPanel>
-          <div id="company-admin" className="flex flex-col gap-2 items-start">
-            <h2 className="font-bold text-2xl mb-4">Your company admin details</h2>
 
-            {companiesAdminInfo.data && companiesAdminInfo.data.length !== 0 && (
-              <div className="w-full space-y-6">
-                <CompanyUpdateForm 
-                  companyData={companyData.data ? companyData.data[0] : null}
-                />
-                
-                <CompanyAreaUpdateForm 
-                  companyId={companiesAdminInfo.data[0].company_id}
-                  companyAreas={companyAreas.data ? companyAreas.data : []}
-                />
+        {!isOnlyDirectoryMember &&
+          <TabPanel>
+            <div id="member-admin" className="flex flex-col gap-2 items-start">
+              
+              {membersInfo.data && membersInfo.data.length !== 0 && (
+                <div className="w-full space-y-6">
+                  <MemberUpdateForm 
+                    memberData={membersInfo.data ? membersInfo.data[0] : null}
+                  />
+                </div>
+              )}
+              
+              {(!membersInfo.data || membersInfo.data.length === 0) && (
+                <MemberCreateForm userEmail={userEmail} />
+              )}
+            </div>
+          </TabPanel>  
+        }
 
-                <CompanyContactUpdateForm 
-                  companyId={companiesAdminInfo.data[0].company_id}
-                  contactData={companyContactInfo.data || null}
-                />
+        {hasDirectoryMembership &&
+          <TabPanel>
+            <div id="company-admin" className="flex flex-col gap-2 items-start">
+              { !companyData &&
+                <CompanyCreateForm data={userBeaconData} />
+              }
+                <div className="w-full space-y-6">
 
-              </div>
-            )}     
-          </div>
-        </TabPanel>
-        <TabPanel>
-          <div id="member-admin" className="flex flex-col gap-2 items-start">
-            <h2 className="font-bold text-2xl mb-4">Your member details</h2>
-            <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-              {JSON.stringify(membersInfo.data, null, 2)}
-            </pre>
-          </div>
-        </TabPanel>  
+                  { companyData &&
+                    <CompanyUpdateForm 
+                      companyData={companyData ? companyData : null}
+                      companyAreas={companyAreas ? companyAreas.data : []}
+                      contactData={companyContactInfo || null}
+                    />
+                  }
+
+                </div>
+            </div>
+          </TabPanel>
+        }
+        
       </Tabs>
       
   )

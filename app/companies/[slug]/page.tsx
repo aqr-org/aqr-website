@@ -14,7 +14,7 @@ export default async function ComnpaniesPage({
   const company = await supabase
     .from('companies')
     .select('*')
-    .eq('ident', slug)
+    .or(`ident.eq.${slug},and(ident.is.null,slug.eq.${slug})`)
     .single();
 
   if (company.error) {
@@ -61,7 +61,7 @@ export default async function ComnpaniesPage({
 
   // Log results
   if (companyContactInfo.error) {
-    console.error("Company contact info error:", companyContactInfo.error);
+    console.log("Company contact info error:", companyContactInfo.error);
   } else {
     console.log("Company contact info:", companyContactInfo.data);
   }

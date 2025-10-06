@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Example of calling an external API with the auth token
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BEACON_API_URL}/entities/membership?${searchParams}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BEACON_API_URL}/entities/organization?${searchParams}`, {
     headers: {
       'Authorization': `Bearer ${beaconAuthToken}`,
       'Beacon-Application': 'developer_api',

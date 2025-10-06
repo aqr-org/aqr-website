@@ -3,9 +3,11 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Navigation from "@/components/Navigation";
 import "./globals.css";
+import { Suspense } from "react";
+import { LoadingAnimation } from "@/components/ui/loading-animation";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
+const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ? `https://${process.env.NEXT_PUBLIC_SITE_URL}`
   : "http://localhost:3000";
 
 export const metadata: Metadata = {
@@ -35,7 +37,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navigation />
-          {children}
+          <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
+            {children}
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
