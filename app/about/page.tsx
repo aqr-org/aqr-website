@@ -9,7 +9,7 @@ export default async function Home() {
   
   return (
     <main className="min-h-screen flex flex-col items-center">
-      <Background color="#0000FF" />
+      <Background color="#FF0000" />
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
           <StoryblokStory story={storyBlokStory} />
@@ -20,6 +20,6 @@ export default async function Home() {
 }
 
 export async function fetchStoryblokData() {
-	const storyblokApi = getStoryblokApi();
-	return await storyblokApi.get(`cdn/stories/home`, { version: 'draft' });
+  const storyblokApi = getStoryblokApi();
+  return await storyblokApi.get(`cdn/stories/about`, { version: 'draft' });
 }

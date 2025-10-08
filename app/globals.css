@@ -1,8 +1,21 @@
 /* @import '../styles/_variables.scss';                                       
 @import '../styles/_keyframe-animations.scss';     */
+@import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-qreen: #7BBD40;
+  --color-qreen-dark: #3C772B;
+  --color-qlack: #11160C;
+  --color-qellow: #EBFE56;
+  --color-qeal: #4CA79E;
+  --color-qitrus: #F1B355;
+  --color-qrose: #E27A96;
+  --color-qaupe: #FCFAF0;
+}
 
 @layer base {
   :root {
@@ -69,7 +82,6 @@
   }
 }
 
-
 .ProseMirror {
   &:focus {
     @apply outline-none;
@@ -89,6 +101,7 @@ a {
   @apply text-primary underline;
 }
 
+/* Form Global Defaults */
 .form {
   & label {
     @apply block mb-2 text-sm text-foreground;

@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";
 import Navigation from "@/components/Navigation";
 import "./globals.css";
 import { Suspense } from "react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
+import StoryblokProvider from "@/components/StoryblokProvider";
+import { draftMode } from 'next/headers';
+import DraftModeAlert from '@/components/storyblok/DraftModeAlert';
+import DraftModeActivate from '@/components/storyblok/DraftModeActivate';
+import BackgroundGraphics from "@/components/BackgroundGraphics";
+import { BackgroundColorProvider } from "@/components/BackgroundProvider";
 
 const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
   ? `https://${process.env.NEXT_PUBLIC_SITE_URL}`
@@ -22,26 +27,37 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  const { isEnabled } = await draftMode();
+  const isDraftMode = isEnabled;
+
   return (
+    <StoryblokProvider>
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
           <Navigation />
-          <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
-            {children}
-          </Suspense>
-        </ThemeProvider>
+          {isDraftMode && (
+            <DraftModeAlert />
+          )}
+          <DraftModeActivate />
+          <BackgroundColorProvider initialColor="#0ea5a4">
+            <BackgroundGraphics />
+            <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
+              {children}
+            </Suspense>
+          </BackgroundColorProvider>
+        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
+          <p>
+            AQR Footer
+          </p>
+        </footer>
       </body>
     </html>
+    </StoryblokProvider>
   );
 }
