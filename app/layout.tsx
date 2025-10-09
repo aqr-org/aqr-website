@@ -45,10 +45,12 @@ export default async function RootLayout({
             <DraftModeAlert />
           )}
           <DraftModeActivate />
-          <BackgroundColorProvider initialColor="#0ea5a4">
+          <BackgroundColorProvider>
             <BackgroundGraphics />
             <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
+            <div className="flex-1 w-full max-w-maxw mx-auto px-5 flex flex-col gap-20 min-h-screen">
               {children}
+            </div>
             </Suspense>
           </BackgroundColorProvider>
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">

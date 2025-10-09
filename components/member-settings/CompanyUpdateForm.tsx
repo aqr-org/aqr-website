@@ -1,7 +1,7 @@
 import CompanyInfoUpdateForm from "./CompanyInfoUpdateForm";
 import CompanyAreaUpdateForm from "./CompanyAreaUpdateForm";
 import CompanyContactUpdateForm from "./CompanyContactUpdateForm";
-import { CompanyData, CompanyAreaData, CompanyContactData } from "../lib/types";
+import { CompanyData, CompanyAreaData, CompanyContactData } from "../../lib/types";
 
 export default function CompanyUpdateForm({ companyData, companyAreas, contactData }: { companyData: CompanyData; companyAreas: CompanyAreaData[]; contactData: CompanyContactData }) {  
   return(

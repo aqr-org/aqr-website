@@ -8,13 +8,13 @@ export default async function Home() {
   const storyBlokStory = storyblok.data.story;
   
   return (
-    <main className="min-h-screen flex flex-col items-center">
-      <Background color="#0000FF" />
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <StoryblokStory story={storyBlokStory} />
-        </div>
-      </div>
+    <main>
+      <Background 
+        css={`
+          #bg_svg_circle_1 { transform: translate(0%, 0%); }
+        `} 
+      />
+      <StoryblokStory story={storyBlokStory} />
     </main>
   );
 }

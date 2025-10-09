@@ -1,20 +1,31 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useBackgroundColor } from '@/components/BackgroundProvider';
+import { useBackgroundColor, useBackgroundCss } from '@/components/BackgroundProvider';
 
 interface Props {
-  color: string;
+  color?: string;
+  css?: string;
 }
 
-export default function HomePage({ color }: Props) {
+export default function HomePage({ color, css }: Props) {
   const setBg = useBackgroundColor();
+  const setCss = useBackgroundCss();
 
   useEffect(() => {
-    // set per-route color
-    setBg(color);
-    return () => setBg(color); // optional reset on unmount
+    if (color) setBg(color);
+    return () => {
+      // no-op: keep current color unless caller explicitly resets
+    };
   }, [setBg, color]);
+
+  useEffect(() => {
+    if (css) setCss(css);
+    return () => {
+      // clear css on unmount if we set it
+      if (css) setCss(null);
+    };
+  }, [setCss, css]);
 
   return null;
 }

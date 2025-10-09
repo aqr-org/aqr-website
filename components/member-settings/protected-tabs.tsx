@@ -1,11 +1,11 @@
 'use client';
 
-import CompanyUpdateForm from "@/components/CompanyUpdateForm";
-import MemberUpdateForm from "@/components/MemberUpdateForm";
-import MemberCreateForm from "./MemberCreateForm";
-import CompanyCreateForm from "./CompanyCreateForm";
+import CompanyUpdateForm from "@/components/member-settings/CompanyUpdateForm";
+import MemberUpdateForm from "@/components/member-settings/MemberUpdateForm";
+import MemberCreateForm from "@/components/member-settings/MemberCreateForm";
+import CompanyCreateForm from "@/components/member-settings/CompanyCreateForm";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import 'react-tabs/style/react-tabs.css';
+// import 'react-tabs/style/react-tabs.css';
 import { UserBeaconData } from "@/lib/types";
 
 export default function ProtectedTabs({
@@ -37,7 +37,14 @@ export default function ProtectedTabs({
 
   return(
     <Tabs>
-        <TabList>
+        <TabList 
+          className={`
+            flex gap-1
+            mb-4
+            *:bg-qreen text-qaupe *:px-4 *:py-2 *:rounded-full
+            *:[aria-selected=true]:bg-qaupe *:[aria-selected=true]:text-qreen
+          `}
+        >
           {!isOnlyDirectoryMember && <Tab>Edit your personal info</Tab> }
           {hasDirectoryMembership && <Tab>Edit your organisation info</Tab> }
         </TabList>

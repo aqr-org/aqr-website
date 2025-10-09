@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { beaconDataOf } from "@/lib/utils";
 import { Company, CompanyAdminInfo, CompanyArea, CompanyContactInfo, UserBeaconData } from "@/lib/types";
-import ProtectedTabs from "@/components/protected-tabs";
+import ProtectedTabs from "@/components/member-settings/protected-tabs";
 
 const beaconOrgHasSupabaseOrg = async (beaconOrgName:string) => {
   const supabase = await createClient();
@@ -114,8 +114,8 @@ export default async function ProtectedPage() {
   return (
       <div className="flex-1 w-full flex flex-col gap-12">
 
-          <h1 className="font-bold text-3xl">Welcome, {data?.claims?.name || "member"}!</h1>
-        <section className="flex gap-4">
+        <h1 className="font-bold text-3xl">Welcome, {data?.claims?.name || "member"}!</h1>
+        {/* <section className="flex gap-4">
           <div>
             OrgExistsOnBoth: {orgExistsOnBoth ? 'true' : 'false'}
             <pre>
@@ -126,7 +126,7 @@ export default async function ProtectedPage() {
           <pre>
             {JSON.stringify(thisCompanyRecord.data, null, 2)}
           </pre>
-        </section>
+        </section> */}
 
         <ProtectedTabs
           companyData={thisCompanyRecord.data}
