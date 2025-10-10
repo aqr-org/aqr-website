@@ -27,7 +27,7 @@ export default function BackgroundGraphics() {
         width="1440" height="1024" viewBox="0 0 1440 1024" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className='overflow-visible w-full h-auto'
+        className='overflow-visible w-full h-auto relative'
       >
         <g>
           <path

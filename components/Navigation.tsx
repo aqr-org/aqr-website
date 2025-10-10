@@ -74,18 +74,19 @@ export default function Navigation() {
   return (
     <nav className="w-full flex justify-center bg-qaupe" aria-label="Main navigation">
       <div className="w-full max-w-maxw flex items-center justify-between p-3 px-5 text-sm">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-12">
           <Link href="/" className="w-20 h-20 inline-flex items-center" aria-label="Home">
             <Logo />
           </Link>
+
+          {/* Desktop links */}
+          <div className="hidden md:flex md:items-end md:gap-8 font-[550] text-lg">
+            <Link href="/about">About</Link>
+            <Link href="/companies">Companies</Link>
+            <Link href="/members">Members</Link>
+          </div>
         </div>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex md:items-end md:gap-8 font-[550] text-lg">
-          <Link href="/about">About</Link>
-          <Link href="/companies">Companies</Link>
-          <Link href="/members">Members</Link>
-        </div>
 
         {/* Right side - desktop */}
         <div className="hidden md:block">

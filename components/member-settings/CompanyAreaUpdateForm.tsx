@@ -116,7 +116,7 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas }: Compa
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form border rounded-lg p-4 bg-gray-50">
+    <form onSubmit={handleSubmit} className="form">
       <h3 className="text-lg font-semibold mb-4">Company Areas & Specializations</h3>
       
       <div className="space-y-6">

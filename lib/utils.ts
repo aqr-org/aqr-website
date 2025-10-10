@@ -31,8 +31,10 @@ export const getProfessionalOrgName = (abbreviation: string): string => {
 export const beaconDataOf = async (email: string): Promise<object> => {
   
   const normalizedEmail = email.trim().toLowerCase();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3001';
+  // This has as a result the entity that contains the email address:
   const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}`);
+  // This second endpoint checks for memberships where the email is in the additional members field
   const beaconAdditionalMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}&field=additional_members`);
 
   if (!beaconMembershipRes.ok && !beaconAdditionalMembershipRes.ok) {
@@ -66,10 +68,16 @@ export const beaconDataOf = async (email: string): Promise<object> => {
   })
 
   const orgsFromMemberships = [] as { id: string; name: string }[];
+  let personId = '';
 
   membershipResults.forEach((membership) => {
     const references = membership.references;
     references.forEach((ref) => {
+
+      if (normalizedEmail === ref.entity.emails?.[0]?.email.toString().toLowerCase()) {
+        personId = ref.entity.id;
+      }
+
       // Entity type ID 268431 corresponds to "Organization" in our Beacon API
       // Maybe it would be safer to fetch from /auth/beacon/organization and cross-check IDs, but this is simpler
       // This is saving one API call too, which is good bcs Beacon API is a bit slow
@@ -91,6 +99,7 @@ export const beaconDataOf = async (email: string): Promise<object> => {
   
   const data = {
     id: membershipId,
+    personId: personId,
     email: normalizedEmail,
     hasCurrentMembership: memberShipIsActive,
     hasOrg: uniqueOrgs.length > 0,
@@ -98,7 +107,8 @@ export const beaconDataOf = async (email: string): Promise<object> => {
     organizations: uniqueOrgs.map((org) => ({
       id: org.id,
       name: org.name,
-    }))
+    })),
+    // allMembershipsRaw: beaconMembershipJson?.results ?? [],
   } as UserBeaconData
 
   return data;

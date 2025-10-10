@@ -120,7 +120,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData }: Com
   };
 
   return (
-    <div className="border rounded-lg p-4 bg-gray-50">
+    <div className="">
       <h3 className="text-lg font-semibold mb-4">Company Contact Information</h3>
       <form onSubmit={handleSubmit} className="form space-y-4">
         {/* Address Fields */}

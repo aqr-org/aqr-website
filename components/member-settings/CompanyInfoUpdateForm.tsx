@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
-import { useEditor, EditorContent, type Editor } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { Pilcrow, Bold, Italic, Strikethrough, Check, Upload, X } from "lucide-react";
+import { Check, Upload, X } from "lucide-react";
 import { profOrgsNameMap } from "@/lib/utils";
 import Image from "next/image";
+import MenuBar from "@/components/ui/richtext-editor-menu";
 
 interface CompanyData {
   id: string;
@@ -55,69 +56,6 @@ const accreditationValues = [
   "ISO 9001",
   "ISO 17100"
 ];
-
-const MenuBar = ({ editor }: { editor: Editor | null }) => {
-  if (!editor) {
-    return null
-  }
-
-  return (
-    <div className="control-group">
-      <div 
-        className="
-          button-group
-          flex gap-1 mb-0 flex-wrap text-xs font-bold
-          p-2 bg-gray-100 rounded-t-md border border-b-0
-          *:w-8 *:h-8 *:flex *:items-center *:justify-center
-          *:p-2 *:py-1 *:bg-white *:hover:bg-slate-300 *:rounded-md *:cursor-pointer
-        "
-      >
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
-        >
-          H3
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          className={editor.isActive('paragraph') ? 'is-active' : ''}
-        >
-          <Pilcrow />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'is-active' : ''}
-        >
-          <Bold />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'is-active' : ''}
-        >
-          <Italic />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={editor.isActive('strike') ? 'is-active' : ''}
-        >
-          <Strikethrough />
-        </button>
-      </div>
-    </div>
-  )
-}
 
 export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdateFormProps) {
   const router = useRouter();
@@ -390,7 +328,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
   // }
 
   return (
-    <form onSubmit={handleSubmit} className="form flex flex-col gap-4 border rounded-lg p-4 bg-gray-50">
+    <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
       
       {/* {JSON.stringify(companyData)} */}
 

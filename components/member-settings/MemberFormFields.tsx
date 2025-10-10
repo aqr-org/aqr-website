@@ -1,9 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEditor, EditorContent, type Editor } from '@tiptap/react'
+import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { Pilcrow, Bold, Italic, Strikethrough, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import MenuBar from "@/components/ui/richtext-editor-menu";
 
 interface MemberFormData {
   firstname: string;
@@ -12,8 +13,17 @@ interface MemberFormData {
   organisation: string;
   country: string;
   maintag: string;
+  othertags: string[];
+  linkedin: string;
+  flags: string[];
+  cttetitle: string;
+  ctteareas: string;
+  biognotes: string;
   joined: string;
   timeline: string[];
+  beacon_id?: string;
+  beacon_membership?: string;
+  beacon_membership_status?: string;
 }
 
 interface MemberFormFieldsProps {
@@ -26,69 +36,12 @@ interface MemberFormFieldsProps {
   wasSuccessful: boolean;
   successIcon?: React.ReactNode;
   isCreateMode?: boolean; // To differentiate required fields
-}
-
-const MenuBar = ({ editor }: { editor: Editor | null }) => {
-  if (!editor) {
-    return null
-  }
-
-  return (
-    <div className="control-group">
-      <div 
-        className="
-          button-group
-          flex gap-1 mb-0 flex-wrap text-xs font-bold
-          p-2 bg-gray-100 rounded-t-md border border-b-0
-          *:w-8 *:h-8 *:flex *:items-center *:justify-center
-          *:p-2 *:py-1 *:bg-white *:hover:bg-slate-300 *:rounded-md *:cursor-pointer
-        "
-      >
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={editor.isActive('heading', { level: 2 }) ? 'is-active' : ''}
-        >
-          H2
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={editor.isActive('heading', { level: 3 }) ? 'is-active' : ''}
-        >
-          H3
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          className={editor.isActive('paragraph') ? 'is-active' : ''}
-        >
-          <Pilcrow />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'is-active' : ''}
-        >
-          <Bold />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'is-active' : ''}
-        >
-          <Italic />
-        </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={editor.isActive('strike') ? 'is-active' : ''}
-        >
-          <Strikethrough />
-        </button>
-      </div>
-    </div>
-  )
+  userBeaconData?: { // Optional, only needed in create mode
+    email: string;
+    id: string;
+    beacon_membership: string;
+    beacon_membership_status: string;
+  };
 }
 
 export default function MemberFormFields({
@@ -100,7 +53,8 @@ export default function MemberFormFields({
   isLoading,
   wasSuccessful,
   successIcon,
-  isCreateMode = false
+  isCreateMode = false,
+  userBeaconData
 }: MemberFormFieldsProps) {
   
   const editor = useEditor({
@@ -137,12 +91,12 @@ export default function MemberFormFields({
   // Determine which fields are required based on mode
   const firstNameRequired = isCreateMode;
   const lastNameRequired = isCreateMode;
-  const jobTitleRequired = !isCreateMode;
-  const organisationRequired = !isCreateMode;
-  const countryRequired = !isCreateMode;
+  const jobTitleRequired = isCreateMode;
+  const organisationRequired = isCreateMode;
+  const countryRequired = isCreateMode;
 
   return (
-    <form onSubmit={handleSubmit} className="form flex flex-col gap-4 border rounded-lg p-4 bg-gray-50">
+    <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
       
       <div className="flex flex-col md:flex-row md:gap-4">
         <label htmlFor="firstname">
@@ -301,6 +255,26 @@ export default function MemberFormFields({
           Add notable achievements, awards, or contributions to the industry
         </p>
       </div>
+
+      {isCreateMode && userBeaconData && (
+        <>
+          <input 
+            type="hidden" 
+            name="beacon_id" 
+            value={userBeaconData.id ?? ''} 
+          />
+          <input
+            type="hidden"
+            name="beacon_membership"
+            value={(userBeaconData)?.beacon_membership ?? ''}
+          />
+          <input 
+            type="hidden" 
+            name="beacon_membership_status" 
+            value="Active" 
+          />
+        </>
+      )}
       
       <div className="flex justify-end">
         <div className="flex items-center gap-1">

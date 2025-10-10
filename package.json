@@ -38,6 +38,7 @@
     "react-dom": "^19.0.0",
     "react-hotkeys-hook": "^5.1.0",
     "react-tabs": "^6.1.0",
+    "storyblok-rich-text-react-renderer": "^3.0.1",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {

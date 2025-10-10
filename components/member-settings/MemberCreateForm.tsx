@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Check } from "lucide-react";
 import MemberFormFields, { type MemberFormData } from "./MemberFormFields";
+import { UserBeaconData } from "@/lib/types/beacon";
 
 interface MemberCreateFormProps {
-  userEmail: string;
+  userBeaconData: UserBeaconData;
 }
 
-export default function MemberCreateForm({ userEmail }: MemberCreateFormProps) {
+export default function MemberCreateForm({ userBeaconData }: MemberCreateFormProps) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [wasCreated, setWasCreated] = useState(false);
@@ -22,10 +23,20 @@ export default function MemberCreateForm({ userEmail }: MemberCreateFormProps) {
     jobtitle: '',
     organisation: '',
     country: '',
-    maintag: '',
     joined: '',
-    timeline: []
+    maintag: '',
+    othertags: [],
+    linkedin: '',
+    flags: [],
+    cttetitle: '',
+    ctteareas: '',
+    biognotes: '',
+    timeline: [],
+    beacon_membership: '',
+    beacon_membership_status: ''
   });
+
+  const userEmail = userBeaconData.email;
 
   const handleSubmit = async (biognotes: string) => {
     setIsCreating(true);
@@ -51,9 +62,17 @@ export default function MemberCreateForm({ userEmail }: MemberCreateFormProps) {
         jobtitle: formValues.jobtitle.trim(),
         organisation: formValues.organisation.trim(),
         country: formValues.country.trim(),
+        joined: formValues.joined.trim() || null,
         biognotes: biognotes,
         maintag: formValues.maintag?.trim() || null,
-        timeline: formValues.timeline.filter(item => item.trim() !== '') // Remove empty timeline entries
+        timeline: formValues.timeline.filter(item => item.trim() !== ''), // Remove empty timeline entries\
+        othertags: formValues.othertags.length > 0 ? formValues.othertags.map(tag => tag.trim()).filter(tag => tag !== '') : null,
+        linkedin: formValues.linkedin?.trim() || null,
+        flags: formValues.flags.length > 0 ? formValues.flags.map(flag => flag.trim()).filter(flag => flag !== '') : null,
+        cttetitle: formValues.cttetitle?.trim() || null,
+        ctteareas: formValues.ctteareas?.trim() || null,
+        beacon_membership: formValues.beacon_membership?.trim() || null,
+        beacon_membership_status: formValues.beacon_membership_status?.trim() || null,
       };
 
       console.log('Creating member with data:', insertData);
@@ -100,15 +119,15 @@ export default function MemberCreateForm({ userEmail }: MemberCreateFormProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">
+      <div className="bg-qlack/10 border border-qlack rounded-lg p-4">
+        <h3 className="text-lg font-semibold text-qlack mb-2">
           Create Your Member Profile
         </h3>
-        <p className="text-blue-700 text-sm">
-          No member profile found for: <span className="font-medium">{userEmail}</span>
+        <p className="text-qlack text-sm">
+          No member profile found for <span className="font-bold">{userEmail}</span> yet!
         </p>
-        <p className="text-blue-600 text-sm mt-1">
-          Fill out the form below to create your member profile. First Name and Last Name are required.
+        <p className="text-qlack text-sm mt-1">
+          Fill out the form below to create your member profile.
         </p>
       </div>
 

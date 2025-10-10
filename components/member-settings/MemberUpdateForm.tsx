@@ -40,7 +40,13 @@ export default function MemberUpdateForm({ memberData }: MemberUpdateFormProps) 
     country: memberData?.country || '',
     maintag: memberData?.maintag || '',
     joined: memberData?.joined || '',
-    timeline: memberData?.timeline || []
+    timeline: memberData?.timeline || [],
+    othertags: [],
+    linkedin: '',
+    flags: [],
+    cttetitle: '',
+    ctteareas: '',
+    biognotes: memberData?.biognotes || ''
   });
 
   const handleSubmit = async (biognotes: string) => {

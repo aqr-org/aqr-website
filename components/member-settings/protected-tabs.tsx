@@ -5,7 +5,6 @@ import MemberUpdateForm from "@/components/member-settings/MemberUpdateForm";
 import MemberCreateForm from "@/components/member-settings/MemberCreateForm";
 import CompanyCreateForm from "@/components/member-settings/CompanyCreateForm";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-// import 'react-tabs/style/react-tabs.css';
 import { UserBeaconData } from "@/lib/types";
 
 export default function ProtectedTabs({
@@ -13,7 +12,6 @@ export default function ProtectedTabs({
   companyAreas,
   companyContactInfo,
   membersInfo,
-  userEmail,
   userBeaconData
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,19 +37,33 @@ export default function ProtectedTabs({
     <Tabs>
         <TabList 
           className={`
-            flex gap-1
-            mb-4
-            *:bg-qreen text-qaupe *:px-4 *:py-2 *:rounded-full
-            *:[aria-selected=true]:bg-qaupe *:[aria-selected=true]:text-qreen
+            flex gap-1 items-end
+            mb-0 
           `}
         >
-          {!isOnlyDirectoryMember && <Tab>Edit your personal info</Tab> }
-          {hasDirectoryMembership && <Tab>Edit your organisation info</Tab> }
+          {!isOnlyDirectoryMember && 
+            <Tab
+              className="border border-qlack border-b-0 font-[400] bg-qaupe bg-gradient-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+              selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            >
+              Edit your personal info
+            </Tab> 
+          }
+          {hasDirectoryMembership && 
+            <Tab
+              className="border border-qlack border-b-0 font-[400] bg-qaupe bg-gradient-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+              selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            >
+              Edit your organisation info
+            </Tab>
+          }
         </TabList>
 
         {!isOnlyDirectoryMember &&
-          <TabPanel>
-            <div id="member-admin" className="flex flex-col gap-2 items-start">
+          <TabPanel 
+            selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          >
+            <div id="member-admin">
               
               {membersInfo.data && membersInfo.data.length !== 0 && (
                 <div className="w-full space-y-6">
@@ -62,15 +74,17 @@ export default function ProtectedTabs({
               )}
               
               {(!membersInfo.data || membersInfo.data.length === 0) && (
-                <MemberCreateForm userEmail={userEmail} />
+                <MemberCreateForm userBeaconData={userBeaconData} />
               )}
             </div>
           </TabPanel>  
         }
 
         {hasDirectoryMembership &&
-          <TabPanel>
-            <div id="company-admin" className="flex flex-col gap-2 items-start">
+          <TabPanel 
+            selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          >
+            <div id="company-admin">
               { !companyData &&
                 <CompanyCreateForm data={userBeaconData} />
               }
