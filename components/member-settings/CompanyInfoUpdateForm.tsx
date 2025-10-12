@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Check, Upload, X } from "lucide-react";
@@ -12,7 +12,7 @@ import Image from "next/image";
 import MenuBar from "@/components/ui/richtext-editor-menu";
 
 interface CompanyData {
-  id: string;
+  id?: string;
   name: string;
   type: string;
   established: number;
@@ -27,9 +27,15 @@ interface CompanyData {
 
 interface CompanyInfoUpdateFormProps {
   companyData: CompanyData | null;
+  onSuccess?: (companyId: string) => void;
+  beaconData?: {
+    organizations: { id: string; name: string }[];
+    hasCurrentMembership: boolean;
+  };
 }
 
 const companyTypeValues = [
+  "Unspecified",
   "Market Research Agency",
   "Recruitment Agency",
   "Field Agency",
@@ -57,7 +63,7 @@ const accreditationValues = [
   "ISO 17100"
 ];
 
-export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdateFormProps) {
+export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconData }: CompanyInfoUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -84,6 +90,41 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
     content: companyData ? companyData.narrative : 'Start writing here...',
     immediatelyRender: false,
   })
+
+  // Load existing logo from storage when component mounts or company ID changes
+  useEffect(() => {
+    const loadExistingLogo = async () => {
+      if (!companyData?.id) return;
+      
+      const supabase = createClient();
+      
+      try {
+        // List files in companies folder that start with company ID
+        const { data: files } = await supabase.storage
+          .from('images')
+          .list('companies', {
+            search: companyData.id
+          });
+        
+        if (files && files.length > 0) {
+          // Find file that starts with company ID
+          const logoFile = files.find(f => f.name.startsWith(companyData.id!));
+          
+          if (logoFile) {
+            const { data: urlData } = supabase.storage
+              .from('images')
+              .getPublicUrl(`companies/${logoFile.name}`);
+            
+            setFormValues(prev => ({ ...prev, logo: urlData.publicUrl }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading existing logo:', error);
+      }
+    };
+    
+    loadExistingLogo();
+  }, [companyData?.id]);
 
   // Logo upload handlers
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,28 +153,25 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
     }
   };
 
-  const handleLogoUpload = async (): Promise<boolean> => {
-    if (!logoFile || !companyData?.id) return false;
+  const handleLogoUpload = async (companyId?: string): Promise<boolean> => {
+    const targetCompanyId = companyId || companyData?.id;
+    if (!logoFile || !targetCompanyId) return false;
 
     setIsUploadingLogo(true);
     const supabase = createClient();
 
     try {
-      // First, list all files in the companies folder to find existing logos
-      console.log('Searching for existing files with company ID:', companyData.id);
-
+      
       // Try both with search parameter and without to see all files
       const { data: allFiles } = await supabase.storage
         .from('images')
         .list('companies');
 
-      console.log('All files in companies folder:', allFiles);
-
-      const { data: existingFiles, error: listError } = await supabase.storage
-        .from('images')
-        .list('companies', {
-          search: companyData.id
-        });
+        const { data: existingFiles, error: listError } = await supabase.storage
+          .from('images')
+          .list('companies', {
+            search: targetCompanyId
+          });
 
       if (listError) {
         console.error('Error listing existing files:', listError);
@@ -147,7 +185,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
       // Method 1: Use search results if available
       if (existingFiles && existingFiles.length > 0) {
         filesToDelete = existingFiles
-          .filter(file => file.name.startsWith(companyData.id))
+          .filter(file => file.name.startsWith(targetCompanyId))
           .map(file => `companies/${file.name}`);
       }
 
@@ -155,7 +193,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
       if (filesToDelete.length === 0 && allFiles && allFiles.length > 0) {
         console.log('Search method found no files, trying manual filter');
         filesToDelete = allFiles
-          .filter(file => file.name.startsWith(companyData.id))
+          .filter(file => file.name.startsWith(targetCompanyId))
           .map(file => `companies/${file.name}`);
       }
 
@@ -173,12 +211,12 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
           console.log('Successfully deleted existing logos:', filesToDelete);
         }
       } else {
-        console.log('No files found that start with company ID:', companyData.id);
+        console.log('No files found that start with company ID:', targetCompanyId);
       }
 
       // Get file extension
       const fileExt = logoFile.name.split('.').pop();
-      const fileName = `${companyData.id}.${fileExt}`;
+      const fileName = `${targetCompanyId}.${fileExt}`;
 
       // Upload new logo
       const { error: uploadError } = await supabase.storage
@@ -239,18 +277,20 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
     }
   };
 
+  const handleLogoUploadClick = async () => {
+    await handleLogoUpload();
+  };
+
   // Convert to regular event handler instead of server action
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    console.log('Form submission started');
-    console.log('Current form values:', formValues);
-    
     const narrative = editor ? editor.getHTML() : '';
     
     // If the user has selected a logo file but not uploaded it yet, upload it first
-    if (logoFile) {
+    // Only attempt logo upload if we have a company ID (update mode)
+    if (logoFile && companyData?.id) {
       console.log('Logo file selected but not uploaded - uploading now...');
       const uploaded = await handleLogoUpload();
       if (!uploaded) {
@@ -259,13 +299,14 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
         return;
       }
       console.log('Logo uploaded successfully, continuing with form submission');
+    } else if (logoFile && !companyData?.id) {
+      console.log('Logo file selected but company not created yet - will upload after company creation');
     }
     
     // Basic validation
-    if (!companyData?.id || !formValues.companyName || !formValues.type || !formValues.companysize || !formValues.established || !formValues.gradprog || !narrative) {
+    if (!formValues.companyName || !formValues.type || !formValues.companysize || !formValues.established || !formValues.gradprog || !narrative) {
       console.error("All fields are required.");
       console.error("Missing fields:", {
-        id: companyData?.id,
         companyName: formValues.companyName,
         type: formValues.type,
         companysize: formValues.companysize,
@@ -280,7 +321,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
     const supabase = createClient();
 
     try {
-      const updateData = {
+      const companyDataToSave = {
         name: formValues.companyName.trim(),
         type: formValues.type,
         companysize: formValues.companysize,
@@ -289,30 +330,66 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
         narrative: narrative,
         proforgs: formValues.profOrgs?.trim() || null,
         prsaward: formValues.prsaward?.trim() || null,
-        accred: formValues.accred?.trim() || null
+        accred: formValues.accred?.trim() || null,
+        // Add the required beacon fields when creating
+        ...(companyData?.id ? {} : {
+          beacon_membership_id: beaconData?.organizations?.[0]?.id || null,
+          beacon_membership_status: beaconData?.hasCurrentMembership ? 'Active' : null,
+        })
       };
       
-      console.log('Updating company with data:', updateData);
-      console.log('Company ID:', companyData.id);
+      let result;
       
-      // Update company data using state values instead of FormData
-      const { data, error } = await supabase
-        .from("companies")
-        .update(updateData)
-        .eq("id", companyData.id);
-
-      if (error) {
-        console.error("Error updating company data:", error);
-        console.error("Error details:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        alert(`Failed to update company data: ${error.message}`);
+      if (companyData?.id) {
+        
+        result = await supabase
+          .from("companies")
+          .update(companyDataToSave)
+          .eq("id", companyData.id);
       } else {
-        console.log("Company data updated successfully:", data);
+        
+        result = await supabase
+          .from("companies")
+          .insert(companyDataToSave)
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        console.error("Error with company operation:", result.error);
+        console.error("Error details:", {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code
+        });
+        alert(`Failed to ${companyData?.id ? 'update' : 'create'} company data: ${result.error.message}`);
+      } else {
+        console.log(`Company ${companyData?.id ? 'updated' : 'created'} successfully:`, result.data);
         setWasUpdated(true);
+        
+        // If this was a create operation, handle logo upload and call onSuccess
+        if (!companyData?.id && result.data?.id) {
+          // If there's a logo file selected, upload it now that we have a company ID
+          if (logoFile) {
+            console.log('Company created, now uploading logo...');
+            try {
+              const logoUploaded = await handleLogoUpload(result.data.id);
+              if (logoUploaded) {
+                console.log('Logo uploaded successfully after company creation');
+              } else {
+                console.warn('Logo upload failed after company creation');
+              }
+            } catch (error) {
+              console.error('Error uploading logo after company creation:', error);
+            }
+          }
+          
+          if (onSuccess) {
+            onSuccess(result.data.id);
+          }
+        }
+        
         router.refresh();
       }
 
@@ -323,14 +400,8 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
     setIsLoading(false);
   };
 
-  // if (!companyData) {
-  //   return null;
-  // }
-
   return (
     <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
-      
-      {/* {JSON.stringify(companyData)} */}
 
       <label htmlFor="companyName">
         <p>Company Name</p>
@@ -365,6 +436,17 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
             </div>
           )}
           
+          {/* No logo placeholder */}
+          {!formValues.logo && !logoPreview && companyData?.id && (
+            <div className="mb-4">
+              <div className="relative w-[200px] h-[100px] overflow-hidden">
+                <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                  <p className="text-gray-500 text-sm">No logo uploaded</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Logo Preview */}
           {logoPreview && (
             <div className={`mb-4`}>
@@ -381,7 +463,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
               <div className="flex gap-2 mt-2">
                 <Button 
                   type="button" 
-                  onClick={handleLogoUpload} 
+                  onClick={handleLogoUploadClick} 
                   disabled={isUploadingLogo}
                   className="px-3 py-1 text-sm"
                 > 
@@ -598,7 +680,7 @@ export default function CompanyInfoUpdateForm({ companyData }: CompanyInfoUpdate
             <span className="text-green-600"><Check size="32" /></span>
           )}
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update company data"}
+            {isLoading ? (companyData?.id ? "Updating..." : "Creating...") : (companyData?.id ? "Update company data" : "Create company")}
           </Button>
         </div>
       </div>

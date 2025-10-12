@@ -9,11 +9,12 @@ import { CompanyArea } from "@/lib/types";
 
 
 interface CompanyAreaUpdateFormProps {
-  companyId: string;
+  companyId?: string;
   companyAreas: CompanyArea[];
+  onSuccess?: () => void;
 }
 
-export default function CompanyAreaUpdateForm({ companyId, companyAreas }: CompanyAreaUpdateFormProps) {
+export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSuccess }: CompanyAreaUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -80,6 +81,12 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas }: Compa
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!companyId) {
+      console.log("No company ID provided, skipping area update");
+      return;
+    }
+    
     setIsLoading(true);
     
     const supabase = createClient();
@@ -107,6 +114,9 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas }: Compa
 
       console.log("Company areas updated successfully");
       setWasUpdated(true);
+      if (onSuccess) {
+        onSuccess();
+      }
       router.refresh();
     } catch (error) {
       console.error("Error updating areas:", error);
@@ -155,10 +165,10 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas }: Compa
           )}
           <Button 
             type="submit" 
-            disabled={isLoading}
+            disabled={isLoading || !companyId}
             className="ml-4"
           >
-            {isLoading ? "Updating Areas..." : "Update Company Areas"}
+            {!companyId ? "Create company first" : (isLoading ? "Updating Areas..." : "Update Company Areas")}
           </Button>
         </div>
       </div>

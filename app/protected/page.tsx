@@ -1,115 +1,71 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { beaconDataOf } from "@/lib/utils";
-import { Company, CompanyAdminInfo, CompanyArea, CompanyContactInfo, UserBeaconData } from "@/lib/types";
+import { UserBeaconData } from "@/lib/types";
 import ProtectedTabs from "@/components/member-settings/protected-tabs";
-
-const beaconOrgHasSupabaseOrg = async (beaconOrgName:string) => {
-  const supabase = await createClient();
-  const check = await supabase
-    .from('companies')
-    .select('id')
-    .eq('name', beaconOrgName)
-    .single();
-  return check.data !== null;
-}
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
+  if (error || !data?.claims) redirect("/auth/login");
 
-  // const userEmail = 'jessie.granger@2cv.com'
   const userEmail = data.claims.email;
-  const userBeaconData = await beaconDataOf(userEmail) as UserBeaconData;
+  const userBeaconData = (await beaconDataOf(userEmail)) as UserBeaconData;
 
   if ('error' in userBeaconData) {
-    // const errorType = userBeaconData.error;
     console.log("Beacon Data error:", userBeaconData?.error || "Unknown error");
-    // redirect(`/error?type=${errorType}`);
   }
 
-  const orgExistsOnBoth = await beaconOrgHasSupabaseOrg(userBeaconData.organizations[0]?.name)
+  const orgName = userBeaconData.organizations?.[0]?.name ?? null;
 
-  const thisCompanyRecord: {
-    admin: CompanyAdminInfo | null;
-    data: Company | null;
-    areas: CompanyArea[] | null;
-    contactInfo: CompanyContactInfo | null;
-    logo: string | null;
-  } = {
+  // 1) Check existence and fetch company + related rows in ONE request (use PostgREST relation selects)
+  //    This assumes FK relationships exist: company_areas.company_id -> companies.id and company_contact_info.company_id -> companies.id
+  //    Result returns company with nested company_areas and company_contact_info.
+  const { data: companyWithRelations, error: companyErr } = await supabase
+    .from("companies")
+    .select(`
+      *,
+      company_areas(id, company_id, area),
+      company_contact_info(*)
+    `)
+    .eq("name", orgName)
+    .maybeSingle(); // returns single object or null
+
+  if (companyErr) {
+    console.error("Company with relations error:", companyErr);
+  }
+
+  const orgExistsOnBoth = !!companyWithRelations;
+
+  // 2) Parallelize fetching members (independent) and storage listing (dependent on company presence)
+  const membersPromise = supabase.from("members").select("*").eq("email", userEmail);
+
+  let logoUrl: string | null = null;
+  if (orgExistsOnBoth && companyWithRelations?.id) {
+    // If you store logo filename or path in companies table, use that instead of storage.list
+    // Fallback to storage.list only if necessary
+    const imagesList = await supabase.storage
+      .from("images")
+      .list("companies", { limit: 1, search: companyWithRelations.id.toString() });
+
+    if (!imagesList.error && imagesList.data?.length) {
+      const name = imagesList.data[0].name;
+      logoUrl = (await supabase.storage.from("images").getPublicUrl(`companies/${name}`)).data.publicUrl;
+    }
+  }
+
+  const membersInfo = await membersPromise;
+  if (membersInfo.error) console.error("Members Info error:", membersInfo.error);
+
+  // Build a compact company record from the single response
+  const thisCompanyRecord = {
     admin: null,
-    data: null,
-    areas: null,
-    contactInfo: null,
-    logo: null,
-  }
-
-  if (orgExistsOnBoth) {
-
-    const companyData = await supabase.from("companies")
-      .select("*")
-      .eq("name", (userBeaconData.organizations && userBeaconData.organizations.length > 0) ? userBeaconData.organizations[0].name : null);
-  
-    if (companyData.error) {
-      console.error("Company Data error:", JSON.stringify(companyData));
-    } 
-
-    thisCompanyRecord.data = (companyData.data && companyData.data.length > 0) ? companyData.data[0] : null;
-    
-    if (!thisCompanyRecord.data) {
-      console.error("No company data found for organization:", userBeaconData.organizations[0]?.name);
-      return null;
-    }
-  
-    const companyAreas = userBeaconData.hasOrg ? await supabase.from("company_areas")
-      .select("id, company_id, area")
-      .eq("company_id", thisCompanyRecord.data.id) : { data: [], error: null };
-      
-    if (companyAreas.error) {
-      console.error("Company Areas error:", companyAreas.error);
-    }
-
-    thisCompanyRecord.areas = companyAreas.data || null;
-  
-    const companyContactInfo = userBeaconData.hasOrg ? await supabase.from("company_contact_info")
-      .select("*")
-      .eq("company_id", thisCompanyRecord.data.id )
-      .single() : { data: null, error: null };
-    
-      if (companyContactInfo.error) {
-      console.log("Company Contact Info error:", companyContactInfo.error);
-    }
-    thisCompanyRecord.contactInfo = companyContactInfo.data || null;
-    
-    const logo = userBeaconData.hasOrg ? await supabase
-      .storage
-      .from('images')
-      .list('companies', { limit: 1, search: thisCompanyRecord.data.id.toString() }) : { data: [], error: null };
-      
-    if (logo.error) {
-      console.error("Company Logo error:", logo.error);
-    }
-    
-    const logoFileName = logo.data && logo.data.length > 0 ? logo.data[0].name : null;
-    const logoUrl = logoFileName ? (await supabase
-      .storage
-      .from('images')
-      .getPublicUrl(`companies/${logoFileName}`)).data.publicUrl : null;
-      
-    thisCompanyRecord.logo = logoUrl;
-    thisCompanyRecord.data = { ...thisCompanyRecord.data, logo: logoUrl } as Company;
-  }
-    
-  const membersInfo = await supabase.from("members")
-    .select("*")
-    .eq("email", userEmail);
-  if (membersInfo.error) {
-    console.error("Members Info error:", membersInfo.error);
-  }
+    data: companyWithRelations ?? null,
+    areas: companyWithRelations?.company_areas ?? null,
+    contactInfo: companyWithRelations?.company_contact_info ?? null,
+    logo: logoUrl,
+  };
 
   return (
       <div className="flex-1 w-full flex flex-col gap-12">

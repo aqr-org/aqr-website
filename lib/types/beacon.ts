@@ -1,4 +1,5 @@
 export interface UserBeaconData {
+  personId: string;
   id: string;
   email: string;
   hasCurrentMembership: boolean;

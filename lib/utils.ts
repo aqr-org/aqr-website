@@ -108,8 +108,7 @@ export const beaconDataOf = async (email: string): Promise<object> => {
       id: org.id,
       name: org.name,
     })),
-    // allMembershipsRaw: beaconMembershipJson?.results ?? [],
-  } as UserBeaconData
+  } 
 
   return data;
 }

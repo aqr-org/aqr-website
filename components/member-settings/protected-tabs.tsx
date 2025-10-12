@@ -86,7 +86,7 @@ export default function ProtectedTabs({
           >
             <div id="company-admin">
               { !companyData &&
-                <CompanyCreateForm data={userBeaconData} />
+                <CompanyCreateForm {...userBeaconData} />
               }
                 <div className="w-full space-y-6">
 

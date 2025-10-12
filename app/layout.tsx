@@ -48,7 +48,7 @@ export default async function RootLayout({
           <BackgroundColorProvider>
             <BackgroundGraphics />
             <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
-            <div className="flex-1 w-full max-w-maxw mx-auto px-5 flex flex-col gap-20 min-h-screen">
+            <div className="flex-1 w-full max-w-maxw mx-auto px-container flex flex-col gap-20 min-h-screen">
               {children}
             </div>
             </Suspense>

@@ -10,7 +10,11 @@
   --color-qrose: #e27a96;
   --color-qaupe: #fcfaf0;
 
-  --container-maxw: 1280px;
+  --spacing-container: 5rem;
+  
+  --breakpoint-md: 768px;
+  --breakpoint-xl: 1440px;
+  --container-maxw: var(--breakpoint-xl);
 
   @keyframes appearText {
     from {
@@ -23,18 +27,32 @@
     }
   }
 
-  --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@layer base {
-  :root {
-    --radius: 0.5rem;
+  @keyframes animatedCircle {
+    from {
+      transform: rotateZ(0deg);
+    }
+    to {
+      transform: rotateZ(360deg);
+    }
   }
+  
+  --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-animated-circle: animatedCircle 15s linear infinite forwards;
 }
 
 html {
   @apply text-qlack bg-qaupe;
+  font-size: clamp(10px, 1.11vw, 16px);
 }
+@media (max-width: 768px) {
+  html {
+    font-size: clamp(10px, 4.1vw, 16px);
+  }
+  :root {
+    --spacing-container: 1.5rem;
+  }
+}
+
 
 .ProseMirror {
   &:focus {
@@ -90,5 +108,19 @@ p a {
     background-position: right 0.5rem center;
     background-size: 1.5em 1.5em;
     padding-right: 2.5rem;
+  }
+}
+
+.prose {
+  & h2 {
+    @apply text-2xl font-[400] my-4;
+  }
+  & h3 {
+    @apply text-xl font-[400] my-3;
+  }
+  & p {
+    @apply my-2;
+    @apply text-lg;
+    @apply leading-[140%];
   }
 }

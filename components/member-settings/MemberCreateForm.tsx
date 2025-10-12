@@ -5,16 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Check } from "lucide-react";
 import MemberFormFields, { type MemberFormData } from "./MemberFormFields";
-import { UserBeaconData } from "@/lib/types/beacon";
-
-interface MemberCreateFormProps {
-  userBeaconData: UserBeaconData;
-}
+import type { MemberCreateFormProps } from '@/lib/types/members';
 
 export default function MemberCreateForm({ userBeaconData }: MemberCreateFormProps) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [wasCreated, setWasCreated] = useState(false);
+  const [createdMemberId, setCreatedMemberId] = useState<string | null>(null);
   
   // Controlled state for form values - all empty initially
   const [formValues, setFormValues] = useState<MemberFormData>({
@@ -32,11 +29,17 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
     ctteareas: '',
     biognotes: '',
     timeline: [],
-    beacon_membership: '',
-    beacon_membership_status: ''
+    beacon_id: userBeaconData.personId || '',
+    beacon_membership: userBeaconData.id || '',
+    beacon_membership_status: userBeaconData.hasCurrentMembership ? 'Active' : ''
   });
 
   const userEmail = userBeaconData.email;
+
+  const handlePortraitUploaded = (url: string) => {
+    // Portrait is stored by UUID, no need to update form state
+    console.log('Portrait uploaded:', url);
+  };
 
   const handleSubmit = async (biognotes: string) => {
     setIsCreating(true);
@@ -71,8 +74,9 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         flags: formValues.flags.length > 0 ? formValues.flags.map(flag => flag.trim()).filter(flag => flag !== '') : null,
         cttetitle: formValues.cttetitle?.trim() || null,
         ctteareas: formValues.ctteareas?.trim() || null,
-        beacon_membership: formValues.beacon_membership?.trim() || null,
-        beacon_membership_status: formValues.beacon_membership_status?.trim() || null,
+        beacon_id: formValues.beacon_id || null,
+        beacon_membership: formValues.beacon_membership || null,
+        beacon_membership_status: formValues.beacon_membership_status || null,
       };
 
       console.log('Creating member with data:', insertData);
@@ -96,6 +100,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
       } else {
         console.log("Member record created successfully:", data);
         setWasCreated(true);
+        setCreatedMemberId(data.id);
         
         // Refresh the page to show the update form
         setTimeout(() => {
@@ -141,6 +146,9 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         wasSuccessful={wasCreated}
         successIcon={<Check size="32" />}
         isCreateMode={true}
+        memberId={createdMemberId || undefined}
+        currentPortrait={undefined}
+        onPortraitUploaded={handlePortraitUploaded}
       />
 
       {wasCreated && (

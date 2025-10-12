@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { hasEnvVars } from "@/lib/utils";
+import { cn, hasEnvVars } from "@/lib/utils";
 import { EnvVarWarning } from "./env-var-warning";
 import { AuthButton } from "./auth-button";
 import Logo from "@/components/Logo";
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -57,6 +58,32 @@ export default function Navigation() {
     }
   }, [open]);
 
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY;
+      
+      if (currentScrollY < 20) {
+        setIsScrolled(false);
+      }
+      else {
+        if (currentScrollY > 20 && scrollDelta > 0) {
+          // Scrolling down and past 20px
+          setIsScrolled(true);
+        } else if (scrollDelta < -20) {
+          // Scrolled back up by 20px or more
+          setIsScrolled(false);
+        }
+      }
+      lastScrollY = currentScrollY;
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const links = (
     <>
       <li>
@@ -72,15 +99,23 @@ export default function Navigation() {
   );
 
   return (
-    <nav className="w-full flex justify-center bg-qaupe" aria-label="Main navigation">
-      <div className="w-full max-w-maxw flex items-center justify-between p-3 px-5 text-sm">
-        <div className="flex items-center gap-12">
+    <nav 
+      className={cn(
+        isScrolled ? 
+        '-translate-y-full sticky top-0 z-50 w-full flex justify-center bg-qaupe transition-all duration-500 ease-in-out' 
+        : 
+        'sticky translate-y-0 top-0 z-50 w-full flex justify-center bg-qaupe transition-all duration-500 ease-in-out'
+      )} 
+      aria-label="Main navigation"
+    >
+      <div className="w-full max-w-maxw flex items-center justify-between p-5 px-container">
+        <div className="flex items-center gap-14">
           <Link href="/" className="w-20 h-20 inline-flex items-center" aria-label="Home">
             <Logo />
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden md:flex md:items-end md:gap-8 font-[550] text-lg">
+          <div className="hidden md:flex md:items-end md:gap-14 font-[500]">
             <Link href="/about">About</Link>
             <Link href="/companies">Companies</Link>
             <Link href="/members">Members</Link>

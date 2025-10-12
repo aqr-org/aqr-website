@@ -117,6 +117,11 @@ export default function MemberUpdateForm({ memberData }: MemberUpdateFormProps) 
     setIsLoading(false);
   };
 
+  const handlePortraitUploaded = (url: string) => {
+    // Portrait is stored by UUID, no need to update form state
+    console.log('Portrait uploaded:', url);
+  };
+
   if (!memberData) {
     return null;
   }
@@ -132,6 +137,9 @@ export default function MemberUpdateForm({ memberData }: MemberUpdateFormProps) 
       wasSuccessful={wasUpdated}
       successIcon={<Check size="32" />}
       isCreateMode={false}
+      memberId={memberData.id}
+      currentPortrait={undefined}
+      onPortraitUploaded={handlePortraitUploaded}
     />
   );
 }

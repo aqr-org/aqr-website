@@ -28,11 +28,12 @@ interface CompanyContactData {
 }
 
 interface CompanyContactUpdateFormProps {
-  companyId: string;
+  companyId?: string;
   contactData: CompanyContactData | null;
+  onSuccess?: () => void;
 }
 
-export default function CompanyContactUpdateForm({ companyId, contactData }: CompanyContactUpdateFormProps) {
+export default function CompanyContactUpdateForm({ companyId, contactData, onSuccess }: CompanyContactUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -59,6 +60,12 @@ export default function CompanyContactUpdateForm({ companyId, contactData }: Com
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!companyId) {
+      console.log("No company ID provided, skipping contact update");
+      return;
+    }
+    
     setIsLoading(true);
     
     const contactInfo = {
@@ -109,6 +116,9 @@ export default function CompanyContactUpdateForm({ companyId, contactData }: Com
       } else {
         console.log("Company contact info updated successfully:", result.data);
         setWasUpdated(true);
+        if (onSuccess) {
+          onSuccess();
+        }
         router.refresh();
       }
 
@@ -349,8 +359,8 @@ export default function CompanyContactUpdateForm({ companyId, contactData }: Com
             {wasUpdated && (
               <span className="text-green-600"><Check size="32" /></span>
             )}
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Updating..." : "Update Contact Information"}
+            <Button type="submit" disabled={isLoading || !companyId}>
+              {!companyId ? "Create company first" : (isLoading ? "Updating..." : "Update Contact Information")}
             </Button>
           </div>
         </div>
