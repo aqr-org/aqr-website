@@ -35,9 +35,25 @@
       transform: rotateZ(360deg);
     }
   }
+
+  @keyframes scalePulse {
+    0% {
+      transform: scale(1.1);
+    }
+    50% {
+      transform: scale(0.5);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
   
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
+  --animate-scale-pulse: scalePulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-scale-pulse-slow: scalePulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+
 }
 
 html {
@@ -52,7 +68,6 @@ html {
     --spacing-container: 1.5rem;
   }
 }
-
 
 .ProseMirror {
   &:focus {
@@ -88,6 +103,7 @@ p a {
   & input[type="email"], 
   & input[type="number"], 
   & input[type="date"], 
+  & input[type="tel"], 
   & input[type="url"], 
   & input[type="password"], 
   & select,
@@ -112,15 +128,36 @@ p a {
 }
 
 .prose {
+  & h1 {
+    @apply text-6xl font-[400] my-8;
+  }
   & h2 {
-    @apply text-2xl font-[400] my-4;
+    @apply text-4xl font-[400] my-4;
   }
   & h3 {
-    @apply text-xl font-[400] my-3;
+    @apply text-2xl font-[400] my-3;
   }
   & p {
+    @apply text-lg;
+    @apply my-2;
+    @apply leading-[140%];
+  }
+  & blockquote {
     @apply my-2;
     @apply text-lg;
     @apply leading-[140%];
+    @apply border-l-4 border-qlack pl-4;
+  }
+  & ul {
+    @apply my-2;
+  }
+  & ol {
+    @apply my-2;
+  }
+  & li {
+    @apply my-2;
+  }
+  & a {
+    @apply underline;
   }
 }

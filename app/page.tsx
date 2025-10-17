@@ -1,6 +1,7 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import Background from '@/components/Background';
+import { draftMode } from 'next/headers';
 
 export default async function Home() {
   
@@ -8,7 +9,7 @@ export default async function Home() {
   const storyBlokStory = storyblok.data.story;
   
   return (
-    <main>
+    <main className="flex-1 w-full max-w-maxw mx-auto px-container flex flex-col gap-20 min-h-screen">
       <Background 
         css={`
           #bg_svg_circle_1 { transform: translate(0%, 0%); }
@@ -20,6 +21,8 @@ export default async function Home() {
 }
 
 export async function fetchStoryblokData() {
+  const { isEnabled } = await draftMode();
+  const isDraftMode = isEnabled;
 	const storyblokApi = getStoryblokApi();
-	return await storyblokApi.get(`cdn/stories/home`, { version: 'draft' });
+	return await storyblokApi.get(`cdn/stories/home`, { version: isDraftMode ? 'draft' : 'published' });
 }

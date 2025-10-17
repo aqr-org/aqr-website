@@ -30,6 +30,7 @@
     "@tiptap/starter-kit": "^3.6.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "country-flag-icons": "^1.5.21",
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.511.0",
     "next": "latest",
@@ -37,6 +38,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hotkeys-hook": "^5.1.0",
+    "react-select": "^5.10.2",
     "react-tabs": "^6.1.0",
     "storyblok-rich-text-react-renderer": "^3.0.1",
     "tailwind-merge": "^3.3.0"

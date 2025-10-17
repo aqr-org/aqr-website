@@ -30,7 +30,7 @@ export default function ProtectedTabs({
   const isOnlyDirectoryMember = (
     userBeaconData.allMemberships 
     && userBeaconData.allMemberships.length === 1
-    && userBeaconData.allMemberships[0] === 'Business Directory' 
+    && userBeaconData.allMemberships[0].includes('Business Directory') 
   );
 
   return(

@@ -52,7 +52,7 @@ export function AuthButton() {
       <LogoutButton />
     </div>
   ) : (
-    <div className="flex gap-8">
+    <div className="flex gap-8 justify-between w-full">
       <Link href="/auth/login" className="font-medium flex gap-2 items-center">
         <span>
         <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -10,7 +10,7 @@ export default function DraftModeAlert() {
   }
 
   return (
-    <div className="fixed top-0 z-50 bg-yellow-400 text-black p-2 text-center text-sm">
+    <div className="fixed bottom-0 z-50 bg-yellow-400 text-black p-2 text-center text-sm">
       <span className="mr-2">Draft Mode Active</span>
       
       <button 

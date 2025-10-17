@@ -9,11 +9,7 @@ export default async function Home() {
   
   return (
     <main>
-      <Background 
-        css={`
-          #bg_svg_circle_1 { transform: translate(0%, 0%); }
-        `} 
-      />
+      <Background/>
       <StoryblokStory story={storyBlokStory} />
     </main>
   );

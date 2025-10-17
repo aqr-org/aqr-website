@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Check } from "lucide-react";
+import React from 'react'
+import Select from 'react-select'
+import { countries } from '@/lib/countries'
 
 interface CompanyContactData {
   id: string;
@@ -37,6 +40,10 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
+  const options: { value: string; label: string }[] = countries.map(country => ({
+    value: country.code,
+    label: country.name,
+  }))
   
   // Controlled state for form values
   const [formValues, setFormValues] = useState({
@@ -213,14 +220,39 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
 
               <label htmlFor="country">
                 <p className="text-sm font-medium text-gray-600">Country</p>
-                <input
+                <Select
+                  unstyled
+                  classNames={{
+                    control: () => 
+                      "bg-qlack/10 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+                    menu: () => 
+                      "bg-qaupe border-2 border-qlack/20 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+                    placeholder: () => 
+                      "text-qlack/30",
+                    
+                  }}
+                  name="country"
+                  id="country"
+                  options={options}
+                  isSearchable={true}
+                  isClearable={true}
+                  value={options.find(option => option.label === formValues.country) || null}
+                  onChange={(e) =>
+                    setFormValues(prev => ({
+                      ...prev,
+                      country: e ? (e as { value: string; label: string }).label : ""
+                    }))
+                  }
+                  placeholder="Country"
+                />
+                {/* <input
                   type="text"
                   name="country"
                   id="country"
                   value={formValues.country}
                   onChange={(e) => setFormValues(prev => ({ ...prev, country: e.target.value }))}
                   placeholder="Country"
-                />
+                /> */}
               </label>
             </div>
           </div>
