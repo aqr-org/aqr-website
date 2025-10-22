@@ -16,7 +16,7 @@ export default function BackgroundGraphics() {
         
       `}
       style={{
-        backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="24" viewBox="0 0 1 24"><line x1="1" y1="0" x2="1" y2="24" stroke="rgba(0,0,0,0.125)" strokeWidth="1" stroke-dasharray="12,12"/></svg>')`,
+        backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="24" viewBox="0 0 1 24"><line x1="1" y1="0" x2="1" y2="24" stroke="rgba(0,0,0,0.05)" strokeWidth="1" stroke-dasharray="8,8"/></svg>')`,
         backgroundRepeat: 'repeat',
         backgroundSize: 'calc((var(--container-maxw) - 2 * var(--spacing-container)) / 8) 24px',
         backgroundPosition: '50% 50%',

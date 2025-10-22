@@ -1,10 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Metadata, ResolvingMetadata } from "next";
-import { getStoryblokApi } from "@/lib/storyblok";
+import { Metadata } from "next";
 import { Company, CompanyArea, CompanyContactInfo } from "@/lib/types/company";
-import { draftMode } from 'next/headers';
 import { countries } from "@/lib/countries";
 import React from "react";
 import AlphabetNav from "@/components/AlphabetNav";
@@ -16,35 +14,51 @@ type CompanyWithExtraInfo = Company & {
   slug?: string;
 };
 
+interface PageProps {
+  params: {
+    slug: string;
+  };
+}
 
 export async function generateMetadata(
-  parent: ResolvingMetadata
+  { params }: PageProps
 ): Promise<Metadata> {
-  // read route params and resolve parent metadata in parallel
-  const [storyblok, parentMetadata] = await Promise.all([
-    fetchStoryblokData('dir'),
-    parent
-  ]);
-  
-  const { meta_title, meta_description, og_image } = storyblok.data.story.content;
-  const previousImages = parentMetadata.openGraph?.images || []
+  // Convert slug back to sector name for display
+  const sectorName = params.slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 
   return {
-    title: meta_title,
-    description: meta_description,
+    title: `${sectorName} Companies - AQR Business Directory`,
+    description: `Browse ${sectorName} companies in the AQR Business Directory`,
     openGraph: {
-      images: [og_image?.filename, ...previousImages],
+      title: `${sectorName} Companies`,
+      description: `Browse ${sectorName} companies in the AQR Business Directory`,
     },
   }
 }
 
-export default async function DirPage() {
+export default async function SectorPage({ params }: PageProps) {
+  const { slug } = params;
+  
+  // Convert slug back to sector name for database query
+  const sectorName = slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
   // Fetch initial data in parallel
   const [supabase] = await Promise.all([
     createClient()
   ]);
   
-  const companies = await supabase.from('companies').select('*').eq('beacon_membership_status', 'Active');
+  // Fetch companies where type matches the sector name
+  const companies = await supabase
+    .from('companies')
+    .select('*')
+    .eq('beacon_membership_status', 'Active')
+    .eq('type', sectorName);
 
   if (companies.error) {
     console.error("Companies error:", companies.error);
@@ -113,10 +127,18 @@ export default async function DirPage() {
   
   return (
     <>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2">{sectorName} Companies</h1>
+        <p className="text-lg text-gray-600">
+          {companiesWithActiveSubs.length} {companiesWithActiveSubs.length === 1 ? 'company' : 'companies'} found
+        </p>
+      </div>
+      
       <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden">
         <AlphabetNav entries={groupedCompanies} />
       </nav>
-      <div className="space-y-8 md:grid md:grid-cols-2 md:gap-5" >
+      
+      <div className="space-y-8 md:grid md:grid-cols-2 md:gap-5">
         <div className="text-2xl border-b col-span-2 group-data-[liststyle=filters]:block hidden">
           Filter Results:
         </div>
@@ -179,19 +201,14 @@ export default async function DirPage() {
               </React.Fragment>
             ))
         ) : (
-          <p>No companies available.</p>
+          <div className="col-span-2 text-center py-12">
+            <p className="text-xl text-gray-500">No companies found in the {sectorName} sector.</p>
+            <Link href="/dir" className="text-blue-600 hover:text-blue-800 underline mt-4 inline-block">
+              Browse all companies
+            </Link>
+          </div>
         )}
       </div>            
     </>
   );
-}
-
-export async function fetchStoryblokData(slug: string) {
-  const [{ isEnabled }, storyblokApi] = await Promise.all([
-    draftMode(),
-    Promise.resolve(getStoryblokApi())
-  ]);
-  
-  const isDraftMode = isEnabled;
-  return await storyblokApi.get(`cdn/stories/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
 }

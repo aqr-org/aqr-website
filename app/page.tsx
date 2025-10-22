@@ -15,7 +15,10 @@ export default async function Home() {
           #bg_svg_circle_1 { transform: translate(0%, 0%); }
         `} 
       />
-      <StoryblokStory story={storyBlokStory} />
+      
+      {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
+        <StoryblokStory story={storyBlokStory} />
+      }
     </main>
   );
 }

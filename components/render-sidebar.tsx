@@ -18,11 +18,11 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
               {item.name}
             </div>}
           {item.dropdown_menu &&
-            <ul>
+            <ul className="pl-4">
               {item.dropdown_menu.map((dropdownItem: NavigationLinkData, dropdownIndex: number) => (
                 <li key={dropdownItem.name+dropdownIndex}>
                   <Link 
-                    href={dropdownItem.link?.cached_url || ''}
+                    href={`/${dropdownItem.link?.cached_url || ''}`}
                     className="font-[400] text-[1rem] text-qreen-dark flex gap-1 items-start"
                   >
                     <svg className="h-[1em] relative top-[0.2em]" width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.2 5.6932H1V0.359863M6.86667 8.35986L9 5.6932L6.86667 3.02653" stroke="#3C772B" strokeWidth="1.5"/></svg>

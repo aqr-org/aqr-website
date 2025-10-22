@@ -81,12 +81,13 @@ export async function fetchStoryblokData(params: { slug: string }) {
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     
-    const response = await storyblokApi.get(`cdn/stories/${params.slug}`, { 
-      version: isDraftMode ? 'draft' : 'published' 
+    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
+      version: isDraftMode ? 'draft' : 'published'
     });
     
     return response;
-  } catch (error) {
+  } 
+  catch (error) {
     console.error('Storyblok API Error Details:');
     console.error('- Error type:', typeof error);
     console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
