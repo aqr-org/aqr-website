@@ -38,7 +38,7 @@ export default async function GlossaryPage({ params }: GlossaryPageProps) {
   const content = storyblok.data.story.content;
 
   return (
-    <main>
+    <main className='max-w-[41rem]'>
       <h1 className='text-4xl font-[400] my-8'>
         {content.name}
       </h1>

@@ -156,6 +156,7 @@ export async function fetchGlossaryTerms() {
   const isDraftMode = isEnabled;
   return await storyblokApi.getAll(`cdn/stories`, { 
     version: isDraftMode ? 'draft' : 'published' ,
-    starts_with: 'glossary/'
+    starts_with: 'glossary/',
+    excluding_slugs: 'glossary/'
   });
 }

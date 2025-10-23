@@ -22,7 +22,8 @@ export async function generateMetadata(
   { params }: PageProps
 ): Promise<Metadata> {
   // Get the area name from the slug
-  const areaName = params.slug
+  const resolvedParams = await params;
+  const areaName = resolvedParams.slug
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
@@ -38,7 +39,8 @@ export async function generateMetadata(
 }
 
 export default async function ExpertisePage({ params }: PageProps) {
-  const { slug } = params;
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
 
   // Fetch initial data in parallel
   const [supabase] = await Promise.all([

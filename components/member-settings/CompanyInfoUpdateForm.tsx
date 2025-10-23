@@ -473,7 +473,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
                 <Button 
                   type="button" 
                   onClick={clearLogoSelection} 
-                  variant="outline" 
+                  variant="secondary" 
                   className="px-3 py-1 text-sm"
                 >
                   <X className="w-4 h-4 mr-1" />

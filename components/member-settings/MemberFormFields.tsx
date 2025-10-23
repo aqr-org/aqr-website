@@ -447,7 +447,7 @@ export default function MemberFormFields({
                 <Button 
                   type="button" 
                   onClick={clearPortraitSelection} 
-                  variant="outline" 
+                  variant="secondary" 
                   className="px-3 py-1 text-sm"
                 >
                   <X className="w-4 h-4 mr-1" />
@@ -497,7 +497,7 @@ export default function MemberFormFields({
               <Button 
                 type="button" 
                 onClick={() => removeTimelineEntry(index)}
-                variant="outline"
+                variant="secondary"
                 className="px-3 py-1 text-sm"
                 disabled={isLoading || wasSuccessful}
               >
@@ -508,7 +508,7 @@ export default function MemberFormFields({
           <Button 
             type="button" 
             onClick={addTimelineEntry}
-            variant="outline"
+            variant="secondary"
             className="px-3 py-1 text-sm"
             disabled={isLoading || wasSuccessful}
           >

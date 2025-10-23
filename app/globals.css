@@ -57,6 +57,8 @@
 }
 
 html {
+  --mouseXdelta: 0;
+  --mouseYdelta: 0;
   @apply text-qlack bg-qaupe;
   /* font-size: clamp(10px, 1.11vw, 160px); */
   scroll-behavior: smooth;
