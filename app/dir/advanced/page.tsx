@@ -3,6 +3,8 @@ import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { Metadata, ResolvingMetadata } from 'next';
 import { generatePageMetadata } from '@/lib/metadata';
+import { createClient } from '@/lib/supabase/server';
+import AdvancedDirectoryPageComponent from '@/components/AdvancedDirectoryPage';
 
 export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
   try {
@@ -44,14 +46,100 @@ export async function generateMetadata( parent: ResolvingMetadata): Promise<Meta
   }
 }
 
-export default async function SlugPage() {
-  const storyblok = await fetchStoryblokData();
+export default async function AdvancedDirectoryPage() {
+  // Fetch data in parallel
+  const [supabase, storyblok] = await Promise.all([
+    createClient(),
+    fetchStoryblokData()
+  ]);
+
   const storyBlokStory = storyblok?.data.story;
 
+  // Fetch all filter options data
+  const [
+    companies,
+    companyAreas,
+    areasMaster,
+    companyContactInfo
+  ] = await Promise.all([
+    supabase.from('companies').select('*').eq('beacon_membership_status', 'Active'),
+    supabase.from('company_areas').select('*'),
+    supabase.from('areas_master').select('*'),
+    supabase.from('company_contact_info').select('*')
+  ]);
+
+  // Error handling
+  if (companies.error) console.error("Companies error:", companies.error);
+  if (companyAreas.error) console.error("Company areas error:", companyAreas.error);
+  if (areasMaster.error) console.error("Areas master error:", areasMaster.error);
+  if (companyContactInfo.error) console.error("Company contact info error:", companyContactInfo.error);
+
+  // Get active company IDs
+  const activeCompanyIds = companies.data?.map(company => company.id) || [];
+
+  // Get unique company types
+  const companyTypes = [...new Set(companies.data?.map(company => company.type).filter(Boolean) || [])]
+    .map(type => ({
+      value: type,
+      label: type,
+      count: companies.data?.filter(company => company.type === type).length || 0
+    }));
+
+  // Get unique countries (only for active companies)
+  const activeCompanyContactInfo = companyContactInfo.data?.filter(contact => 
+    activeCompanyIds.includes(contact.company_id)
+  ) || [];
+  
+  const countries = [...new Set(activeCompanyContactInfo.map(contact => contact.country).filter(Boolean) || [])]
+    .map(country => ({
+      value: country,
+      label: country,
+      count: activeCompanyContactInfo.filter(contact => contact.country === country).length || 0
+    }));
+
+
+  // Get areas by category, only including areas that have at least one company
+  const areasWithCompanies = new Set(companyAreas.data?.map(area => area.area) || []);
+  
+  const sectors = areasMaster.data
+    ?.filter(area => area.category === 'Business Sectors' && areasWithCompanies.has(area.area))
+    .map(area => ({
+      value: area.area,
+      label: area.area,
+      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+    })) || [];
+
+  const skills = areasMaster.data
+    ?.filter(area => area.category === 'Skills, Expertise & Services' && areasWithCompanies.has(area.area))
+    .map(area => ({
+      value: area.area,
+      label: area.area,
+      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+    })) || [];
+
+  const recruitment = areasMaster.data
+    ?.filter(area => area.category === 'Recruitment Expertise' && areasWithCompanies.has(area.area))
+    .map(area => ({
+      value: area.area,
+      label: area.area,
+      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+    })) || [];
+
+  const filterOptions = {
+    companyTypes,
+    sectors,
+    skills,
+    recruitment,
+    countries
+  };
+
   return (
-    <article className='max-w-[41rem] animate-fade-in'>
-      <StoryblokStory story={storyBlokStory} />
-    </article>
+    <>
+      <div className="max-w-[41rem] mb-12">
+        <StoryblokStory story={storyBlokStory} />
+      </div>
+      <AdvancedDirectoryPageComponent filterOptions={filterOptions} />
+    </>
   );
 }
 
