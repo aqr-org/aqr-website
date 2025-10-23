@@ -123,15 +123,19 @@ export default function Company(props: CompanyProps) {
         <section>
           {data.logo && data.logo.data && data.logo.data.publicUrl 
             ?
-            <Image 
-              key={`${data.logo.data?.publicUrl || ''}-${Date.now()}`} // Force re-render with timestamp
-              src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
-              alt={data.name + ' logo'}
-              width={240}
-              height={120}
-              className="h-24 w-auto mb-4"
-              unoptimized // Disable Next.js optimization to avoid caching issues
-            />
+            <figure className="relative h-24 w-56 mb-4"> 
+              <Image 
+                key={`${data.logo.data?.publicUrl || ''}`}
+                // src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
+                src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
+                sizes="(max-width:768px) 100vw, 225px"
+                alt={data.name + ' logo'}
+                fill
+                objectFit="contain"
+                className="h-24 w-auto mb-4 left-0"
+                // unoptimized // Disable Next.js optimization to avoid caching issues
+              />
+            </figure>
             :
             <div className="bg-gray-100 aspect-square flex justify-center items-center w-24 text-xs text-center p-4 mb-4">No logo available</div>
           }

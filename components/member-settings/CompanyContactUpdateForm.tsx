@@ -165,7 +165,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
                 id="addr2"
                 value={formValues.addr2}
                 onChange={(e) => setFormValues(prev => ({ ...prev, addr2: e.target.value }))}
-                placeholder="Apartment, suite, etc."
+                placeholder="City, District, Suite, etc."
               />
             </label>
 
@@ -177,7 +177,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
                 id="addr3"
                 value={formValues.addr3}
                 onChange={(e) => setFormValues(prev => ({ ...prev, addr3: e.target.value }))}
-                placeholder="District"
+                placeholder="City, County, State, etc."
               />
             </label>
 

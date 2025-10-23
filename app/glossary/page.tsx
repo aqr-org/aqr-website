@@ -5,6 +5,7 @@ import { StoryblokStory } from "@storyblok/react/rsc";
 import { draftMode } from 'next/headers';
 import React from "react";
 import AlphabetNav from "@/components/AlphabetNav";
+import { generatePageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(
   parent: ResolvingMetadata
@@ -16,15 +17,15 @@ export async function generateMetadata(
   ]);
   
   const { meta_title, meta_description, og_image } = storyblok.data.story.content;
-  const previousImages = parentMetadata.openGraph?.images || []
-
-  return {
-    title: meta_title,
-    description: meta_description,
-    openGraph: {
-      images: [og_image?.filename, ...previousImages],
+  
+  return await generatePageMetadata(
+    {
+      meta_title,
+      meta_description,
+      og_image
     },
-  }
+    parentMetadata
+  );
 }
 
 export default async function DirPage() {

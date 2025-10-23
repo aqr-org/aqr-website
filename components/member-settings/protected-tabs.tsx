@@ -26,15 +26,16 @@ export default function ProtectedTabs({
   userBeaconData: UserBeaconData;
 }) {
 
-  const hasDirectoryMembership = (userBeaconData.allMemberships && userBeaconData.allMemberships.includes('Business Directory')) || (userBeaconData.allMemberships && userBeaconData.allMemberships.includes('Business Directory'));
+  const hasDirectoryMembership = (userBeaconData.allMemberships && userBeaconData.allMemberships.some(membership => membership.includes('Business Directory')));
   const isOnlyDirectoryMember = (
     userBeaconData.allMemberships 
     && userBeaconData.allMemberships.length === 1
-    && userBeaconData.allMemberships[0].includes('Business Directory') 
+    && userBeaconData.allMemberships.some(membership => membership.includes('Business Directory')) 
   );
 
   return(
     <Tabs>
+      {hasDirectoryMembership ? 'yay': 'nay'}
         <TabList 
           className={`
             flex gap-1 items-end

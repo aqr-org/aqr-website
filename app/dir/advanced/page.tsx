@@ -1,23 +1,14 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
-import { Metadata, ResolvingMetadata } from 'next'
 import { draftMode } from 'next/headers';
+import { Metadata, ResolvingMetadata } from 'next';
 import { generatePageMetadata } from '@/lib/metadata';
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export async function generateMetadata(
-  { params }: PageProps,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
   try {
-    const theseParams = await params;
-    
     // Run in parallel with individual error handling
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(theseParams),
+      fetchStoryblokData(),
       parent
     ]);
     
@@ -53,9 +44,8 @@ export async function generateMetadata(
   }
 }
 
-export default async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const storyblok = await fetchStoryblokData(resolvedParams);
+export default async function SlugPage() {
+  const storyblok = await fetchStoryblokData();
   const storyBlokStory = storyblok?.data.story;
 
   return (
@@ -65,13 +55,13 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   );
 }
 
-export async function fetchStoryblokData(params: { slug: string }) {
+export async function fetchStoryblokData() {
   try {
     const { isEnabled } = await draftMode();
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     
-    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
+    const response = await storyblokApi.get(`cdn/stories/dir/advanced`, { 
       version: isDraftMode ? 'draft' : 'published' 
     });
     
@@ -83,7 +73,6 @@ export async function fetchStoryblokData(params: { slug: string }) {
     console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
     console.error('- Full error object:', JSON.stringify(error, null, 2));
-    console.error('- Slug being requested:', params.slug);
-    throw new Error(`Failed to fetch story: ${params.slug}`);
+    throw new Error(`Failed to fetch story: dir/advanced`);
   }
 }

@@ -3,6 +3,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { getCompanyData } from '@/lib/company-data'
 import { Suspense } from 'react'
 import { LoadingAnimation } from '@/components/ui/loading-animation'
+import { generatePageMetadata } from '@/lib/metadata';
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -22,26 +23,22 @@ export async function generateMetadata(
     ]);
     const companyName = companyData?.name || 'Company';
    
-    // optionally access and extend (rather than replace) parent metadata
-    const previousImages = (await parent).openGraph?.images || []
-
     const autoTitle = `${companyName}, ${companyData?.type} ${companyData?.contact_info?.country ? `, ${companyData?.contact_info?.country}` : ''}`;
-    
+    const autoDescription = companyData?.narrative ? companyData.narrative.slice(0, 144) + '...' : 'Company information page';
+    const logoImage = companyData?.logo?.data?.publicUrl ? { filename: companyData.logo.data.publicUrl } : undefined;
 
-    return {
-      title: autoTitle,
-      description: companyData?.narrative.slice(0, 144) + '...',
-      openGraph: {
-        images: companyData?.logo?.data?.publicUrl ? [companyData.logo.data.publicUrl, ...previousImages] : [...previousImages],
+    return await generatePageMetadata(
+      {
+        meta_title: autoTitle,
+        meta_description: autoDescription,
+        og_image: logoImage
       },
-    }
+      parent
+    );
   } catch (error) {
     console.error("Error in generateMetadata:", error);
-    // Return fallback metadata
-    return {
-      title: "Company Page",
-      description: "Company information page",
-    }
+    // Return fallback metadata using the utility
+    return await generatePageMetadata({}, parent);
   }
 }
 
@@ -72,9 +69,9 @@ export default async function CompaniesPage({
     }
 
     return (
-      <>
+      <div className="animate-fade-in">
           <Company data={companyData} />
-      </>
+      </div>
     )
   } catch (error) {
     console.error("Error in CompaniesPage:", error);

@@ -4,7 +4,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import { getStoryblokApi } from "@/lib/storyblok";
 import { StoryblokStory } from "@storyblok/react/rsc";
 import { draftMode } from 'next/headers';
-import React from "react";
+import { generatePageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
@@ -14,15 +14,15 @@ export async function generateMetadata( parent: ResolvingMetadata): Promise<Meta
   ]);
   
   const { meta_title, meta_description, og_image } = storyblok.data.story.content;
-  const previousImages = parentMetadata.openGraph?.images || []
-
-  return {
-    title: meta_title,
-    description: meta_description,
-    openGraph: {
-      images: [og_image?.filename, ...previousImages],
+  
+  return await generatePageMetadata(
+    {
+      meta_title,
+      meta_description,
+      og_image
     },
-  }
+    parentMetadata
+  );
 }
 
 export default async function DirSectorsPage() {
@@ -69,7 +69,7 @@ export default async function DirSectorsPage() {
   }));
 
   return (
-    <>
+    <div className="animate-fade-in">
       <div className="max-w-[41rem] mb-12">
         <StoryblokStory story={storyblokSectorsStory} />
       </div>
@@ -87,7 +87,7 @@ export default async function DirSectorsPage() {
           </Link>
         ))}
       </div>            
-    </>
+    </div>
   );
 }
 

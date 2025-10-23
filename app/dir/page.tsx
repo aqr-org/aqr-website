@@ -8,6 +8,8 @@ import { draftMode } from 'next/headers';
 import { countries } from "@/lib/countries";
 import React from "react";
 import AlphabetNav from "@/components/AlphabetNav";
+import { generatePageMetadata } from '@/lib/metadata';
+
 
 type CompanyWithExtraInfo = Company & {
   company_contact_info?: CompanyContactInfo;
@@ -20,22 +22,21 @@ type CompanyWithExtraInfo = Company & {
 export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // read route params and resolve parent metadata in parallel
   const [storyblok, parentMetadata] = await Promise.all([
     fetchStoryblokData('dir'),
     parent
   ]);
   
   const { meta_title, meta_description, og_image } = storyblok.data.story.content;
-  const previousImages = parentMetadata.openGraph?.images || []
-
-  return {
-    title: meta_title,
-    description: meta_description,
-    openGraph: {
-      images: [og_image?.filename, ...previousImages],
+  
+  return await generatePageMetadata(
+    {
+      meta_title,
+      meta_description,
+      og_image
     },
-  }
+    parentMetadata
+  );
 }
 
 export default async function DirPage() {
@@ -112,7 +113,7 @@ export default async function DirPage() {
   }, {} as Record<string, CompanyWithExtraInfo[]>);
   
   return (
-    <>
+    <div className="animate-fade-in">
       <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden">
         <AlphabetNav entries={groupedCompanies} />
       </nav>
@@ -182,7 +183,7 @@ export default async function DirPage() {
           <p>No companies available.</p>
         )}
       </div>            
-    </>
+    </div>
   );
 }
 

@@ -27,7 +27,7 @@ export default async function DirPageLayout({ children }: { children: React.Reac
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
           <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
-            <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
+            <Suspense fallback={<LoadingAnimation text="Loading..." />}>
               {children}
             </Suspense>
           </div>

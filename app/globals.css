@@ -47,13 +47,22 @@
       transform: scale(1.1);
     }
   }
+
+@keyframes fadeInAnimation {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
   
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
   --animate-scale-pulse: scalePulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-scale-pulse-slow: scalePulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
-
+  --animate-fade-in: fadeInAnimation 0.5s ease-in-out forwards;
 }
 
 html {

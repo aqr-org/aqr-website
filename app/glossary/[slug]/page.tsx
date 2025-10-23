@@ -1,6 +1,7 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { render } from 'storyblok-rich-text-react-renderer';
 import type { Metadata, ResolvingMetadata } from 'next'
+import { generatePageMetadata } from '@/lib/metadata';
  
 interface GlossaryPageProps {
   params: { slug: string };
@@ -18,18 +19,16 @@ export async function generateMetadata(
   // read route params
   const theseParams = await params;
   const storyblok = await fetchStoryblokData(theseParams);
-  const { meta_title, meta_description } = storyblok.data.story.content;
+  const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
-  // optionally access and extend (rather than replace) parent metadata
-  const previousImages = (await parent).openGraph?.images || []
-
-  return {
-    title: meta_title,
-    description: meta_description,
-    openGraph: {
-      images: ['/some-specific-page-image.jpg', ...previousImages],
+  return await generatePageMetadata(
+    {
+      meta_title,
+      meta_description,
+      og_image
     },
-  }
+    parent
+  );
 }
 
 export default async function GlossaryPage({ params }: GlossaryPageProps) {
