@@ -98,6 +98,14 @@ export default async function AdvancedDirectoryPage() {
     }));
 
 
+  // Pre-compute area counts once using a Map for better performance
+  const areaCounts = new Map<string, number>();
+  companyAreas.data?.forEach(ca => {
+    if (activeCompanyIds.includes(ca.company_id)) {
+      areaCounts.set(ca.area, (areaCounts.get(ca.area) || 0) + 1);
+    }
+  });
+
   // Get areas by category, only including areas that have at least one company
   const areasWithCompanies = new Set(companyAreas.data?.map(area => area.area) || []);
   
@@ -106,7 +114,7 @@ export default async function AdvancedDirectoryPage() {
     .map(area => ({
       value: area.area,
       label: area.area,
-      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+      count: areaCounts.get(area.area) || 0
     })) || [];
 
   const skills = areasMaster.data
@@ -114,7 +122,7 @@ export default async function AdvancedDirectoryPage() {
     .map(area => ({
       value: area.area,
       label: area.area,
-      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+      count: areaCounts.get(area.area) || 0
     })) || [];
 
   const recruitment = areasMaster.data
@@ -122,7 +130,7 @@ export default async function AdvancedDirectoryPage() {
     .map(area => ({
       value: area.area,
       label: area.area,
-      count: companyAreas.data?.filter(ca => ca.area === area.area && activeCompanyIds.includes(ca.company_id)).length || 0
+      count: areaCounts.get(area.area) || 0
     })) || [];
 
   const filterOptions = {

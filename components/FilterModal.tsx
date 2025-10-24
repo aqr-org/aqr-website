@@ -55,14 +55,14 @@ export default function FilterModal({
         {children}
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-qlack">
+          <DialogTitle className="text-2xl text-qreen-dark">
             {title}
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="space-y-6 flex flex-col h-[calc(90vh-10rem)]">
           {/* Selection Summary */}
           {hasSelection && (
             <div className="bg-qaupe p-4 rounded-lg">
@@ -87,12 +87,12 @@ export default function FilterModal({
                     <Badge
                       key={value}
                       variant="secondary"
-                      className="bg-white text-qlack"
+                      className="bg-qreen/20 text-qreen-dark"
                     >
                       {option?.label}
                       <button
                         onClick={() => handleOptionToggle(value)}
-                        className="ml-2 hover:text-red-600"
+                        className="ml-2 hover:text-red-600 cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -109,7 +109,7 @@ export default function FilterModal({
               variant="secondary"
               size="sm"
               onClick={allSelected ? clearAll : selectAll}
-              className="text-sm"
+              className="text-sm bg-qreen-dark border-none text-qellow"
             >
               {allSelected ? 'Clear All' : 'Select All'}
             </Button>
@@ -119,16 +119,16 @@ export default function FilterModal({
           </div>
 
           {/* Options List */}
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="rounded-lg bg-qreen/10 force-scrollbar overflow-y-auto gap-0">
             {options.map(option => {
               const isSelected = selectedValues.includes(option.value);
               return (
                 <label
                   key={option.value}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                  className={`flex items-start gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
                     isSelected 
                       ? 'bg-qreen/10 border border-qreen/20' 
-                      : 'hover:bg-qaupe'
+                      : 'hover:bg-qreen/20'
                   }`}
                 >
                   <div className="relative">
@@ -149,16 +149,16 @@ export default function FilterModal({
                     </div>
                   </div>
                   <div className="flex-1">
-                    <span className="text-qlack font-medium">{option.label}</span>
+                    <span className="text-qreen-dark">{option.label}</span>
                   </div>
-                  <span className="text-sm text-gray-500">({option.count})</span>
+                  <span className="text-sm text-qreen-dark">({option.count})</span>
                 </label>
               );
             })}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3">
             {/* <Button
               variant="secondary"
               onClick={() => setOpen(false)}
@@ -171,7 +171,7 @@ export default function FilterModal({
                 setOpen(false);
               }}
               disabled={isLoading}
-              className="bg-qreen text-white hover:bg-qreen/90"
+              className="bg-qreen border-none text-white hover:bg-qreen/90"
             >
               {isLoading ? 'Applying Filters...' : 'Apply'}
             </Button>

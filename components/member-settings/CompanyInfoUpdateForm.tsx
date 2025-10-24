@@ -669,7 +669,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       <div>
         <p>Company Bio</p>
         <MenuBar editor={editor} />
-        <div className="border p-8 rounded-b-md bg-grey-50">
+        <div className="border p-8 rounded-b-md bg-qitrus/20">
           <EditorContent editor={editor} />
         </div>
       </div>

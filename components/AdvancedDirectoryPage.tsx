@@ -20,18 +20,6 @@ interface CompanyResult {
   logo: {
     publicUrl: string;
   };
-  contact_info?: {
-    country?: string;
-    addr2?: string;
-    addr3?: string;
-    addr4?: string;
-    addr5?: string;
-  } | null;
-  areas: Array<{
-    area: string;
-    slug: string;
-  }>;
-  address?: string | null;
 }
 
 interface FilterOption {

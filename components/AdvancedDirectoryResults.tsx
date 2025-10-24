@@ -1,6 +1,7 @@
 'use client';
 
 import DirectoryCompanyCard from './ui/directoryCompanyCard';
+import {Lightbulb} from 'lucide-react';
 
 interface CompanyResult {
   id: string;
@@ -10,18 +11,6 @@ interface CompanyResult {
   logo: {
     publicUrl: string;
   };
-  contact_info?: {
-    country?: string;
-    addr2?: string;
-    addr3?: string;
-    addr4?: string;
-    addr5?: string;
-  } | null;
-  areas: Array<{
-    area: string;
-    slug: string;
-  }>;
-  address?: string | null;
 }
 
 interface AdvancedDirectoryResultsProps {
@@ -61,9 +50,10 @@ export default function AdvancedDirectoryResults({
             Use the filters above to find companies that match your criteria. 
             You can filter by company type, business sectors, skills, recruitment expertise, and location.
           </p>
-          <div className="bg-qaupe p-6 rounded-lg">
-            <p className="text-sm text-gray-700">
-              <strong>Tip:</strong> Start by selecting a company type or location to see relevant companies.
+          <div className="border border-qreen-dark text-qreen-dark p-6 rounded-lg flex gap-2">
+            <Lightbulb className="h-6 w-6 text-qreen-dark mb-2" />
+            <p className="text-sm italic">
+              <strong className="font-semibold not-italic">Tip:</strong> Start by selecting a company type or location to see relevant companies.
             </p>
           </div>
         </div>

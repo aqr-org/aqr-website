@@ -2,10 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
-  console.log('API route called at:', new Date().toISOString());
   try {
     const body = await request.json();
-    console.log('API received filters:', body);
     const {
       companyTypes = [],
       sectors = [],
@@ -39,30 +37,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ companies: [] });
     }
 
-    // Fetch contact info and areas separately
-    const { data: companyContactInfo, error: contactError } = await supabase
-      .from('company_contact_info')
-      .select('*');
+    const companyIds = companies.map(company => company.id);
 
-    const { data: companyAreas, error: areasError } = await supabase
-      .from('company_areas')
-      .select('*');
+    // Conditional fetching - only fetch what's needed based on active filters
+    let companyContactInfo = null;
+    let companyAreas = null;
 
-    if (contactError) {
-      console.error('Contact info query error:', contactError);
-      return NextResponse.json({ error: 'Failed to fetch contact info' }, { status: 500 });
+    // Only fetch contact info if country filter is active
+    if (countries.length > 0) {
+      const { data: contactData, error: contactError } = await supabase
+        .from('company_contact_info')
+        .select('company_id, country')
+        .in('company_id', companyIds);
+      
+      if (contactError) {
+        console.error('Contact info query error:', contactError);
+        return NextResponse.json({ error: 'Failed to fetch contact info' }, { status: 500 });
+      }
+      companyContactInfo = contactData;
     }
 
-    if (areasError) {
-      console.error('Areas query error:', areasError);
-      return NextResponse.json({ error: 'Failed to fetch areas' }, { status: 500 });
+    // Only fetch areas if any area filters are active
+    if (sectors.length > 0 || skills.length > 0 || recruitment.length > 0) {
+      const { data: areasData, error: areasError } = await supabase
+        .from('company_areas')
+        .select('company_id, area')
+        .in('company_id', companyIds);
+      
+      if (areasError) {
+        console.error('Areas query error:', areasError);
+        return NextResponse.json({ error: 'Failed to fetch areas' }, { status: 500 });
+      }
+      companyAreas = areasData;
     }
 
     // Combine the data
     const companiesWithContactInfo = companies.map(company => ({
       ...company,
-      company_contact_info: companyContactInfo?.filter(contact => contact.company_id === company.id) || [],
-      company_areas: companyAreas?.filter(area => area.company_id === company.id) || []
+      company_contact_info: companyContactInfo?.filter((contact: { company_id: string }) => contact.company_id === company.id) || [],
+      company_areas: companyAreas?.filter((area: { company_id: string }) => area.company_id === company.id) || []
     }));
 
     // Fetch company logos
@@ -76,11 +89,11 @@ export async function POST(request: NextRequest) {
     }
     
     // Filter files to only include those that match our company IDs
-    const companyIds = companiesWithContactInfo.map(company => company.id);
+    const companyIdsForLogos = companiesWithContactInfo.map(company => company.id);
     const filteredLogos = allCompanyFiles?.filter(file => {
       // Extract the file name without extension
       const fileNameWithoutExt = file.name.replace(/\.(jpg|jpeg|png|gif)$/i, '');
-      return companyIds.includes(fileNameWithoutExt);
+      return companyIdsForLogos.includes(fileNameWithoutExt);
     }) || [];
     
     // Generate public URLs for each logo
@@ -186,19 +199,7 @@ export async function POST(request: NextRequest) {
         name: company.name,
         type: company.type || '',
         slug: company.slug,
-        logo: logo ? { publicUrl: logo.publicUrl } : { publicUrl: '' },
-        contact_info: company.company_contact_info?.[0] || null,
-        areas: company.company_areas || [],
-        // Create address string similar to vflocations pattern
-        address: company.company_contact_info?.[0] ? (() => {
-          const contact = company.company_contact_info[0];
-          const addressArray = [contact.addr2, contact.addr3, contact.addr4, contact.addr5];
-          const addressString = addressArray
-            .filter(item => item && item.length > 0)
-            .slice(-2)
-            .join(', ') + ', ' + contact.country;
-          return addressString;
-        })() : null
+        logo: logo ? { publicUrl: logo.publicUrl } : { publicUrl: '' }
       };
     });
 

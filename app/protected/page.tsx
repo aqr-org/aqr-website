@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { beaconDataOf } from "@/lib/utils";
 import { UserBeaconData } from "@/lib/types";
 import ProtectedTabs from "@/components/member-settings/protected-tabs";
+import Background from "@/components/Background";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -68,12 +69,15 @@ export default async function ProtectedPage() {
   };
 
   return (
-      <div className="flex-1 w-full flex flex-col gap-12">
-
-        <h1 className="font-bold text-3xl">Welcome, {data?.claims?.name || "member"}!</h1>
-        <section className="flex gap-4">
+    <div className="flex-1 w-full flex flex-col gap-12">
+        <Background
+          css={`
+            body { background-image: linear-gradient(to bottom, rgba(0,0,0,0) 10vw, rgba(0,50,0,0.2) 100vw); }
+          `}
+        />
+        <h1 className="text-3xl">Welcome, {membersInfo.data?.[0]?.firstname || "member"}!</h1>
+        {/* <section className="flex gap-4">
           <div>
-            OrgExistsOnBoth: {orgExistsOnBoth ? 'true' : 'false'}
             <pre>
               UserBeaconData:
               {JSON.stringify(userBeaconData, null, 2)}
@@ -82,7 +86,7 @@ export default async function ProtectedPage() {
           <pre>
             {JSON.stringify(thisCompanyRecord.data, null, 2)}
           </pre>
-        </section>
+        </section> */}
 
         <ProtectedTabs
           companyData={thisCompanyRecord.data}

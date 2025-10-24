@@ -10,9 +10,9 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         className="
           button-group
           flex gap-1 mb-0 flex-wrap text-xs font-bold
-          p-2 bg-gray-100 rounded-t-md border border-b-0
+          p-2 bg-qreen/10 rounded-t-md border border-qreen border-b-0
           *:w-8 *:h-8 *:flex *:items-center *:justify-center
-          *:p-2 *:py-1 *:bg-white *:hover:bg-slate-300 *:rounded-md *:cursor-pointer
+          *:p-2 *:py-1 *:bg-qreen/60 *:hover:bg-qreen/40 *:rounded-md *:cursor-pointer
         "
       >
         <button

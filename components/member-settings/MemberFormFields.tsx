@@ -378,9 +378,11 @@ export default function MemberFormFields({
       </label>
 
       <div>
-        <p>Bio / Notes</p>
+        <label>
+          <p>Bio / Notes</p>
+        </label>
         <MenuBar editor={editor} />
-        <div className="border p-8 rounded-b-md bg-grey-50">
+        <div className="border border-qitrus p-8 rounded-b-md bg-qitrus/20">
           <EditorContent editor={editor} />
         </div>
         <p className="text-xs text-gray-500 mt-1">
@@ -389,7 +391,9 @@ export default function MemberFormFields({
       </div>
 
       <div>
-        <p>Portrait Photo</p>
+        <label>
+          <p>Portrait Photo</p>
+        </label>
         
         <div className="flex gap-4">
           {/* Current Portrait Display */}
