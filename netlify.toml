@@ -5,3 +5,7 @@
 [build.environment]
   NODE_VERSION = "18"
   SITE_URL = "https://lucent-kashata-62c75a.app.netlify.com"
+  SUPABASE_URL = "https://bhmfxxloeuhdqpgnfweo.supabase.co"
+  SUPABASE_ANON_KEY = "sb_publishable_wPjQlbF0Gzwnd8CtQ5tqng_Kj2dO3ms"
+  BEACON_API_URL = "https://api.beaconcrm.org/v1/account/30435"
+  STORYBLOK_ACCESS_TOKEN = "suq3zHFajYVusPIKEfrfYwtt"

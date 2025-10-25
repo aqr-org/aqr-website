@@ -24,7 +24,7 @@ async function handleFilter(request: NextRequest) {
     ]
   };
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BEACON_API_URL}/entities/membership/filter`, {
+  const response = await fetch(`${process.env.BEACON_API_URL}/entities/membership/filter`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${beaconAuthToken}`,

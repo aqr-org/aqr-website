@@ -3,7 +3,7 @@ import { draftMode, cookies } from 'next/headers';
 import { getStoryblokApi, storyblokInit, apiPlugin } from '@storyblok/react'
 
 storyblokInit({
-  accessToken: process.env.STORYBLOK_PREVIEW_TOKEN || process.env.NEXT_PUBLIC_STORYBLOK_ACCESS_TOKEN,
+  accessToken: process.env.STORYBLOK_PREVIEW_TOKEN || process.env.STORYBLOK_ACCESS_TOKEN,
   use: [apiPlugin]
 });
 
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const slug = searchParams.get('slug')
 
   //Check if the secret is correct and next parameters are present
-  if (secret !== process.env.STORYBLOK_PREVIEW_TOKEN && secret !== process.env.NEXT_PUBLIC_STORYBLOK_ACCESS_TOKEN ) {
+  if (secret !== process.env.STORYBLOK_PREVIEW_TOKEN && secret !== process.env.STORYBLOK_ACCESS_TOKEN ) {
     return new Response(`Unauthorized you buffoon`, { status: 401 })
   }
   let searchslug = slug
