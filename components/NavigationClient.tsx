@@ -16,11 +16,55 @@ interface NavigationClientProps {
 export default function NavigationClient({ links }: NavigationClientProps) {
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [expandedSubmenus, setExpandedSubmenus] = useState<Set<number>>(new Set());
   const menuRef = useRef<HTMLDivElement | null>(null);
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
+  const submenuRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    setExpandedSubmenus(new Set()); // Close all submenus when mobile menu closes
+  }, []);
+
+  // Toggle submenu expansion
+  const toggleSubmenu = useCallback((index: number) => {
+    setExpandedSubmenus(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Handle keyboard navigation for submenus
+  const handleSubmenuKeyDown = useCallback((e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleSubmenu(index);
+    } else if (e.key === 'Escape') {
+      setExpandedSubmenus(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
+      // Focus the submenu trigger
+      submenuRefs.current.get(index)?.focus();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!expandedSubmenus.has(index)) {
+        toggleSubmenu(index);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (expandedSubmenus.has(index)) {
+        toggleSubmenu(index);
+      }
+    }
+  }, [expandedSubmenus, toggleSubmenu]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -94,28 +138,59 @@ export default function NavigationClient({ links }: NavigationClientProps) {
     <>
       {links.map((link: NavigationLinkData, index) => (
         <li key={index} className="relative px-4">
-          <Link 
-            href={link.link?.cached_url || ''} 
-            ref={index === 0 ? firstLinkRef : undefined} 
-            className="block py-2" 
-            role="menuitem"
+          {link.dropdown_menu && link.dropdown_menu.length > 0 ? (
+            <>
+              <button
+                ref={(el) => {
+                  if (el) submenuRefs.current.set(index, el);
+                }}
+                onClick={() => toggleSubmenu(index)}
+                onKeyDown={(e) => handleSubmenuKeyDown(e, index)}
+                aria-expanded={expandedSubmenus.has(index)}
+                aria-haspopup="true"
+                aria-controls={`mobile-submenu-${index}`}
+                className="flex items-center justify-between w-full py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+              >
+                {link.name}
+                <ChevronDown 
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    expandedSubmenus.has(index) ? 'rotate-180' : ''
+                  }`} 
+                  aria-hidden="true"
+                />
+              </button>
+              <ul
+                id={`mobile-submenu-${index}`}
+                className={`overflow-hidden transition-all duration-200 ${
+                  expandedSubmenus.has(index) 
+                    ? 'max-h-96 opacity-100' 
+                    : 'max-h-0 opacity-0'
+                }`}
+                role="menu"
+                aria-label={`${link.name} submenu`}
+              >
+                {link.dropdown_menu.map((dropdownItem, dropdownIndex) => (
+                  <li key={dropdownIndex} role="none">
+                    <Link 
+                      href={dropdownItem.link?.cached_url || ''}
+                      className="block py-2 pl-4 text-sm text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                      role="menuitem"
+                    >
+                      {dropdownItem.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <Link 
+              href={link.link?.cached_url || ''} 
+              ref={index === 0 ? firstLinkRef : undefined} 
+              className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
+              role="menuitem"
             >
-            {link.name}
-          </Link>
-          {/* Optional Dropdown menu */}
-          { link.dropdown_menu && (
-          <ul className="relative top-full left-0 w-full h-full flex flex-col">
-            {link.dropdown_menu.map((dropdownItem, dropdownIndex) => (
-              <li key={dropdownIndex} >
-                <Link 
-                  href={dropdownItem.link?.cached_url || ''}
-                  className="block py-2"
-                >
-                  {dropdownItem.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+              {link.name}
+            </Link>
           )}
         </li>
       ))}
@@ -140,36 +215,69 @@ export default function NavigationClient({ links }: NavigationClientProps) {
             </Link>
 
             {/* Desktop links */}
-            <ul className="hidden md:flex md:items-end md:gap-6 font-[500]">
+            <ul className="hidden md:flex md:items-end md:gap-6 font-[500]" role="menubar">
             {links.map((link: NavigationLinkData, index) => (
-              <li key={index} className="group relative">
-                <Link 
-                  href={'/' + link.link?.cached_url || ''} 
-                  ref={index === 0 ? firstLinkRef : undefined} 
-                  className={`py-2 px-4 flex items-center gap-[2px] group-hover:bg-qreen group-hover:text-qaupe ${(link.dropdown_menu && link.dropdown_menu.length > 0) ? 'rounded-t-xl' : 'rounded-xl'}`} 
-                  role="menuitem"
+              <li key={index} className="group relative" role="none">
+                {link.dropdown_menu && link.dropdown_menu.length > 0 ? (
+                  <>
+                    <button
+                      ref={(el) => {
+                        if (el) submenuRefs.current.set(index, el);
+                      }}
+                      onClick={() => toggleSubmenu(index)}
+                      onKeyDown={(e) => handleSubmenuKeyDown(e, index)}
+                      onMouseEnter={() => toggleSubmenu(index)}
+                      onMouseLeave={() => setExpandedSubmenus(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(index);
+                        return newSet;
+                      })}
+                      aria-expanded={expandedSubmenus.has(index)}
+                      aria-haspopup="true"
+                      aria-controls={`desktop-submenu-${index}`}
+                      className={`py-2 px-4 flex items-center gap-[2px] hover:bg-qreen hover:text-qaupe rounded-t-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${expandedSubmenus.has(index) ? 'bg-qreen text-qaupe' : ''}`}
+                      role="menuitem"
+                    >
+                      {link.name}
+                      <ChevronDown 
+                        className={`w-4 h-4 transition-transform duration-300 ${
+                          expandedSubmenus.has(index) ? 'rotate-180' : ''
+                        }`} 
+                        aria-hidden="true"
+                      />
+                    </button>
+                    <ul
+                      id={`desktop-submenu-${index}`}
+                      className={`absolute top-full left-0 min-w-48 h-auto flex-col p-4 rounded-lg rounded-tl-none bg-qaupe shadow-md border-2 border-qreen transition-all duration-200 ${
+                        expandedSubmenus.has(index) 
+                          ? 'flex opacity-100 visible' 
+                          : 'hidden opacity-0 invisible'
+                      }`}
+                      role="menu"
+                      aria-label={`${link.name} submenu`}
+                    >
+                      {link.dropdown_menu.map((dropdownItem, dropdownIndex) => (
+                        <li key={dropdownIndex} className="border-b text-qreen border-qreen/20 hover:text-qlack last:border-b-0" role="none">
+                          <Link 
+                            href={'/' + dropdownItem.link?.cached_url || ''}
+                            className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                            role="menuitem"
+                          >
+                            {dropdownItem.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <Link 
+                    href={'/' + link.link?.cached_url || ''} 
+                    ref={index === 0 ? firstLinkRef : undefined} 
+                    className="py-2 px-4 flex items-center gap-[2px] hover:bg-qreen hover:text-qaupe rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
+                    role="menuitem"
                   >
-                  {link.name}
-                  { link.dropdown_menu && link.dropdown_menu.length > 0 && (
-                    <span className="inline-block group-hover:translate-y-[2px] transition-transform duration-300">
-                      <ChevronDown className="w-4 h-4" />
-                    </span>
-                  )}
-                </Link>
-                {/* Optional Dropdown menu */}
-                { link.dropdown_menu && link.dropdown_menu.length > 0 && (
-                <ul className="absolute top-full left-0 min-w-48 h-auto group-hover:flex hidden flex-col p-4 rounded-lg rounded-tl-none bg-qaupe shadow-md border-2 border-qreen">
-                  {link.dropdown_menu.map((dropdownItem, dropdownIndex) => (
-                    <li key={dropdownIndex} className="border-b text-qreen border-qreen/20 hover:text-qlack last:border-b-0">
-                      <Link 
-                        href={'/' + dropdownItem.link?.cached_url || ''}
-                        className="block py-2"
-                      >
-                        {dropdownItem.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                    {link.name}
+                  </Link>
                 )}
               </li>
             ))}
@@ -215,9 +323,9 @@ export default function NavigationClient({ links }: NavigationClientProps) {
               aria-label="Mobile navigation"
               className="absolute left-4 right-4 top-24 mt-2 z-50 md:hidden bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5"
             >
-              <ul className="flex flex-col p-2">
+              <ul className="flex flex-col p-2" role="none">
                 {mobileLinks}
-                <li className="mt-2 px-4 py-2">
+                <li className="mt-2 px-4 py-2" role="none">
                   {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
                 </li>
               </ul>
