@@ -2,7 +2,7 @@ import { apiPlugin, storyblokInit } from '@storyblok/react/rsc';
 import components from './storyblokComponents';
 
 export const getStoryblokApi = storyblokInit({
-  accessToken: process.env.STORYBLOK_ACCESS_TOKEN,
+  accessToken: process.env.STORYBLOK_ACCESS_TOKEN || process.env.NEXT_PUBLIC_STORYBLOK_ACCESS_TOKEN,
   use: [apiPlugin],
   components,
   apiOptions: {
