@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
 
 export async function generateMetadata(
-  { params }: { params: Promise<Record<string, never>> },
+  { params: _params }: { params: Promise<Record<string, never>> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
