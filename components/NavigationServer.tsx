@@ -5,11 +5,7 @@ import { NavigationLinkData } from '@/lib/types/navigation';
 
 export default async function NavigationServer() {
   const navigationData = {
-    links: [
-      { name: 'About', link: { cached_url: '/about' } },
-      { name: 'Companies', link: { cached_url: '/companies' } },
-      { name: 'Members', link: { cached_url: '/members' } }
-    ] as NavigationLinkData[]
+    links: [] as NavigationLinkData[]
   };
 
   try {
@@ -20,20 +16,26 @@ export default async function NavigationServer() {
     });
     
     if (response.data?.stories[0]?.content?.nav_items) {
-      navigationData.links = response.data.stories[0].content.nav_items.map(
-        (item: NavigationLinkData) => ({
-          name: item.name,
-          link: {
-            cached_url: item.link?.cached_url || ''
-          },
-          dropdown_menu: item.dropdown_menu?.map((dropdownItem) => ({
-            name: dropdownItem.name,
-            link: {
-              cached_url: dropdownItem.link?.cached_url || ''
-            }
-          }))
-        } as NavigationLinkData)
-      );
+      console.log('Raw Storyblok nav_items:', JSON.stringify(response.data.stories[0].content.nav_items, null, 2));
+  
+      // Helper function to recursively map navigation items
+      const mapNavigationItem = (item: NavigationLinkData): NavigationLinkData => ({
+        name: item.name,
+        link: {
+          cached_url: item.link?.cached_url || ''
+        },
+        dropdown_menu: item.dropdown_menu?.map((dropdownItem) => 
+          mapNavigationItem(dropdownItem)
+        ),
+        dropdown_menu_2: item.dropdown_menu_2?.map((dropdownItem) => 
+          mapNavigationItem(dropdownItem)
+        ),
+        dropdown_menu_3: item.dropdown_menu_3?.map((dropdownItem) => 
+          mapNavigationItem(dropdownItem)
+        )
+      });
+
+      navigationData.links = response.data.stories[0].content.nav_items.map(mapNavigationItem);
     }
     
 
