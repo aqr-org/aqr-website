@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { NavigationLinkData } from "@/lib/types/navigation";
-import { EnvVarWarning } from "../env-var-warning";
 import { AuthButton } from "../auth-button";
 import NavigationDropdownItem from "./NavigationDropdownItem";
 
