@@ -8,7 +8,7 @@ import React from "react";
 import { generatePageMetadata } from '@/lib/metadata';
 
 export async function generateMetadata(
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel

@@ -7,7 +7,7 @@ import { draftMode } from 'next/headers';
 import React from "react";
 import { generatePageMetadata } from '@/lib/metadata';
 
-export async function generateMetadata({ params }: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata({ params: _params }: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
   const [storyblok, parentMetadata] = await Promise.all([
     fetchStoryblokData('dir/sectors'),
