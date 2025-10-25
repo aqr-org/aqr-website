@@ -55,9 +55,9 @@ export default function NavigationClient({ links }: NavigationClientProps) {
 
           <NavigationRightSide />
           <NavigationToggle 
-            open={open} 
-            setOpen={setOpen} 
-            toggleButtonRef={toggleButtonRef} 
+            open={open}
+            setOpen={setOpen}
+            toggleButtonRef={toggleButtonRef as React.RefObject<HTMLButtonElement>}
           />
           <MobileNavigation
             links={links}
