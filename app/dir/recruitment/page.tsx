@@ -7,7 +7,7 @@ import { draftMode } from 'next/headers';
 import React from "react";
 import { generatePageMetadata } from '@/lib/metadata';
 
-export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata() {
   // read route params and resolve parent metadata in parallel
   const [storyblok, parentMetadata] = await Promise.all([
     fetchStoryblokData('dir/recruitment'),
@@ -92,7 +92,7 @@ export default async function DirSectorsPage() {
   );
 }
 
-export async function fetchStoryblokData(slug: string) {
+async function fetchStoryblokData(slug: string) {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())

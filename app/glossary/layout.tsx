@@ -31,7 +31,7 @@ export default async function DirPageLayout({ children }: { children: React.Reac
   );
 }
 
-export async function fetchStoryblokData(slug: string) {
+async function fetchStoryblokData(slug: string) {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())

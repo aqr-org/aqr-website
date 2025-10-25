@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
 
 export async function generateMetadata(
+  { params }: { params: Promise<Record<string, never>> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
@@ -143,7 +144,7 @@ export default async function DirPage() {
   );
 }
 
-export async function fetchStoryblokData(slug: string) {
+async function fetchStoryblokData(slug: string) {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())
@@ -152,7 +153,7 @@ export async function fetchStoryblokData(slug: string) {
   const isDraftMode = isEnabled;
   return await storyblokApi.get(`cdn/stories/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
 }
-export async function fetchGlossaryTerms() {
+async function fetchGlossaryTerms() {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())

@@ -6,7 +6,7 @@ import { StoryblokStory } from "@storyblok/react/rsc";
 import { draftMode } from 'next/headers';
 import { generatePageMetadata } from '@/lib/metadata';
 
-export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
   const [storyblok, parentMetadata] = await Promise.all([
     fetchStoryblokData('dir/expertise'),
@@ -91,7 +91,7 @@ export default async function DirSectorsPage() {
   );
 }
 
-export async function fetchStoryblokData(slug: string) {
+async function fetchStoryblokData(slug: string) {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())

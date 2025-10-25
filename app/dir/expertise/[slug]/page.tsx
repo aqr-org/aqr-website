@@ -4,9 +4,9 @@ import DirectoryPageLayout from "@/components/DirectoryPageLayout";
 import { fetchCompaniesWithExtraData } from "@/lib/directory-utils";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(

@@ -6,7 +6,7 @@ import { generatePageMetadata } from '@/lib/metadata';
 import { createClient } from '@/lib/supabase/server';
 import AdvancedDirectoryPageComponent from '@/components/AdvancedDirectoryPage';
 
-export async function generateMetadata( parent: ResolvingMetadata): Promise<Metadata> {
+export async function generateMetadata(_: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
   try {
     // Run in parallel with individual error handling
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
@@ -151,7 +151,7 @@ export default async function AdvancedDirectoryPage() {
   );
 }
 
-export async function fetchStoryblokData() {
+async function fetchStoryblokData() {
   try {
     const { isEnabled } = await draftMode();
     const isDraftMode = isEnabled;

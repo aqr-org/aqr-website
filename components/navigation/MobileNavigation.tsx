@@ -10,8 +10,8 @@ interface MobileNavigationProps {
   links: NavigationLinkData[];
   open: boolean;
   expandedSubmenus: Set<number>;
-  menuRef: React.RefObject<HTMLDivElement | null>;
-  firstLinkRef: React.RefObject<HTMLAnchorElement | null>;
+  menuRef: React.RefObject<HTMLDivElement>;
+  firstLinkRef: React.RefObject<HTMLAnchorElement>;
   submenuRefs: React.MutableRefObject<Map<number, HTMLButtonElement>>;
   toggleSubmenu: (index: number) => void;
   handleSubmenuKeyDown: (e: React.KeyboardEvent, index: number) => void;

@@ -20,6 +20,7 @@ type CompanyWithExtraInfo = Company & {
 
 
 export async function generateMetadata(
+  { params }: { params: Promise<Record<string, never>> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const [storyblok, parentMetadata] = await Promise.all([
@@ -187,7 +188,7 @@ export default async function DirPage() {
   );
 }
 
-export async function fetchStoryblokData(slug: string) {
+async function fetchStoryblokData(slug: string) {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())

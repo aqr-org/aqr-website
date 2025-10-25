@@ -23,7 +23,7 @@ export default async function Home() {
   );
 }
 
-export async function fetchStoryblokData() {
+async function fetchStoryblokData() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
 	const storyblokApi = getStoryblokApi();

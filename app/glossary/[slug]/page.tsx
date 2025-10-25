@@ -4,7 +4,7 @@ import type { Metadata, ResolvingMetadata } from 'next'
 import { generatePageMetadata } from '@/lib/metadata';
  
 interface GlossaryPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 type Props = {
@@ -17,8 +17,7 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   // read route params
-  const theseParams = await params;
-  const storyblok = await fetchStoryblokData(theseParams);
+  const storyblok = await fetchStoryblokData(params);
   const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
   return await generatePageMetadata(
@@ -32,8 +31,7 @@ export async function generateMetadata(
 }
 
 export default async function GlossaryPage({ params }: GlossaryPageProps) {
-  const theseParams = await params;
-  const storyblok = await fetchStoryblokData(theseParams);
+  const storyblok = await fetchStoryblokData(params);
   const content = storyblok.data.story.content;
 
   return (
@@ -62,7 +60,8 @@ export default async function GlossaryPage({ params }: GlossaryPageProps) {
   );
 }
 
-export async function fetchStoryblokData(params: GlossaryPageProps['params']) {
+async function fetchStoryblokData(params: GlossaryPageProps['params']) {
+  const resolvedParams = await params;
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/glossary/${params.slug}`, { version: 'draft' });
+  return await storyblokApi.get(`cdn/stories/glossary/${resolvedParams.slug}`, { version: 'draft' });
 }

@@ -16,7 +16,6 @@ export default async function NavigationServer() {
     });
     
     if (response.data?.stories[0]?.content?.nav_items) {
-      console.log('Raw Storyblok nav_items:', JSON.stringify(response.data.stories[0].content.nav_items, null, 2));
   
       // Helper function to recursively map navigation items
       const mapNavigationItem = (item: NavigationLinkData): NavigationLinkData => ({

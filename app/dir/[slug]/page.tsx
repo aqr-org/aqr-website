@@ -53,7 +53,7 @@ export async function generateMetadata(
   }
 }
 
-export default async function SlugPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function SlugPage({ params }: PageProps) {
   const resolvedParams = await params;
   const storyblok = await fetchStoryblokData(resolvedParams);
   const storyBlokStory = storyblok?.data.story;
@@ -65,7 +65,7 @@ export default async function SlugPage({ params }: { params: Promise<{ slug: str
   );
 }
 
-export async function fetchStoryblokData(params: { slug: string }) {
+async function fetchStoryblokData(params: { slug: string }) {
   try {
     const { isEnabled } = await draftMode();
     const isDraftMode = isEnabled;

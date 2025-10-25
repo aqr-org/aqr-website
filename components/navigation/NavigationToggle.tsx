@@ -1,7 +1,7 @@
 interface NavigationToggleProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  toggleButtonRef: React.RefObject<HTMLButtonElement | null>;
+  toggleButtonRef: React.RefObject<HTMLButtonElement>;
 }
 
 export default function NavigationToggle({ open, setOpen, toggleButtonRef }: NavigationToggleProps) {
