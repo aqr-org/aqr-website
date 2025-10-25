@@ -43,7 +43,9 @@ export default async function RootLayout({
     <StoryblokProvider>
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-          <Navigation />
+          <Suspense fallback={<div>Loading navigation...</div>}>
+            <Navigation />
+          </Suspense>
           {isDraftMode && (
             <DraftModeAlert />
           )}

@@ -8,8 +8,8 @@ interface MobileNavigationProps {
   links: NavigationLinkData[];
   open: boolean;
   expandedSubmenus: Set<number>;
-  menuRef: React.RefObject<HTMLDivElement>;
-  firstLinkRef: React.RefObject<HTMLAnchorElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
+  firstLinkRef: React.RefObject<HTMLAnchorElement | null>;
   submenuRefs: React.MutableRefObject<Map<number, HTMLButtonElement>>;
   toggleSubmenu: (index: number) => void;
   handleSubmenuKeyDown: (e: React.KeyboardEvent, index: number) => void;
@@ -73,7 +73,7 @@ export default function MobileNavigation({
           ) : (
             <Link 
               href={link.link?.cached_url || ''} 
-              ref={index === 0 ? firstLinkRef : undefined} 
+              ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
               className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
               role="menuitem"
             >
@@ -90,7 +90,7 @@ export default function MobileNavigation({
   return (
     <div
       id="mobile-menu"
-      ref={menuRef}
+      ref={menuRef as React.RefObject<HTMLDivElement>}
       role="menu"
       aria-label="Mobile navigation"
       className="absolute left-4 right-4 top-24 mt-2 z-50 md:hidden bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5"

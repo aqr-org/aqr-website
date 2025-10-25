@@ -1,9 +1,9 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import NavigationClient from '@/components/NavigationClient';
 import { NavigationLinkData } from '@/lib/types/navigation';
+import { cache } from 'react';
 
-
-export default async function NavigationServer() {
+const getNavigationData = cache(async () => {
   const navigationData = {
     links: [] as NavigationLinkData[]
   };
@@ -43,5 +43,10 @@ export default async function NavigationServer() {
     // Fallback to default links if Storyblok fetch fails
   }
 
+  return navigationData;
+});
+
+export default async function NavigationServer() {
+  const navigationData = await getNavigationData();
   return <NavigationClient links={navigationData.links} />;
 }

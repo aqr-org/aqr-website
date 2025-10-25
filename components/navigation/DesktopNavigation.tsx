@@ -6,7 +6,7 @@ import NavigationDropdownItem from "./NavigationDropdownItem";
 interface DesktopNavigationProps {
   links: NavigationLinkData[];
   expandedSubmenus: Set<number>;
-  firstLinkRef: React.RefObject<HTMLAnchorElement>;
+  firstLinkRef: React.RefObject<HTMLAnchorElement | null>;
   submenuRefs: React.RefObject<Map<number, HTMLButtonElement>>;
   toggleSubmenu: (index: number) => void;
   handleSubmenuKeyDown: (e: React.KeyboardEvent, index: number) => void;
@@ -83,7 +83,7 @@ export default function DesktopNavigation({
           ) : (
             <Link 
               href={'/' + link.link?.cached_url || ''} 
-              ref={index === 0 ? firstLinkRef : undefined} 
+              ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
               className="py-2 px-4 flex items-center gap-[2px] hover:bg-qreen hover:text-qaupe rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
               role="menuitem"
             >
