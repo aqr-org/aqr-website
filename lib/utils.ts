@@ -7,11 +7,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// This check can be removed, it is just for tutorial purposes
-export const hasEnvVars =
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY;
-
 export const profOrgsNameMap: {[key: string]: string} = {
   "MRS": "The Market Research Society",
   "ESOMAR": "The European Society for Opinion and Marketing Research",

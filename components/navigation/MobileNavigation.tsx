@@ -3,7 +3,6 @@ import { ChevronDown } from "lucide-react";
 import { NavigationLinkData } from "@/lib/types/navigation";
 import { EnvVarWarning } from "../env-var-warning";
 import { AuthButton } from "../auth-button";
-import { hasEnvVars } from "@/lib/utils";
 import NavigationDropdownItem from "./NavigationDropdownItem";
 
 interface MobileNavigationProps {
@@ -100,7 +99,7 @@ export default function MobileNavigation({
       <ul className="flex flex-col p-2" role="none">
         {mobileLinks}
         <li className="mt-2 px-4 py-2" role="none">
-          {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
+          <AuthButton />
         </li>
       </ul>
     </div>
