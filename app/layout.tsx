@@ -11,8 +11,8 @@ import DraftModeActivate from '@/components/storyblok/DraftModeActivate';
 import BackgroundGraphics from "@/components/BackgroundGraphics";
 import { BackgroundColorProvider } from "@/components/BackgroundProvider";
 
-const defaultUrl = process.env.NEXT_PUBLIC_SITE_URL
-  ? process.env.NEXT_PUBLIC_SITE_URL
+const defaultUrl = process.env.SITE_URL
+  ? process.env.SITE_URL
   : "https://localhost:3001";
 
 export const metadata: Metadata = {

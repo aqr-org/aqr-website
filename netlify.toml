@@ -4,3 +4,4 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  SITE_URL = "https://lucent-kashata-62c75a.app.netlify.com"

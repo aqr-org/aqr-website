@@ -26,7 +26,7 @@ export const getProfessionalOrgName = (abbreviation: string): string => {
 export const beaconDataOf = async (email: string): Promise<object> => {
   
   const normalizedEmail = email.trim().toLowerCase();
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://localhost:3001';
+  const baseUrl = process.env.SITE_URL || 'https://localhost:3001';
   // This has as a result the entity that contains the email address:
   const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}`);
   // This second endpoint checks for memberships where the email is in the additional members field
@@ -130,7 +130,7 @@ export const checkActiveBeaconMembership = async (email: string): Promise<{ ok: 
 
 
 export const sbCompanyHasActiveBeaconSub = async (companyName: string): Promise<boolean> => {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.SITE_URL || 'http://localhost:3000';
   const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership`);
 
   if (!beaconMembershipRes.ok) {
