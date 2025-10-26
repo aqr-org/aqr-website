@@ -198,7 +198,11 @@ p a {
     @apply mt-0;
   }
   & p {
-    @apply text-lg my-[1.875rem] leading-[1.4rem];
+    @apply text-lg my-[1.875rem] leading-[1.4];
+
+    &.small {
+      @apply text-base my-[0.975rem];
+    }
   }
   & blockquote {
     @apply my-[1.875rem];
@@ -207,15 +211,27 @@ p a {
     @apply border-l-4 border-qlack pl-4;
   }
   & ul {
-    @apply my-[1.875rem];
+    @apply my-[1.875rem] list-disc ml-4;
   }
   & ol {
     @apply my-[1.875rem];
   }
   & li {
-    @apply my-[1.875rem];
+    @apply my-[0.75rem] text-lg;
+    &.small {
+      @apply text-base;
+    }
   }
   & a {
     @apply underline;
+  }
+}
+
+.prose.prose_article {
+  & h2 {
+    @apply block text-2xl font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+  }
+  & h3, & .h3size {
+    @apply block text-xl font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
   }
 }

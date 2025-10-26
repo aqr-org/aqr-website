@@ -1,8 +1,10 @@
 import { getStoryblokApi } from '@/lib/storyblok';
-import { render } from 'storyblok-rich-text-react-renderer';
 import type { Metadata, ResolvingMetadata } from 'next'
 import { generatePageMetadata } from '@/lib/metadata';
- 
+import { storyblokEditable } from '@storyblok/react/rsc';
+import { StoryblokStory } from '@storyblok/react/rsc';
+import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
 interface GlossaryPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -32,30 +34,11 @@ export async function generateMetadata(
 
 export default async function GlossaryPage({ params }: GlossaryPageProps) {
   const storyblok = await fetchStoryblokData(params);
-  const content = storyblok.data.story.content;
+  const content = storyblok.data.story;
 
   return (
-    <main className='max-w-[41rem]'>
-      <h1 className='text-4xl font-[400] my-8'>
-        {content.name}
-      </h1>
-      <div className='prose'>
-        {render(content.description)}
-      </div>
-      {content.synonyms && content.synonyms.content.length > 0 &&
-        <div className='prose'>
-          <h2>Synonyms</h2>
-          {render(content.synonyms)}
-        </div>
-      }
-      
-      {content.related && content.related.content.length > 0 &&
-        <div className='prose'>
-          <h2>Related</h2>
-          {render(content.related)}
-        </div>
-      }
-      {/* <pre>{JSON.stringify(storyblok.data, null, 2)}</pre> */}
+    <main className='max-w-[41rem]' {...storyblokEditable(content)}> 
+      <StoryblokStory story={content} />
     </main>
   );
 }

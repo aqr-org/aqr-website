@@ -5,7 +5,7 @@ import RenderSidebar from "@/components/render-sidebar";
 import { draftMode } from 'next/headers';
 import React from "react";
 
-export default async function GlossaryPageLayout({ children }: { children: React.ReactNode }) {
+export default async function ResoucesPageLayout({ children }: { children: React.ReactNode }) {
   // Fetch initial data in parallel
   const [sidebarData] = await Promise.all([
     fetchStoryblokData('site-settings/directory-sidebar'),
@@ -20,7 +20,7 @@ export default async function GlossaryPageLayout({ children }: { children: React
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
           <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
-            <Suspense fallback={<LoadingAnimation text="Loading glossary..." />}>
+            <Suspense fallback={<LoadingAnimation text="Loading Resources..." />}>
                {children}
             </Suspense>
           </div>

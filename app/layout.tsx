@@ -54,7 +54,7 @@ export default async function RootLayout({
           }
           <BackgroundColorProvider>
             <BackgroundGraphics />
-            <Suspense fallback={<LoadingAnimation text="Loading companies..." />}>
+            <Suspense fallback={<LoadingAnimation text="Loading ..." />}>
               {children}
             </Suspense>
           </BackgroundColorProvider>
