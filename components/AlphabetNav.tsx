@@ -8,7 +8,7 @@ interface AlphabetNavProps {
 
 export default function AlphabetNav({ entries }: AlphabetNavProps) {
   return (
-    <ul className="flex gap-4 mb-8">
+    <ul className="flex gap-4">
       {Object.keys(entries).sort((a, b) => {
           // Special sorting for group keys
           if (a === '0-9') return 1; // Numbers first
