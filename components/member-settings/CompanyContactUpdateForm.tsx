@@ -95,7 +95,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
       mapref: formValues.mapref || null,
     };
 
-    console.log("Contact info to save:", contactInfo);
+    // console.log("Contact info to save:", contactInfo);
 
     const supabase = createClient();
 

@@ -281,11 +281,11 @@ async function findValidImageUrl(memberId: string) {
         .from('images')
         .getPublicUrl(`members/${matchingFile.name}`);
       
-      console.log(`Found image: ${matchingFile.name}`);
+      // console.log(`Found image: ${matchingFile.name}`);
       return data.publicUrl;
     }
 
-    console.log("No matching image file found for member:", memberId);
+    // console.log("No matching image file found for member:", memberId);
     return null;
     
   } catch (error) {

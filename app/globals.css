@@ -168,15 +168,17 @@ p a {
 }
 
 .prose {
-  & > *:first-child, & > *:first-child > .h1size, 
+  & > *:first-child, 
+  & > *:first-child > .h1size, 
   & > *:first-child > .h2size, 
   & > *:first-child > .h3size, 
   & > *:first-child > .tag {
     @apply mt-0;
   }
-  & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.tag),
-  & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.tag),
-  & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.tag) {
+  & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.h4size), & h1:has(>.tag),
+  & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.h4size), & h2:has(>.tag),
+  & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.h4size), & h3:has(>.tag),
+  & h4:has(>.h1size), & h4:has(>.h2size), & h4:has(>.h3size), & h4:has(>.h4size), & h4:has(>.tag) {
     @apply my-0;
   } 
   & h1, & .h1size {
@@ -186,7 +188,10 @@ p a {
     @apply block text-4xl font-[400] my-[1.875rem] leading-none;
   }
   & h3, & .h3size {
-    @apply block text-[2.375rem] font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+    @apply block text-[2.375rem] font-[400] my-[1.875rem] leading-tight tracking-[-0.07125rem];
+  }
+  & h4, & .h4size {
+    @apply block text-[1.5rem] font-[400] my-[1.875rem] leading-tight tracking-[-0.02rem];
   }
   & .tag {
     @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-[0.625rem];
@@ -233,5 +238,8 @@ p a {
   }
   & h3, & .h3size {
     @apply block text-xl font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+  }
+  & h4, & .h4size {
+    @apply block text-[1.5rem] font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
   }
 }

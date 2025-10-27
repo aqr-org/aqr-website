@@ -15,7 +15,6 @@ export default async function Home() {
           #bg_svg_circle_1 { transform: translate(0%, 0%); }
         `} 
       />
-      
       {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
         <StoryblokStory story={storyBlokStory} />
       }
@@ -27,5 +26,16 @@ async function fetchStoryblokData() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
 	const storyblokApi = getStoryblokApi();
-	return await storyblokApi.get(`cdn/stories/calendar`, { version: isDraftMode ? 'draft' : 'published' });
+	return await storyblokApi.get(`cdn/stories/events`, { version: isDraftMode ? 'draft' : 'published' });
+}
+async function fetchAllEvents() {
+  const { isEnabled } = await draftMode();
+  const isDraftMode = isEnabled;
+  const storyblokApi = getStoryblokApi();
+  return await storyblokApi.get(`cdn/stories`, { 
+    version: isDraftMode ? 'draft' : 'published' ,
+    content_type: 'event',
+    starts_with: 'events/',
+    excluding_slugs: 'events/'
+  });
 }

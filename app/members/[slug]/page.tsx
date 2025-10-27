@@ -29,7 +29,7 @@ async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
         .from('images')
         .getPublicUrl(`members/${matchingFile.name}`);
       
-      console.log(`Found image: ${matchingFile.name}`);
+      // console.log(`Found image: ${matchingFile.name}`);
       return data.publicUrl;
     }
 
@@ -61,14 +61,14 @@ export default async function ComnpaniesPage({
     console.error("member error:", member.error);
   }
 
-  console.log("Member ID:", member.data?.id);
+  // console.log("Member ID:", member.data?.id);
 
   // Find the correct image URL with extension
   const validImageUrl = member.data?.id 
     ? await findValidImageUrl(supabase, member.data.id)
     : null;
 
-  console.log("Valid Image URL:", validImageUrl);
+  // console.log("Valid Image URL:", validImageUrl);
 
   const memberData = {
     ...member.data,

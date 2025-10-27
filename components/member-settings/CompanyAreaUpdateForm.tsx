@@ -112,7 +112,7 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
           .insert(areasToInsert);
       }
 
-      console.log("Company areas updated successfully");
+      // console.log("Company areas updated successfully");
       setWasUpdated(true);
       if (onSuccess) {
         onSuccess();

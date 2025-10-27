@@ -50,7 +50,7 @@ export default async function CompaniesPage({
   try {
     const { slug } = await params
 
-    console.log("CompaniesPage - slug:", slug, "type:", typeof slug);
+    // console.log("CompaniesPage - slug:", slug, "type:", typeof slug);
     // Use the cached function - this will reuse the data from generateMetadata
     const companyData = await getCompanyData(slug);
 

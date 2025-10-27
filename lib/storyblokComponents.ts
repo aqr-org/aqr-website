@@ -4,6 +4,8 @@ import PictureCard from '@/components/storyblok/PictureCard';
 import RichText from '@/components/storyblok/RichText';
 import Glossary_Entry from '@/components/storyblok/Glossary_Entry';
 import Article from '@/components/storyblok/Article';
+import Webinar from '@/components/storyblok/Webinar';
+import Event from '@/components/storyblok/Event';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -12,6 +14,8 @@ const components = {
   rich_text: RichText,
   glossary_entry: Glossary_Entry,
   article: Article,
+  webinar: Webinar,
+  event: Event,
 };
 
 export default components ;

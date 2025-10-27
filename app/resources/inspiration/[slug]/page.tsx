@@ -174,7 +174,7 @@ async function findValidImageUrl(memberId: string) {
         .from('images')
         .getPublicUrl(`members/${matchingFile.name}`);
       
-      console.log(`Found image: ${matchingFile.name}`);
+      // console.log(`Found image: ${matchingFile.name}`);
       return data.publicUrl;
     }
 
