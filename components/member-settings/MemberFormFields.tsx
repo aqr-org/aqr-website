@@ -280,7 +280,7 @@ export default function MemberFormFields({
             value={formValues.firstname}
             onChange={(e) => handleInputChange('firstname', e.target.value)}
             required={firstNameRequired}
-            disabled={isLoading || wasSuccessful}
+            disabled={true}
             className="w-full"
           />
         </label>
@@ -294,7 +294,7 @@ export default function MemberFormFields({
             value={formValues.lastname}
             onChange={(e) => handleInputChange('lastname', e.target.value)}
             required={lastNameRequired}
-            disabled={isLoading || wasSuccessful}
+            disabled={true}
             className="w-full"
           />
         </label>
