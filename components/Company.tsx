@@ -117,7 +117,7 @@ export default function Company(props: CompanyProps) {
   return (
     <article 
       className="
-        p-8 w-full max-w-[1080px] mx-auto box-border
+        w-full max-w-[1080px] mx-auto box-border
       "
     >
         <section>
