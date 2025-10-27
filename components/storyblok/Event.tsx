@@ -27,7 +27,7 @@ export default function Glossary_Entry({ blok }: EventProps) {
   
   return (
     <div {...storyblokEditable(blok)} className="md:flex gap-8">
-      <div className="max-w-[41rem] md:basis-3/4 prose">
+      <div className="max-w-[41rem] md:basis-3/4 shrink-1 prose">
         <h1 className='h3size'>
           {blok.title}
         </h1>
@@ -40,20 +40,28 @@ export default function Glossary_Entry({ blok }: EventProps) {
       </div>
       <div className="md:basis-1/4 grow-1 mt-8 prose">
       {/* {JSON.stringify(blok.image)} */}
-        <Picture
-          src={blok.image.filename}
-          alt={blok.image.alt}
-          sizes="(max-width: 768px) 90vw, 20vw"
-          aspectRatioDesktop="1.77778"
-          aspectRatioMobile="1.77778"
-          className="w-full h-auto aspect-[1.77778]"
-        />
+        {blok.image && blok.image.filename &&
+          <Picture
+            src={blok.image.filename}
+            alt={blok.image.alt}
+            sizes="(max-width: 768px) 90vw, 20vw"
+            aspectRatioDesktop="1.77778"
+            aspectRatioMobile="1.77778"
+            className="w-full h-auto aspect-[1.77778]"
+          />
+        }
+        <p>{blok.title}</p>
         {blok.admission && (
           <p>Admission: {blok.admission}</p>
         )}
+        {blok.organised_by && (
+          <p>Organised by: {blok.organised_by}</p>
+        )}
         {blok.admission_link && (
-          <Link href={blok.admission_link.cached_url} className="btn btn-primary">
-            {blok.admission_link.cached_url}
+          <Link href={blok.admission_link.cached_url}>
+            <Button variant="default">
+              Sign up
+            </Button>
           </Link>
         )}
       </div>

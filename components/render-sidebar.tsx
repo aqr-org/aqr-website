@@ -1,11 +1,12 @@
 import { NavigationLinkData } from "@/lib/types/navigation";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function RenderSidebar({ sidebar_items }: { sidebar_items: NavigationLinkData[] }) {
   return (
     <nav aria-label="Secondary sidebar navigation" id="secondary-navigation">
       {sidebar_items.map((item: NavigationLinkData, index: number) => (
-        <div key={item.name+index} className="mt-8">
+        <div key={item.name+index} className={cn(index === 0 ? "mt-0" : "mt-8")}>
           {item.link?.cached_url !== "" ?
             <Link 
               href={item.link?.cached_url || ''}
