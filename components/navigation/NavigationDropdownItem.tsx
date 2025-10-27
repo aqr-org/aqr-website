@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NavigationLinkData } from "@/lib/types/navigation";
+import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 
 interface NavigationDropdownItemProps {
   item: NavigationLinkData;
@@ -81,7 +82,7 @@ export default function NavigationDropdownItem({
           </div>
         ) : (
           <Link 
-            href={item.link?.cached_url || ''}
+            href={normalizeStoryblokUrl(item.link?.cached_url)}
             className={`block py-2 ${indentClass} ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
             role="menuitem"
           >
@@ -105,7 +106,7 @@ export default function NavigationDropdownItem({
           <div className="relative group/nested">
             {level !== 0 && (
               <div className={`${textSizeClass} ${textWeightClass} ${textColorClass} ${textBorderClass} font-medium pb-2 cursor-default whitespace-nowrap`}>
-                {item.link?.cached_url ? <Link href={'/' + item.link?.cached_url || ''} className="hover:text-qreen-dark">
+                {item.link?.cached_url ? <Link href={normalizeStoryblokUrl(item.link?.cached_url)} className="hover:text-qreen-dark">
                   {item.name}
                 </Link> :
                   <>
@@ -163,7 +164,7 @@ export default function NavigationDropdownItem({
           </div>
         ) : (
           <Link 
-            href={'/' + item.link?.cached_url || ''}
+            href={normalizeStoryblokUrl(item.link?.cached_url)}
             className={`block min-w-[14em] p-2 ${textWeightClass} ${textSizeClass} ${textColorClass} ${textBorderClass} hover:bg-qlack/5 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
             role="menuitem"
           >

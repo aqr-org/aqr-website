@@ -44,5 +44,8 @@ async function fetchStoryblokData(slug: string) {
   ]);
   
   const isDraftMode = isEnabled;
-  return await storyblokApi.get(`cdn/stories/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
+  return await storyblokApi.get(`cdn/stories/${slug}`, { 
+    version: isDraftMode ? 'draft' : 'published',
+    resolve_links: 'url'
+  });
 }

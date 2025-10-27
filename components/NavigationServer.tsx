@@ -12,7 +12,8 @@ const getNavigationData = cache(async () => {
     const storyblokApi = getStoryblokApi();
     const response = await storyblokApi.get('cdn/stories', { 
       version: 'draft',
-      starts_with: 'site-settings/main-navigation'
+      starts_with: 'site-settings/main-navigation',
+      resolve_links: 'url'
     });
     
     if (response.data?.stories[0]?.content?.nav_items) {

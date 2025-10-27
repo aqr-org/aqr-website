@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { NavigationLinkData } from "@/lib/types/navigation";
 import NavigationDropdownItem from "./NavigationDropdownItem";
+import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 
 interface DesktopNavigationProps {
   links: NavigationLinkData[];
@@ -82,7 +83,7 @@ export default function DesktopNavigation({
             </>
           ) : (
             <Link 
-              href={'/' + link.link?.cached_url || ''} 
+              href={normalizeStoryblokUrl(link.link?.cached_url)}
               ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
               className="py-2 px-4 flex items-center gap-[2px] hover:bg-qreen hover:text-qaupe rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
               role="menuitem"
