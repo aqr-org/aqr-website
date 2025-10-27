@@ -47,6 +47,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.includes("/about") &&
     !request.nextUrl.pathname.includes("/api/") &&
     !request.nextUrl.pathname.includes("/resources/") &&
+    !request.nextUrl.pathname.includes("/calendar") &&
     !request.nextUrl.pathname.includes("/glossary") &&
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&

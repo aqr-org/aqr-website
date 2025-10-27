@@ -38,7 +38,12 @@ const getNavigationData = cache(async () => {
     }
     
 
-  } catch (error) {
+  } catch (error: any) {
+    // Silently handle prerendering errors to avoid build failures
+    if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
+      // Return empty navigation during prerendering
+      return navigationData;
+    }
     console.error('Error fetching navigation data from Storyblok:', error);
     // Fallback to default links if Storyblok fetch fails
   }
