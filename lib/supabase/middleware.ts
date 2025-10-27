@@ -40,21 +40,19 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const user = data?.claims;
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !request.nextUrl.pathname.includes("/dir") &&
-    !request.nextUrl.pathname.includes("/members") &&
-    !request.nextUrl.pathname.includes("/about") &&
-    !request.nextUrl.pathname.includes("/api/") &&
-    !request.nextUrl.pathname.includes("/resources/") &&
-    !request.nextUrl.pathname.includes("/calendar") &&
-    !request.nextUrl.pathname.includes("/events") &&
-    !request.nextUrl.pathname.includes("/glossary") &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  // Define protected paths that require authentication
+  const protectedPaths = [
+    "/protected",
+    // Add any other protected paths here
+  ];
+
+  // Check if the current path is protected
+  const isProtectedPath = protectedPaths.some(path => 
+    request.nextUrl.pathname.startsWith(path)
+  );
+
+  // Redirect to login if accessing a protected path without authentication
+  if (isProtectedPath && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
