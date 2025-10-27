@@ -89,7 +89,7 @@ export default async function ComnpaniesPage() {
       <div className="max-w-[41rem] mb-12">
         <StoryblokStory story={storyBlokStory} />
       </div>
-      <nav aria-label="Directory navigation">
+      <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden sticky top-0 py-4 -mt-4 bg-qaupe z-10">
         <AlphabetNav entries={groupedMembers} />
       </nav>
       <div className="space-y-8 md:grid md:grid-cols-2 md:gap-5">

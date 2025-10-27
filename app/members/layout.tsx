@@ -8,7 +8,7 @@ import React from "react";
 export default async function CalendarPageLayout({ children }: { children: React.ReactNode }) {
   // Fetch initial data in parallel
   const [sidebarData] = await Promise.all([
-    fetchStoryblokData('site-settings/directory-sidebar'),
+    fetchStoryblokData('site-settings/members-sidebar'),
   ]);
   
   const sidebar_items = sidebarData.data.story.content.nav_items;
@@ -20,7 +20,7 @@ export default async function CalendarPageLayout({ children }: { children: React
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
           <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
-            <Suspense fallback={<LoadingAnimation text="Loading Resources..." />}>
+            <Suspense fallback={<LoadingAnimation text="Loading ..." />}>
                {children}
             </Suspense>
           </div>

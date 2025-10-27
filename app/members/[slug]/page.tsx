@@ -2,6 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link';
 import Image from 'next/image';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { getStoryblokApi } from '@/lib/storyblok';
+import { StoryblokStory } from '@storyblok/react/rsc';
+import { draftMode } from 'next/headers';
+import { notFound } from 'next/navigation';
+import Background from '@/components/Background';
 
 async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   try {
@@ -42,13 +47,27 @@ async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   }
 }
 
-export default async function ComnpaniesPage({
-  params
-}: {
-  params: Promise<{ slug: string }>
-}) {
-  const { slug } = await params
+// Try to fetch Storyblok story first
+async function fetchStoryblokStory(slug: string) {
+  try {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const storyblokApi = getStoryblokApi();
+    
+    const response = await storyblokApi.get(`cdn/stories/members/${slug}`, { 
+      version: isDraftMode ? 'draft' : 'published'
+    });
+    
+    return response.data.story;
+  } catch (error) {
+    // Storyblok story not found, return null
+    console.log(`No Storyblok story found for members/${slug}`);
+    return null;
+  }
+}
 
+// Fetch Supabase member data
+async function fetchSupabaseMember(slug: string) {
   const supabase = await createClient();
   
   const member = await supabase
@@ -59,24 +78,56 @@ export default async function ComnpaniesPage({
 
   if (member.error) {
     console.error("member error:", member.error);
+    return null;
   }
-
-  // console.log("Member ID:", member.data?.id);
 
   // Find the correct image URL with extension
   const validImageUrl = member.data?.id 
     ? await findValidImageUrl(supabase, member.data.id)
     : null;
 
-  // console.log("Valid Image URL:", validImageUrl);
-
-  const memberData = {
+  return {
     ...member.data,
     image: validImageUrl,
+  };
+}
+
+export default async function ComnpaniesPage({
+  params
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+
+  // First, try to fetch from Storyblok
+  const storyblokStory = await fetchStoryblokStory(slug);
+
+  if (storyblokStory) {
+    // Render Storyblok story
+    return (
+      <main>
+        <Background />
+        <StoryblokStory story={storyblokStory} />
+      </main>
+    );
   }
 
+  // If no Storyblok story, try Supabase
+  const memberData = await fetchSupabaseMember(slug);
+
+  if (!memberData) {
+    notFound();
+  }
+
+  // check if memberData.biognotes has any html tags in it, if not surround it with <p> tags
+  let biognotes = memberData.biognotes;
+  if (!biognotes.includes('<p>')) {
+    biognotes = '<p>' + biognotes + '</p>';
+  }
+  
+  // Render Supabase member data
   return (
-    <article className='p-8'>
+    <article className='space-y-8 prose'>
       
       <h1 className='text-3xl font-bold mb-2'>
         {memberData.firstname} {memberData.lastname}
@@ -102,18 +153,23 @@ export default async function ComnpaniesPage({
       </section>
       
       <section>
-        <p>{memberData.jobtitle}</p>
-        <p>{memberData.organisation}</p>
-        <p>{memberData.country}</p>
+        <p>{memberData.jobtitle} 
+          <br /> {memberData.organisation} 
+          <br /> {memberData.country}</p>
       </section>
       
       <section>
         <div 
-          className='mt-4'
-          dangerouslySetInnerHTML={{ __html: memberData.biognotes || '' }} 
+          className='mt-4 prose'
+          dangerouslySetInnerHTML={{ __html: biognotes || '' }} 
         />
+        
         {memberData.maintag &&
-          <Link href={'/companies/' + (memberData.maintag || '#')}>More information about {memberData.organisation}</Link>
+          <p>
+            <Link href={'/dir/companies/' + (memberData.maintag || '#')}>
+              More information about {memberData.organisation}
+            </Link>
+          </p>
         }
       </section>
       
@@ -122,15 +178,17 @@ export default async function ComnpaniesPage({
         <p>{memberData.firstname} has been a Member of the AQR since {memberData.joined}</p>
       </section>
 
-      <section>
-        <h2>Notable achievements and contributions</h2>
-        {memberData.timeline && (
-          memberData.timeline.map((item: string, index: number) => (
-            <div key={index}>
-              <h3>{item}</h3>
-            </div>
-          ))
-        )}
+      <section className='prose'>
+        <h2 className='h4size'>Notable achievements and contributions</h2>
+        <ul>
+          {memberData.timeline && (
+            memberData.timeline.map((item: string, index: number) => (
+              <li key={index}>
+                {item}
+              </li>
+            ))
+          )}
+        </ul>
       </section>
     </article>
   )

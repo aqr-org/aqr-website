@@ -223,6 +223,9 @@ p a {
   }
   & li {
     @apply my-[0.75rem] text-lg;
+    & > p {
+      @apply my-0;
+    }
     &.small {
       @apply text-base;
     }
