@@ -21,6 +21,7 @@ const getNavigationData = cache(async () => {
       // Helper function to recursively map navigation items
       const mapNavigationItem = (item: NavigationLinkData): NavigationLinkData => ({
         name: item.name,
+        component: item.component || '',
         link: {
           cached_url: item.link?.cached_url || ''
         },

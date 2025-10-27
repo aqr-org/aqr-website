@@ -28,7 +28,7 @@ export default function MobileNavigation({
 }: MobileNavigationProps) {
   const mobileLinks = (
     <>
-      {links.map((link: NavigationLinkData, index) => (
+      {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => (
         <li key={index} className="relative px-4">
           {(link.dropdown_menu && link.dropdown_menu.length > 0) || 
          (link.dropdown_menu_2 && link.dropdown_menu_2.length > 0) || 

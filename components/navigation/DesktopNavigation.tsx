@@ -25,7 +25,7 @@ export default function DesktopNavigation({
 }: DesktopNavigationProps) {
   return (
     <ul className="hidden md:flex md:items-end md:gap-6 font-[500]" role="menubar">
-      {links.map((link: NavigationLinkData, index) => (
+      {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => (
         <li 
           key={index} 
           className="group relative" 
