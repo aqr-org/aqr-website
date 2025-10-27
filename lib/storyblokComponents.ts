@@ -6,6 +6,7 @@ import Glossary_Entry from '@/components/storyblok/Glossary_Entry';
 import Article from '@/components/storyblok/Article';
 import Webinar from '@/components/storyblok/Webinar';
 import Event from '@/components/storyblok/Event';
+import BeaconForm from '@/components/storyblok/BeaconForm';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -16,6 +17,7 @@ const components = {
   article: Article,
   webinar: Webinar,
   event: Event,
+  beacon_form: BeaconForm,
 };
 
 export default components ;
