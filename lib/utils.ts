@@ -26,6 +26,7 @@ export const getProfessionalOrgName = (abbreviation: string): string => {
 export const beaconDataOf = async (email: string): Promise<object> => {
   
   const normalizedEmail = email.trim().toLowerCase();
+  
   const baseUrl = process.env.SITE_URL || 'https://localhost:3001';
   // This has as a result the entity that contains the email address:
   const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}`);
@@ -95,6 +96,9 @@ export const beaconDataOf = async (email: string): Promise<object> => {
   const data = {
     id: membershipId,
     personId: personId,
+    // membershipRecord: membershipRecord,
+    firstname: (membershipRecord.references[0].entity.name as { first: string }).first,
+    lastname: (membershipRecord.references[0].entity.name as { last: string }).last,
     email: normalizedEmail,
     hasCurrentMembership: memberShipIsActive,
     hasOrg: uniqueOrgs.length > 0,
