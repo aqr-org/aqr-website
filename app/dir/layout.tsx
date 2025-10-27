@@ -21,7 +21,7 @@ export default async function DirPageLayout({ children }: { children: React.Reac
       <div className="flex-1 w-full max-w-maxw mx-auto px-container min-h-screen">
         <div className="md:flex md:pt-4">
           <aside className="pb-8 md:pb-0 md:basis-1/4 md:pr-8 md:box-border">
-            <div className="hidden md:block">
+            <div className="hidden md:block mb-8">
               <AQRBusinessDirectorySVG />
             </div>
             <RenderSidebar sidebar_items={sidebar_items} />
