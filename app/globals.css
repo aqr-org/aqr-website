@@ -172,13 +172,16 @@ p a {
   & > *:first-child > .h1size, 
   & > *:first-child > .h2size, 
   & > *:first-child > .h3size, 
+  & > *:first-child > .h4size, 
+  & > *:first-child > .h5size, 
   & > *:first-child > .tag {
     @apply mt-0;
   }
-  & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.h4size), & h1:has(>.tag),
-  & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.h4size), & h2:has(>.tag),
-  & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.h4size), & h3:has(>.tag),
-  & h4:has(>.h1size), & h4:has(>.h2size), & h4:has(>.h3size), & h4:has(>.h4size), & h4:has(>.tag) {
+  & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.h4size), & h1:has(>.h5size), & h1:has(>.tag),
+  & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.h4size), & h2:has(>.h5size), & h2:has(>.tag),
+  & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.h4size), & h3:has(>.h5size), & h3:has(>.tag),
+  & h4:has(>.h1size), & h4:has(>.h2size), & h4:has(>.h3size), & h4:has(>.h4size), & h4:has(>.h5size), & h4:has(>.tag),
+  & h5:has(>.h1size), & h5:has(>.h2size), & h5:has(>.h3size), & h5:has(>.h4size), & h5:has(>.h5size), & h5:has(>.tag) {
     @apply my-0;
   } 
   & h1, & .h1size {
@@ -193,6 +196,9 @@ p a {
   & h4, & .h4size {
     @apply block text-[1.5rem] font-[400] my-[1.875rem] leading-tight tracking-[-0.02rem];
   }
+  & h5, & .h5size {
+    @apply block text-[1.25rem] font-[400] my-[1.5rem] leading-tight tracking-[-0.02rem];
+  }
   & .tag {
     @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-[0.625rem];
   }
@@ -204,16 +210,18 @@ p a {
   }
   & p {
     @apply text-lg my-[1.875rem] leading-[1.4];
-
-    &.small {
-      @apply text-base my-[0.975rem];
-    }
+  }
+  & .small, & p .small {
+    @apply text-base my-[0.975rem];
+  }
+  & .xsmall, & p .xsmall {
+    @apply text-sm my-[0.75rem];
   }
   & blockquote {
     @apply my-[1.875rem];
-    @apply text-lg;
-    @apply leading-[140%];
-    @apply border-l-4 border-qlack pl-4;
+    @apply text-lg text-qreen-dark italic;
+    @apply leading-[1.4];
+    @apply border-l border-qreen-dark/20 pl-4;
   }
   & ul {
     @apply my-[1.875rem] list-disc ml-4;
