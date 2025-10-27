@@ -47,7 +47,7 @@ export default function BeaconForm({ blok }: BeaconFormProps) {
   }
 
   return (
-    <div {...storyblokEditable(blok)} className="w-full">
+    <div {...storyblokEditable(blok)} className="w-full max-w-[740px]">
       <div 
         className="beacon-form" 
         data-account={dataAccount}
