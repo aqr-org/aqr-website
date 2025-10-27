@@ -81,7 +81,7 @@ async function fetchStoryblokData(params: { slug: string }) {
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     
-    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
+    const response = await storyblokApi.get(`cdn/stories/${params.slug}`, { 
       version: isDraftMode ? 'draft' : 'published'
     });
     
