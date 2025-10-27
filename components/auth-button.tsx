@@ -67,7 +67,7 @@ export function AuthButton() {
         <Link href="/auth/sign-up">Sign up</Link>
       </Button> */}
       <Button variant={"qreen"}>
-        <Link href='/join' className="flex items-center gap-1">
+        <Link href='/members/new-membership-application' className="flex items-center gap-1">
           <span>
           <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M1 17.4305C1 13.6007 4.13233 10.4991 8 10.4991C11.8677 10.4991 15 13.6007 15 17.4305M12.5839 5.9695C12.5839 8.47633 10.5316 10.5085 8 10.5085C5.46838 10.5085 3.4161 8.47633 3.4161 5.9695C3.4161 3.46268 5.46838 1.4305 8 1.4305C10.5316 1.4305 12.5839 3.46268 12.5839 5.9695Z" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10"/>
