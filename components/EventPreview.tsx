@@ -68,7 +68,7 @@ export default function EventPreview({ event }: EventPreviewProps) {
       <div className="flex-1 flex flex-col gap-4">
         {/* First row - Date and Admission */}
         <div className="flex justify-between items-start gap-4">
-          <div className="text-basis">
+          <div className="text-base">
             {content.date && (
               <div className="flex gap-2">
                 <span>{dateFromDateString(content.date)}</span>
@@ -82,7 +82,7 @@ export default function EventPreview({ event }: EventPreviewProps) {
             )}
           </div>
           {content.type && (
-            <span className="text-basis">{content.type}</span>
+            <span className="text-base">{content.type}</span>
           )}
         </div>
         
@@ -91,7 +91,7 @@ export default function EventPreview({ event }: EventPreviewProps) {
         
         {/* Third row - Description */}
         {description && (
-          <p className="text-basis">{description}</p>
+          <p className="text-base">{description}</p>
         )}
       </div>
     </Link>
