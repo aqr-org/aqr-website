@@ -3,11 +3,16 @@ import { NextRequest } from 'next/server';
 async function handleFilter(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
+  const beaconApiUrl = process.env.BEACON_API_URL;
   const value = searchParams.get('value') || '';
   const field = searchParams.get('field') || 'member';
 
   if (!beaconAuthToken) {
     return new Response('Beacon auth token not configured', { status: 500 });
+  }
+
+  if (!beaconApiUrl) {
+    return new Response('Beacon API URL not configured', { status: 500 });
   }
 
   const bodyData = {
@@ -24,7 +29,7 @@ async function handleFilter(request: NextRequest) {
     ]
   };
 
-  const response = await fetch(`${process.env.BEACON_API_URL}/entities/membership/filter`, {
+  const response = await fetch(`${beaconApiUrl}/entities/membership/filter`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${beaconAuthToken}`,
