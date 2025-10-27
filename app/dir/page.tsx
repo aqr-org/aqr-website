@@ -114,7 +114,7 @@ export default async function DirPage() {
   }, {} as Record<string, CompanyWithExtraInfo[]>);
   
   return (
-    <div className="animate-fade-in">
+    <main className="animate-fade-in">
       <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden">
         <AlphabetNav entries={groupedCompanies} />
       </nav>
@@ -184,7 +184,7 @@ export default async function DirPage() {
           <p>No companies available.</p>
         )}
       </div>            
-    </div>
+    </main>
   );
 }
 
