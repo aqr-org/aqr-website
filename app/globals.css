@@ -80,34 +80,43 @@ html {
     --spacing-container: 1.5rem;
   }
 }
-
-/* Show scrollbar track and thumb always */
-.force-scrollbar {
-  scrollbar-width: auto; /* Firefox */
-  scrollbar-color: auto;
-
-  /* For WebKit browsers */
-  &::-webkit-scrollbar {
-    display: block;
-    width: 8px;
-    height: 8px;
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-
-  &::-webkit-scrollbar-track {
-    background: var(--color-qaupe);
-    border-radius: 9999px;
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-
-  &::-webkit-scrollbar-thumb {
-    background: var(--color-qreen-dark);
-    border-radius: 9999px;
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: var(--color-qreen);
+  /* Show scrollbar track and thumb always */
+  .force-scrollbar {
+    scrollbar-width: auto; /* Firefox */
+    scrollbar-color: auto;
+  
+    /* For WebKit browsers */
+    &::-webkit-scrollbar {
+      display: block;
+      width: 8px;
+      height: 8px;
+    }
+  
+    &::-webkit-scrollbar-track {
+      background: var(--color-qaupe);
+      border-radius: 9999px;
+    }
+  
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-qreen-dark);
+      border-radius: 9999px;
+      width: 4px;
+    }
+  
+    &::-webkit-scrollbar-thumb:hover {
+      background: var(--color-qreen);
+    }
   }
 }
+
 
 .ProseMirror {
   &:focus {
