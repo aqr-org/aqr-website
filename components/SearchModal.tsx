@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Search, X, Loader2, ArrowRight, ChevronDown } from 'lucide-react';
 import { GroupedSearchResults, SearchResult, SearchGroup } from '@/lib/types/search';
 import { cn } from '@/lib/utils';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface SearchModalProps {
   open: boolean;
@@ -27,8 +28,8 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   const resultsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -197,13 +198,15 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
-          prev < allResults.length - 1 ? prev + 1 : prev
-        );
+        const newIndexDown = selectedIndex < allResults.length - 1 ? selectedIndex + 1 : selectedIndex;
+        setSelectedIndex(newIndexDown);
+        scrollToSelectedResult(newIndexDown);
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        const newIndexUp = selectedIndex > 0 ? selectedIndex - 1 : -1;
+        setSelectedIndex(newIndexUp);
+        scrollToSelectedResult(newIndexUp);
         break;
       case 'Enter':
         e.preventDefault();
@@ -214,6 +217,28 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
       case 'Escape':
         onOpenChange(false);
         break;
+    }
+  };
+
+  const scrollToSelectedResult = (index: number) => {
+    if (index < 0 || !resultsRef.current) return;
+    
+    const container = resultsRef.current;
+    const resultElements = container.querySelectorAll('[data-result-index]');
+    const selectedElement = resultElements[index] as HTMLElement;
+    
+    if (selectedElement) {
+      const containerRect = container.getBoundingClientRect();
+      const elementRect = selectedElement.getBoundingClientRect();
+      
+      // Check if element is above the visible area
+      if (elementRect.top < containerRect.top) {
+        selectedElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      // Check if element is below the visible area
+      else if (elementRect.bottom > containerRect.bottom) {
+        selectedElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
     }
   };
 
@@ -233,6 +258,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   const renderResult = (result: SearchResult, index: number, groupName?: string, groupIndex?: number) => (
     <button
       key={`${groupName || result.group}-${groupIndex || 0}-${index}`}
+      data-result-index={index}
       onClick={() => handleResultClick(result)}
       className={cn(
         "w-full text-left p-3 rounded-lg hover:bg-qreen/10 transition-colors",
@@ -282,7 +308,6 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
             <Button
               onClick={() => loadMoreResults(group.name)}
               disabled={isLoading}
-              variant="outline"
               size="sm"
               className="w-full text-qreen border-qreen hover:bg-qreen hover:text-white"
             >
@@ -307,18 +332,19 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] p-0">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle className="text-xl text-qreen-dark flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Search
-          </DialogTitle>
-        </DialogHeader>
+        <VisuallyHidden>
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle className="text-xl text-qreen-dark flex items-center gap-2">
+              Search
+            </DialogTitle>
+          </DialogHeader>
+        </VisuallyHidden>
         
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 pt-2">
           {/* Search Input */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <div className="mb-6 -ml-4 md:flex md:gap-4 md:items-center md:justify-between w-[calc(100%-1.5rem)] bg-qlack/10 rounded-lg pr-4">
+            <div className="relative basis-full">
+              <Search className="absolute top-1/2 left-4 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 ref={inputRef}
                 type="text"
@@ -326,7 +352,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="pl-10 pr-4 py-3 text-base"
+                className="pl-10 pr-4 py-3 text-lg w-full"
                 autoComplete="off"
               />
               {isLoading && (
@@ -336,11 +362,11 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
             
             {/* Submit Button (only show when live search is disabled) */}
             {!liveSearch && (
-              <div className="mt-3 flex justify-end">
+              <div className="flex justify-end">
                 <Button
                   onClick={handleSubmit}
                   disabled={!query.trim() || isLoading}
-                  className="bg-qreen border-none text-white hover:bg-qreen/90"
+                  className="bg-qreen border-none text-white hover:bg-qreen/90 text-base h-8 px-4"
                 >
                   {isLoading ? (
                     <>
@@ -349,7 +375,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                     </>
                   ) : (
                     <>
-                      <Search className="h-4 w-4 mr-2" />
+                      {/* <Search className="h-4 w-4 mr-2" /> */}
                       Search
                     </>
                   )}
@@ -361,7 +387,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
           {/* Results */}
           <div 
             ref={resultsRef}
-            className="max-h-[50vh] overflow-y-auto"
+            className="max-h-[calc(50vh-var(--spacing)*12)] overflow-y-auto"
             onKeyDown={handleKeyDown}
             tabIndex={-1}
           >
@@ -415,7 +441,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 <span>↵ Select</span>
                 <span>Esc Close</span>
               </div>
-              <span>⌘K to open search</span>
+              <span>{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'} to open search</span>
             </div>
           </div>
         </div>

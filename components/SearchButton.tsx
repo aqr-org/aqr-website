@@ -30,8 +30,8 @@ export default function SearchButton({ liveSearch = true }: SearchButtonProps) {
       <button
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center justify-center p-2 text-qreen hover:text-qreen/80 hover:bg-qreen/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-qreen focus:ring-offset-2"
-        aria-label="Search (⌘K)"
-        title="Search (⌘K)"
+        aria-label={`Search (${navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'})`}
+        title={`Search (${navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'})`}
       >
         <Search className="h-5 w-5" />
       </button>
