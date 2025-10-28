@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
+import { UserRound } from "lucide-react";
 
 export default function RenderSidebar({ sidebar_items }: { sidebar_items: NavigationLinkData[] }) {
   return (
@@ -19,10 +20,7 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
                 </svg>
               )}
               {item.icon === 'user' && (
-                <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.3333 16.5V15.5C13.3333 14.9477 12.9756 14.5 12.4233 14.5H3.57667C3.02438 14.5 2.66667 14.9477 2.66667 15.5V16.5" stroke="#3C772B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8 10.5C10.2091 10.5 12 8.70914 12 6.5C12 4.29086 10.2091 2.5 8 2.5C5.79086 2.5 4 4.29086 4 6.5C4 8.70914 5.79086 10.5 8 10.5Z" stroke="#3C772B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <UserRound />
               )}
                 {item.name}
               </Link>
