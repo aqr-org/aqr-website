@@ -403,7 +403,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
   return (
     <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
 
-      <label htmlFor="companyName">
+      <label htmlFor="companyName" className="group relative">
         <p>Company Name</p>
         <input
           type="text"
@@ -412,7 +412,13 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
           value={formValues.companyName}
           onChange={(e) => setFormValues(prev => ({ ...prev, companyName: e.target.value }))}
           required
+          disabled={true}
         />
+        <fieldset className="mt-2 border-0 p-0 m-0 absolute top-0 left-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <legend className="text-xs text-qrose rounded bg-qaupe shadow-md border border-qrose p-2 block leading-[1.1] max-w-[30rem]">
+            Your company name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
+          </legend>
+        </fieldset>
       </label>
 
       <div>

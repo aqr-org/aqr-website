@@ -299,6 +299,11 @@ export default function MemberFormFields({
           />
         </label>
       </div>
+      <fieldset className="border-0 p-0 m-0">
+        <legend className="-mt-4 mb-4 text-sm px-0">
+          Your name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
+        </legend>
+      </fieldset>
       
       <label htmlFor="jobtitle">
         <p>Job Title {jobTitleRequired ? '*' : ''}</p>
