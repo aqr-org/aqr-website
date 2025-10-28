@@ -4,13 +4,15 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { LogoutButton, LogoutMenuItem } from "./logout-button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
 import { UserRound } from "lucide-react";
 
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -37,6 +39,43 @@ export function AuthButton() {
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // Handle keyboard events
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen]);
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleMenu();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center gap-4">
@@ -46,19 +85,41 @@ export function AuthButton() {
   }
 
   return user ? (
-    <div className="group relative flex-col items-center gap-4">
-      <span className="inline-block p-1 border-2 border-qreen text-qreen rounded-full">
-        <UserRound className="w-6 h-6" /> 
-      </span>
-      <div className="absolute top-full right-0 w-full min-w-56 hidden group-hover:block bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen">
-        <p className="">
-          Hello, {user.email}!
-        </p>
-        <Link href="/protected" className="flex-col font-semibold text-qreen items-center gap-1 block">
-          Membership Settings
-        </Link>
-        <LogoutMenuItem />
-      </div>
+    <div ref={menuRef} className="relative">
+      <button
+        type="button"
+        onClick={toggleMenu}
+        onKeyDown={handleKeyDown}
+        // onMouseEnter={() => setIsOpen(true)}
+        // onMouseLeave={() => setIsOpen(false)}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        aria-label="User menu"
+        className="inline-block p-1 border-2 border-qreen text-qreen rounded-full hover:bg-qreen hover:text-qaupe focus:outline-none focus:ring-2 focus:shadow-lg focus:shadow-qreen-dark/50 transition-colors"
+      >
+        <UserRound className="w-6 h-6" />
+      </button>
+      {isOpen && (
+        <div
+          className="absolute top-full right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2"
+          role="menu"
+          aria-orientation="vertical"
+        >
+          <p className="mb-2 whitespace-nowrap">
+            Hello, {user.email}!
+          </p>
+          <Link
+            href="/protected"
+            className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+            role="menuitem"
+          >
+            Membership Settings
+          </Link>
+          <div className="text-qreen">
+            <LogoutMenuItem />
+          </div>
+        </div>
+      )}
     </div>
   ) : (
     <div className="flex gap-8 justify-between w-full">

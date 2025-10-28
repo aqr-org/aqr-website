@@ -26,10 +26,23 @@ export function LogoutMenuItem() {
     router.push("/auth/login");
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      logout();
+    }
+  };
+
   return (
-    <div className="flex items-center cursor-pointer" onClick={logout}>
+    <button
+      type="button"
+      className="flex items-center cursor-pointer w-full text-left hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+      onClick={logout}
+      onKeyDown={handleKeyDown}
+      role="menuitem"
+    >
       <LogOut className="mr-2 h-4 w-4" />
       <span>Logout</span>
-    </div>
+    </button>
   );
 }
