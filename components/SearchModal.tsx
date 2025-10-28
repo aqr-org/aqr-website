@@ -30,6 +30,8 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   const searchParams = useSearchParams();
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const urlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const initializedRef = useRef(false);
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -79,8 +81,9 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   // Initialize query from URL params
   useEffect(() => {
     const urlQuery = searchParams.get('q');
-    if (urlQuery && open) {
+    if (urlQuery && open && !initializedRef.current) {
       setQuery(urlQuery);
+      initializedRef.current = true;
       // Only auto-search if live search is enabled
       if (liveSearch) {
         performSearch(urlQuery);
@@ -103,20 +106,27 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
       setSelectedIndex(-1);
       setTotalCount(0);
       setLoadingGroups(new Set());
+      initializedRef.current = false;
     }
   }, [open]);
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
     
-    // Update URL params
-    const params = new URLSearchParams(searchParams);
-    if (value.trim()) {
-      params.set('q', value);
-    } else {
-      params.delete('q');
+    // Update URL params (debounced to avoid excessive updates)
+    if (urlTimeoutRef.current) {
+      clearTimeout(urlTimeoutRef.current);
     }
-    router.replace(`?${params.toString()}`, { scroll: false });
+    
+    urlTimeoutRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (value.trim()) {
+        params.set('q', value);
+      } else {
+        params.delete('q');
+      }
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }, 500); // Longer delay for URL updates to avoid interfering with typing
     
     // Only trigger live search if enabled
     if (liveSearch) {
@@ -441,7 +451,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 <span>↵ Select</span>
                 <span>Esc Close</span>
               </div>
-              <span>{navigator.platform.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'} to open search</span>
+              <span>{navigator.userAgent.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'} to open search</span>
             </div>
           </div>
         </div>
