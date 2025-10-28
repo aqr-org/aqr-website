@@ -15,8 +15,8 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
   
   // Controlled state for form values - all empty initially
   const [formValues, setFormValues] = useState<MemberFormData>({
-    firstname: '',
-    lastname: '',
+    firstname: userBeaconData.firstname || '',
+    lastname: userBeaconData.lastname || '',
     jobtitle: '',
     organisation: '',
     country: '',

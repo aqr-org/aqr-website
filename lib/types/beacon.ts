@@ -7,6 +7,8 @@ export interface UserBeaconData {
   allMemberships?: string[];
   organizations: { id: string; name: string }[];
   personName?: string;
+  firstname?: string;
+  lastname?: string;
 }
 export interface BeaconMembershipEntity {
     id: string;
