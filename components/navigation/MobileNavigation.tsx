@@ -43,11 +43,11 @@ export default function MobileNavigation({
                 aria-expanded={expandedSubmenus.has(index)}
                 aria-haspopup="true"
                 aria-controls={`mobile-submenu-${index}`}
-                className="flex items-center justify-between w-full py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
+                className="flex items-center justify-between w-full py-2 text-left text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset border-b border-qlack/20"
               >
                 {link.name}
                 <ChevronDown 
-                  className={`h-4 w-4 transition-transform duration-200 ${
+                  className={`h-5 w-5 transition-transform duration-200 ${
                     expandedSubmenus.has(index) ? 'rotate-180' : ''
                   }`} 
                   aria-hidden="true"
@@ -55,9 +55,9 @@ export default function MobileNavigation({
               </button>
               <ul
                 id={`mobile-submenu-${index}`}
-                className={`overflow-hidden transition-all duration-200 ${
+                className={`overflow-hidden transition-all duration-200 pl-4 ${
                   expandedSubmenus.has(index) 
-                    ? 'max-h-96 opacity-100' 
+                    ? 'max-h-full opacity-100' 
                     : 'max-h-0 opacity-0'
                 }`}
                 role="menu"
@@ -94,9 +94,9 @@ export default function MobileNavigation({
       ref={menuRef as React.RefObject<HTMLDivElement>}
       role="menu"
       aria-label="Mobile navigation"
-      className="absolute left-4 right-4 top-24 mt-2 z-50 md:hidden bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5"
+      className="absolute left-0 right-0 top-24 max-h-[calc(100vh-128px)] overflow-y-auto mt-2 z-10 md:hidden bg-qaupe rounded-lg shadow-lg"
     >
-      <ul className="flex flex-col p-2" role="none">
+      <ul className="flex flex-col p-3 pt-8" role="none">
         {mobileLinks}
         <li className="mt-2 px-4 py-2" role="none">
           <AuthButton />

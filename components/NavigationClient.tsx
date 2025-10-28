@@ -8,6 +8,7 @@ import DesktopNavigation from "./navigation/DesktopNavigation";
 import MobileNavigation from "./navigation/MobileNavigation";
 import NavigationToggle from "./navigation/NavigationToggle";
 import NavigationRightSide from "./navigation/NavigationRightSide";
+import { AuthButton } from "./auth-button";
 
 interface NavigationClientProps {
   links: NavigationLinkData[];
@@ -54,11 +55,14 @@ export default function NavigationClient({ links }: NavigationClientProps) {
           </div>
 
           <NavigationRightSide />
-          <NavigationToggle 
-            open={open}
-            setOpen={setOpen}
-            toggleButtonRef={toggleButtonRef as React.RefObject<HTMLButtonElement>}
-          />
+          <div className="flex md:hidden items-center gap-4">
+            <NavigationToggle 
+              open={open}
+              setOpen={setOpen}
+              toggleButtonRef={toggleButtonRef as React.RefObject<HTMLButtonElement>}
+            />
+            <AuthButton />
+          </div>
           <MobileNavigation
             links={links}
             open={open}

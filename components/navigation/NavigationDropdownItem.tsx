@@ -16,24 +16,26 @@ export default function NavigationDropdownItem({
   isMobile = true 
 }: NavigationDropdownItemProps) {
   const hasNestedDropdown = item.dropdown_menu && item.dropdown_menu.length > 0;
-  const hasDropdown2 = item.dropdown_menu_2 && item.dropdown_menu_2.length > 0;
-  const hasDropdown3 = item.dropdown_menu_3 && item.dropdown_menu_3.length > 0;
+  const    hasDropdown2 = item.dropdown_menu_2 && item.dropdown_menu_2.length > 0;
+  const    hasDropdown3 = item.dropdown_menu_3 && item.dropdown_menu_3.length > 0;
   const hasAnyDropdown = hasNestedDropdown || hasDropdown2 || hasDropdown3;
   
   if (isMobile) {
     // Mobile styling
     const indentClass = level > 0 ? `pl-${4 + (level * 4)}` : 'pl-4';
-    const textSizeClass = level > 0 ? 'text-xs' : 'text-sm';
-    const textColorClass = level > 0 ? 'text-gray-500' : 'text-gray-600';
+    const textSizeClass = level > 0 ? 'text-base' : 'text-lg';
+    const textColorClass = level > 0 ? 'text-qlack' : 'text-qlack';
     
     return (
       <li key={itemIndex} role="none">
         {hasAnyDropdown ? (
           <div className="relative">
-            <div className={`${indentClass} ${textSizeClass} ${textColorClass} font-medium py-1 border-l-2 border-gray-200 ml-2`}>
-              {item.name}
-            </div>
-            <div className="ml-2 mt-1 space-y-2">
+            {level !== 0 && (
+              <div className={`${textSizeClass} ${textColorClass} font-medium py-1 pt-4`}>
+                {item.name}
+              </div>
+            )}
+            <div className="mt-1 space-y-2">
               {/* Primary dropdown menu */}
               {hasNestedDropdown && (
                 <ul className="space-y-1" role="menu" aria-label={`${item.name} submenu`}>
@@ -83,7 +85,7 @@ export default function NavigationDropdownItem({
         ) : (
           <Link 
             href={normalizeStoryblokUrl(item.link?.cached_url)}
-            className={`block py-2 ${indentClass} ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
+            className={`block py-2 text-qreen ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
             role="menuitem"
           >
             {item.name}
