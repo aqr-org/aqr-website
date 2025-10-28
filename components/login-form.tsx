@@ -68,7 +68,10 @@ export function LoginForm({
         <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            <div className="text-sm space-y-1 mt-2 pt-4 border-t border-qlack border-dashed">
+              <p>First time here? <Link href="/auth/sign-up" className="underline underline-offset-4 font-semibold">Sign up</Link> for an account.</p>
+              <p>Not a member yet? <Link href="/members/new-membership-application" className="underline underline-offset-4 font-semibold">Join AQR</Link></p>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
