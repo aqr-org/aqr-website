@@ -358,7 +358,7 @@ export default function MemberFormFields({
             handleInputChange('joined', e.target.value);
             console.log('Joined date changed to:', e.target.value);
           }}
-          disabled={isLoading || wasSuccessful}
+          disabled={true}
           className="w-full"
         />
         <p className="text-xs text-gray-500 mt-1">
