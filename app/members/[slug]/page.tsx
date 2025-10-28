@@ -119,9 +119,15 @@ export default async function ComnpaniesPage({
     notFound();
   }
 
+  const formattedJoinedDate = memberData.joined ? (() => {
+    const [month, year] = memberData.joined.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
+    return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+  })() : null;
+
   // check if memberData.biognotes has any html tags in it, if not surround it with <p> tags
   let biognotes = memberData.biognotes;
-  if (!biognotes.includes('<p>')) {
+  if (!biognotes?.includes('<p>')) {
     biognotes = '<p>' + biognotes + '</p>';
   }
   
@@ -134,7 +140,7 @@ export default async function ComnpaniesPage({
       </h1>
       
       <section>
-        {memberData.image ? (
+        {memberData.image && (
           <div>
             <Image 
               src={memberData.image} 
@@ -144,10 +150,6 @@ export default async function ComnpaniesPage({
               sizes='(max-width: 600px) 100vw, 240px'
               className='bg-[#EEEEEE] aspect-[0.75] w-[120px] rounded'
             />
-          </div>
-        ) : (
-          <div>
-            <p className="text-sm text-gray-500 italic">No image available</p>
           </div>
         )}
       </section>
@@ -159,10 +161,12 @@ export default async function ComnpaniesPage({
       </section>
       
       <section>
+        {memberData.biognotes && memberData.biognotes.length > 0 && (
         <div 
           className='mt-4 prose'
-          dangerouslySetInnerHTML={{ __html: biognotes || '' }} 
-        />
+            dangerouslySetInnerHTML={{ __html: biognotes || '' }} 
+          />
+        )}
         
         {memberData.maintag &&
           <p>
@@ -175,21 +179,26 @@ export default async function ComnpaniesPage({
       
       <section>
         <h2>AQR Membership</h2>
-        <p>{memberData.firstname} has been a Member of the AQR since {memberData.joined}</p>
+        {memberData.joined && (
+          <p>{memberData.firstname} has been a Member of the AQR since {formattedJoinedDate}</p>
+        )}
+        {!memberData.joined && (
+          <p>{memberData.firstname} is a Member of the AQR</p>
+        )}
       </section>
 
-      <section className='prose'>
-        <h2 className='h4size'>Notable achievements and contributions</h2>
-        <ul>
-          {memberData.timeline && (
-            memberData.timeline.map((item: string, index: number) => (
-              <li key={index}>
-                {item}
-              </li>
-            ))
-          )}
-        </ul>
-      </section>
+      {memberData.timeline && memberData.timeline.length > 0 && (
+        <section className='prose'>
+          <h2 className='h4size'>Notable achievements and contributions</h2>
+          <ul>
+            { memberData.timeline.map((item: string, index: number) => (
+                <li key={index}>
+                  {item}
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
     </article>
   )
 }
