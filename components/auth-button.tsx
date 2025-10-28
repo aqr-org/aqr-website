@@ -76,6 +76,9 @@ export function AuthButton() {
     }
   };
 
+  // Always show menu on mobile, toggle on desktop
+  const shouldShowMenu = isOpen;
+
   if (loading) {
     return (
       <div className="flex items-center gap-4">
@@ -99,12 +102,11 @@ export function AuthButton() {
       >
         <UserRound className="w-6 h-6" />
       </button>
-      {isOpen && (
-        <div
-          className="md:absolute md:top-full md:right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2"
-          role="menu"
-          aria-orientation="vertical"
-        >
+      <div
+        className={`block md:${isOpen ? 'block' : 'hidden'} md:absolute md:top-full md:right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2 md:mt-0`}
+        role="menu"
+        aria-orientation="vertical"
+      >
           <p className="mb-2 whitespace-nowrap">
             Hello, {user.email}!
           </p>
@@ -119,7 +121,6 @@ export function AuthButton() {
             <LogoutMenuItem />
           </div>
         </div>
-      )}
     </div>
   ) : (
     <div className="flex gap-8 justify-between w-full">
