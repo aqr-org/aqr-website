@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export function useNavigation() {
   const [open, setOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [expandedSubmenus, setExpandedSubmenus] = useState<Set<number>>(new Set());
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
   const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -123,6 +125,11 @@ export function useNavigation() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
 
   return {
     open,
