@@ -56,7 +56,7 @@ export function LoginForm({
       // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/protected");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message + '. Have you created an account already? If not, click the "Sign up" link below the Login button.' : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +103,7 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-red-500 border border-red-500 p-4 rounded-lg">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
