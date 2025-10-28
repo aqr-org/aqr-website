@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, X, Loader2, ArrowRight } from 'lucide-react';
-import { GroupedSearchResults, SearchResult } from '@/lib/types/search';
+import { Search, X, Loader2, ArrowRight, ChevronDown } from 'lucide-react';
+import { GroupedSearchResults, SearchResult, SearchGroup } from '@/lib/types/search';
 import { cn } from '@/lib/utils';
 
 interface SearchModalProps {
@@ -17,10 +17,11 @@ interface SearchModalProps {
 
 export default function SearchModal({ open, onOpenChange, liveSearch = true }: SearchModalProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<GroupedSearchResults | null>(null);
+  const [groups, setGroups] = useState<SearchGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [totalCount, setTotalCount] = useState(0);
+  const [loadingGroups, setLoadingGroups] = useState<Set<string>>(new Set());
   
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -31,7 +32,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setResults(null);
+      setGroups([]);
       setTotalCount(0);
       return;
     }
@@ -52,12 +53,12 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
       }
 
       const data = await response.json();
-      setResults(data.results);
+      setGroups(data.groups);
       setTotalCount(data.totalCount);
       setSelectedIndex(-1);
     } catch (error) {
       console.error('Search error:', error);
-      setResults(null);
+      setGroups([]);
       setTotalCount(0);
     } finally {
       setIsLoading(false);
@@ -97,9 +98,10 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   useEffect(() => {
     if (!open) {
       setQuery('');
-      setResults(null);
+      setGroups([]);
       setSelectedIndex(-1);
       setTotalCount(0);
+      setLoadingGroups(new Set());
     }
   }, [open]);
 
@@ -120,7 +122,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
       debouncedSearch(value);
     } else {
       // Clear results when not live searching
-      setResults(null);
+      setGroups([]);
       setTotalCount(0);
     }
   };
@@ -131,6 +133,50 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
     }
   };
 
+  const loadMoreResults = async (groupName: string) => {
+    if (!query.trim()) return;
+
+    setLoadingGroups(prev => new Set(prev).add(groupName));
+
+    try {
+      const response = await fetch('/api/search/more', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          query: query.trim(), 
+          groupName,
+          offset: 0,
+          limit: 50
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load more results');
+      }
+
+      const data = await response.json();
+      
+      // Update the group with all results
+      setGroups(prevGroups => 
+        prevGroups.map(group => 
+          group.name === groupName 
+            ? { ...group, results: data.results, hasMore: data.hasMore }
+            : group
+        )
+      );
+    } catch (error) {
+      console.error('Error loading more results:', error);
+    } finally {
+      setLoadingGroups(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(groupName);
+        return newSet;
+      });
+    }
+  };
+
   const handleResultClick = (result: SearchResult) => {
     router.push(result.url);
     onOpenChange(false);
@@ -138,13 +184,13 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Handle Enter key for submit when not live searching
-    if (e.key === 'Enter' && !liveSearch && !results) {
+    if (e.key === 'Enter' && !liveSearch && !groups.length) {
       e.preventDefault();
       handleSubmit();
       return;
     }
 
-    if (!results) return;
+    if (!groups.length) return;
 
     const allResults = getAllResults();
     
@@ -172,17 +218,14 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   };
 
   const getAllResults = (): SearchResult[] => {
-    if (!results) return [];
+    if (!groups.length) return [];
     
     const allResults: SearchResult[] = [];
     
-    // Add Storyblok results
-    Object.values(results.storyblok).forEach(group => {
-      allResults.push(...group);
+    // Add all results from all groups
+    groups.forEach(group => {
+      allResults.push(...group.results);
     });
-    
-    // Add member and company results
-    allResults.push(...results.members, ...results.companies);
     
     return allResults;
   };
@@ -214,22 +257,49 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
     </button>
   );
 
-  const renderGroup = (title: string, results: SearchResult[], startIndex: number, groupIndex: number) => {
-    if (results.length === 0) return null;
+  const renderGroup = (group: SearchGroup, startIndex: number) => {
+    if (group.results.length === 0) return null;
+    
+    const isLoading = loadingGroups.has(group.name);
     
     return (
-      <div key={title} className="mb-6">
+      <div key={group.name} className="mb-6">
         <h3 className="text-sm font-semibold text-qreen-dark mb-3 flex items-center gap-2">
-          {title}
+          {group.name}
           <span className="text-xs bg-qreen/20 text-qreen px-2 py-1 rounded">
-            {results.length}
+            {group.results.length}{group.hasMore ? ` of ${group.totalCount}` : ''}
           </span>
         </h3>
         <div className="space-y-1">
-          {results.map((result, index) => 
-            renderResult(result, startIndex + index, title, groupIndex)
+          {group.results.map((result, index) => 
+            renderResult(result, startIndex + index, group.name, 0)
           )}
         </div>
+        
+        {/* Show All Button */}
+        {group.hasMore && (
+          <div className="mt-3">
+            <Button
+              onClick={() => loadMoreResults(group.name)}
+              disabled={isLoading}
+              variant="outline"
+              size="sm"
+              className="w-full text-qreen border-qreen hover:bg-qreen hover:text-white"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-2" />
+                  Show all {group.totalCount} results
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     );
   };
@@ -295,29 +365,16 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
             onKeyDown={handleKeyDown}
             tabIndex={-1}
           >
-            {query && !isLoading && results && (
+            {query && !isLoading && groups.length > 0 && (
               <>
                 {totalCount > 0 ? (
                   <div className="space-y-6">
-                    {/* Storyblok Results */}
-                    {Object.entries(results.storyblok).map(([groupName, groupResults], groupIndex) => {
-                      const startIndex = Object.values(results.storyblok)
+                    {groups.map((group, groupIndex) => {
+                      const startIndex = groups
                         .slice(0, groupIndex)
-                        .reduce((acc, group) => acc + group.length, 0);
-                      return renderGroup(groupName, groupResults, startIndex, groupIndex);
+                        .reduce((acc, g) => acc + g.results.length, 0);
+                      return renderGroup(group, startIndex);
                     })}
-                    
-                    {/* Member Results */}
-                    {renderGroup('Members', results.members, 
-                      Object.values(results.storyblok).reduce((acc, group) => acc + group.length, 0),
-                      Object.keys(results.storyblok).length
-                    )}
-                    
-                    {/* Company Results */}
-                    {renderGroup('Companies', results.companies,
-                      Object.values(results.storyblok).reduce((acc, group) => acc + group.length, 0) + results.members.length,
-                      Object.keys(results.storyblok).length + 1
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">

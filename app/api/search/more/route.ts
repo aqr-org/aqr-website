@@ -1,148 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStoryblokApi } from '@/lib/storyblok';
 import { createClient } from '@/lib/supabase/server';
-import { GroupedSearchResults, SearchResult, StoryblokSearchResult, MemberSearchResult, CompanySearchResult, SearchGroup } from '@/lib/types/search';
+import { SearchResult, StoryblokSearchResult, MemberSearchResult, CompanySearchResult } from '@/lib/types/search';
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
+    const { query, groupName, offset = 0, limit = 20 } = await request.json();
     
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json({
-        results: {
-          storyblok: {
-            'Resources/Inspiration': [],
-            'Events': [],
-            'The Hub': [],
-            'Glossary': [],
-            'Pages': []
-          },
-          members: [],
-          companies: []
-        },
-        totalCount: 0,
-        query: query || ''
-      });
+    if (!query || !groupName) {
+      return NextResponse.json({ error: 'Missing query or groupName' }, { status: 400 });
     }
 
     const searchQuery = query.trim();
-    
-    // Run searches in parallel
-    const [storyblokResults, memberResults, companyResults] = await Promise.all([
-      searchStoryblok(searchQuery),
-      searchMembers(searchQuery),
-      searchCompanies(searchQuery)
-    ]);
+    let results: SearchResult[] = [];
 
-    // Group and format results
-    const groupedResults: GroupedSearchResults = {
-      storyblok: {
-        'Resources/Inspiration': [],
-        'Events': [],
-        'The Hub': [],
-        'Glossary': [],
-        'Pages': []
-      },
-      members: [],
-      companies: []
-    };
-
-    // Process Storyblok results
-    storyblokResults.forEach(story => {
-      const group = getStoryblokGroup(story.full_slug);
-      const result: SearchResult = {
-        id: story.id,
-        title: story.name,
-        slug: story.slug,
-        type: 'storyblok',
-        excerpt: extractExcerptForGroup(story.content, group, story.full_slug),
-        group: group,
-        url: `/${story.full_slug}`
-      };
-
-      if (groupedResults.storyblok[result.group as keyof typeof groupedResults.storyblok]) {
-        groupedResults.storyblok[result.group as keyof typeof groupedResults.storyblok].push(result);
-      }
-    });
-
-    // Process Member results
-    memberResults.forEach(member => {
-      const fullName = [member.firstname, member.lastname].filter(Boolean).join(' ');
-      groupedResults.members.push({
-        id: member.id,
-        title: fullName || 'Unknown Member',
-        slug: member.slug || member.id,
-        type: 'member',
-        excerpt: member.biognotes || `${member.jobtitle || ''} at ${member.organisation || ''}`.trim(),
-        group: 'Members',
-        url: `/members/${member.slug || member.id}`
-      });
-    });
-
-    // Process Company results
-    companyResults.forEach(company => {
-      groupedResults.companies.push({
-        id: company.id,
-        title: company.name,
-        slug: company.slug || company.id,
-        type: 'company',
-        excerpt: company.narrative,
-        group: 'Companies',
-        url: `/dir/${company.slug || company.id}`
-      });
-    });
-
-    // Create groups with limited results (max 3 per group initially)
-    const groups: SearchGroup[] = [];
-    const maxInitialResults = 3;
-
-    // Add Storyblok groups
-    Object.entries(groupedResults.storyblok).forEach(([groupName, results]) => {
-      if (results.length > 0) {
-        groups.push({
-          name: groupName,
-          results: results.slice(0, maxInitialResults),
-          totalCount: results.length,
-          hasMore: results.length > maxInitialResults
+    // Determine which search function to use based on group name
+    if (['Resources/Inspiration', 'Events', 'The Hub', 'Glossary', 'Pages'].includes(groupName)) {
+      const storyblokResults = await searchStoryblok(searchQuery);
+      results = storyblokResults
+        .filter(story => getStoryblokGroup(story.full_slug) === groupName)
+        .slice(offset, offset + limit)
+        .map(story => ({
+          id: story.id,
+          title: story.name,
+          slug: story.slug,
+          type: 'storyblok' as const,
+          excerpt: extractExcerptForGroup(story.content, groupName, story.full_slug),
+          group: groupName,
+          url: `/${story.full_slug}`
+        }));
+    } else if (groupName === 'Members') {
+      const memberResults = await searchMembers(searchQuery);
+      results = memberResults
+        .slice(offset, offset + limit)
+        .map(member => {
+          const fullName = [member.firstname, member.lastname].filter(Boolean).join(' ');
+          return {
+            id: member.id,
+            title: fullName || 'Unknown Member',
+            slug: member.slug || member.id,
+            type: 'member' as const,
+            excerpt: member.biognotes || `${member.jobtitle || ''} at ${member.organisation || ''}`.trim(),
+            group: 'Members',
+            url: `/members/${member.slug || member.id}`
+          };
         });
-      }
-    });
-
-    // Add Member group
-    if (groupedResults.members.length > 0) {
-      groups.push({
-        name: 'Members',
-        results: groupedResults.members.slice(0, maxInitialResults),
-        totalCount: groupedResults.members.length,
-        hasMore: groupedResults.members.length > maxInitialResults
-      });
+    } else if (groupName === 'Companies') {
+      const companyResults = await searchCompanies(searchQuery);
+      results = companyResults
+        .slice(offset, offset + limit)
+        .map(company => ({
+          id: company.id,
+          title: company.name,
+          slug: company.slug || company.id,
+          type: 'company' as const,
+          excerpt: company.narrative,
+          group: 'Companies',
+          url: `/dir/${company.slug || company.id}`
+        }));
     }
-
-    // Add Company group
-    if (groupedResults.companies.length > 0) {
-      groups.push({
-        name: 'Companies',
-        results: groupedResults.companies.slice(0, maxInitialResults),
-        totalCount: groupedResults.companies.length,
-        hasMore: groupedResults.companies.length > maxInitialResults
-      });
-    }
-
-    const totalCount = Object.values(groupedResults.storyblok).flat().length + 
-                      groupedResults.members.length + 
-                      groupedResults.companies.length;
 
     return NextResponse.json({
-      results: groupedResults,
-      groups,
-      totalCount,
-      query: searchQuery
+      results,
+      hasMore: results.length === limit
     });
 
   } catch (error) {
-    console.error('Search API error:', error);
+    console.error('Load more API error:', error);
     return NextResponse.json(
-      { error: 'Failed to perform search' },
+      { error: 'Failed to load more results' },
       { status: 500 }
     );
   }
@@ -223,7 +149,7 @@ async function searchMembers(query: string): Promise<MemberSearchResult[]> {
     .from('members')
     .select('id, firstname, lastname, organisation, jobtitle, biognotes, slug')
     .or(`firstname.ilike.%${query}%,lastname.ilike.%${query}%,organisation.ilike.%${query}%,jobtitle.ilike.%${query}%,biognotes.ilike.%${query}%`)
-    .limit(20);
+    .limit(100);
 
   if (error) {
     console.error('Error searching members:', error);
@@ -241,7 +167,7 @@ async function searchCompanies(query: string): Promise<CompanySearchResult[]> {
     .select('id, name, narrative, slug, beacon_membership_status')
     .eq('beacon_membership_status', 'Active')
     .or(`name.ilike.%${query}%,narrative.ilike.%${query}%`)
-    .limit(20);
+    .limit(100);
 
   if (error) {
     console.error('Error searching companies:', error);

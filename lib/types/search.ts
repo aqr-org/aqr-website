@@ -48,8 +48,16 @@ export interface GroupedSearchResults {
   companies: SearchResult[];
 }
 
+export interface SearchGroup {
+  name: string;
+  results: SearchResult[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 export interface SearchResponse {
   results: GroupedSearchResults;
+  groups: SearchGroup[];
   totalCount: number;
   query: string;
 }
