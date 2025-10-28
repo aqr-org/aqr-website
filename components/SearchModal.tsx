@@ -23,6 +23,8 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [totalCount, setTotalCount] = useState(0);
   const [loadingGroups, setLoadingGroups] = useState<Set<string>>(new Set());
+  const [isMac, setIsMac] = useState(false);
+  const [filterGroup, setFilterGroup] = useState<string | null>(null);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,11 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const urlTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const initializedRef = useRef(false);
+
+  // Detect platform on client side to avoid hydration mismatch
+  useEffect(() => {
+    setIsMac(navigator.userAgent.toLowerCase().includes('mac'));
+  }, []);
 
   const performSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -106,6 +113,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
       setSelectedIndex(-1);
       setTotalCount(0);
       setLoadingGroups(new Set());
+      setFilterGroup(null);
       initializedRef.current = false;
     }
   }, [open]);
@@ -285,7 +293,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
             <span className="text-xs text-qreen bg-qreen/10 px-2 py-1 rounded">
               {result.group}
             </span>
-            <span className="text-xs text-gray-500">{result.url}</span>
+            {/* <span className="text-xs text-gray-500">{result.url}</span> */}
           </div>
         </div>
         <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
@@ -341,7 +349,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] p-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] p-0">
         <VisuallyHidden>
           <DialogHeader className="p-6 pb-4">
             <DialogTitle className="text-xl text-qreen-dark flex items-center gap-2">
@@ -352,9 +360,8 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
         
         <div className="px-6 pb-6 pt-2">
           {/* Search Input */}
-          <div className="mb-6 -ml-4 md:flex md:gap-4 md:items-center md:justify-between w-[calc(100%-1.5rem)] bg-qlack/10 rounded-lg pr-4">
+          <div className="mb-6 -ml-4 flex gap-4 items-center justify-between w-[calc(100%-1.5rem)] bg-qlack/10 rounded-lg">
             <div className="relative basis-full">
-              <Search className="absolute top-1/2 left-4 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 ref={inputRef}
                 type="text"
@@ -362,7 +369,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 value={query}
                 onChange={(e) => handleQueryChange(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="pl-10 pr-4 py-3 text-lg w-full"
+                className="px-4 py-3 text-lg w-full"
                 autoComplete="off"
               />
               {isLoading && (
@@ -376,17 +383,16 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 <Button
                   onClick={handleSubmit}
                   disabled={!query.trim() || isLoading}
-                  className="bg-qreen border-none text-white hover:bg-qreen/90 text-base h-8 px-4"
+                  className="bg-qreen rounded-none rounded-r-lg border-none text-white hover:bg-qreen/90 text-base h-full aspect-square w-auto inline-flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Searching...
+                      <Loader2 className="text-qaupe animate-spin" />
                     </>
                   ) : (
                     <>
                       {/* <Search className="h-4 w-4 mr-2" /> */}
-                      Search
+                      <Search className="text-qaupe" />
                     </>
                   )}
                 </Button>
@@ -397,27 +403,70 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
           {/* Results */}
           <div 
             ref={resultsRef}
-            className="max-h-[calc(50vh-var(--spacing)*12)] overflow-y-auto"
+            className="max-h-[calc(60vh-var(--spacing)*12)] overflow-y-auto"
             onKeyDown={handleKeyDown}
             tabIndex={-1}
           >
             {query && !isLoading && groups.length > 0 && (
               <>
-                {totalCount > 0 ? (
-                  <div className="space-y-6">
-                    {groups.map((group, groupIndex) => {
-                      const startIndex = groups
-                        .slice(0, groupIndex)
-                        .reduce((acc, g) => acc + g.results.length, 0);
-                      return renderGroup(group, startIndex);
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>No results found for "{query}"</p>
-                    <p className="text-sm mt-2">Try different keywords or check your spelling</p>
-                  </div>
+                {totalCount > 0 && (
+                  <>
+                    {/* Filter Pills */}
+                    <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-gray-200">
+                      <button
+                        onClick={() => setFilterGroup(null)}
+                        className={cn(
+                          "px-4 py-2 rounded-full text-sm font-medium transition-colors",
+                          !filterGroup
+                            ? "bg-qreen text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        )}
+                      >
+                        Show All
+                      </button>
+                      {groups.map((group) => (
+                        <button
+                          key={group.name}
+                          onClick={() => setFilterGroup(group.name)}
+                          className={cn(
+                            "px-4 py-2 rounded-full text-sm font-medium transition-colors",
+                            filterGroup === group.name
+                              ? "bg-qreen text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          )}
+                        >
+                          {group.name} ({group.totalCount})
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="space-y-6">
+                      {(() => {
+                        // Apply filter if set
+                        let displayGroups = groups;
+                        if (filterGroup) {
+                          displayGroups = groups.filter(g => g.name === filterGroup);
+                        }
+
+                        // Reorder groups: Companies first, then Members, then Storyblok results
+                        const memberCompanyGroups = displayGroups.filter(group => group.name === 'Companies' || group.name === 'Members')
+                          .sort((a, b) => {
+                            if (a.name === 'Companies' && b.name === 'Members') return -1;
+                            if (a.name === 'Members' && b.name === 'Companies') return 1;
+                            return 0;
+                          });
+                        const storyblokGroups = displayGroups.filter(group => !['Members', 'Companies'].includes(group.name));
+                        const orderedGroups = [...memberCompanyGroups, ...storyblokGroups];
+                        
+                        return orderedGroups.map((group, groupIndex) => {
+                          const startIndex = orderedGroups
+                            .slice(0, groupIndex)
+                            .reduce((acc, g) => acc + g.results.length, 0);
+                          return renderGroup(group, startIndex);
+                        });
+                      })()}
+                    </div>
+                  </>
                 )}
               </>
             )}
@@ -451,7 +500,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
                 <span>↵ Select</span>
                 <span>Esc Close</span>
               </div>
-              <span>{navigator.userAgent.toLowerCase().includes('mac') ? '⌘K' : 'Ctrl+K'} to open search</span>
+              <span>{isMac ? '⌘K' : 'Ctrl+K'} to open search</span>
             </div>
           </div>
         </div>
