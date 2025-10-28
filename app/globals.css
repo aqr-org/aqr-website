@@ -148,7 +148,7 @@ p a {
   & input[type="password"], 
   & select,
   & textarea {
-    @apply bg-qreen/15 text-qlack rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all;
+    @apply bg-qlack/10 text-qlack rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all;
   }
   & input[type="checkbox"] {
     @apply w-4 h-4;
