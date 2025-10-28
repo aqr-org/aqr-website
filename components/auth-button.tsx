@@ -101,7 +101,7 @@ export function AuthButton() {
       </button>
       {isOpen && (
         <div
-          className="absolute top-full right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2"
+          className="absolute md:top-full md:right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2"
           role="menu"
           aria-orientation="vertical"
         >
