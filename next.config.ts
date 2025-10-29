@@ -24,6 +24,19 @@ const nextConfig: NextConfig = {
     ],
   },
   outputFileTracingRoot: __dirname,
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Permissions-Policy',
+            value: 'clipboard-read=*, clipboard-write=*',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

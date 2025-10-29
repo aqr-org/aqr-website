@@ -10,7 +10,7 @@ interface WebinarProps {
   }
 }
 
-export default function Glossary_Entry({ blok }: WebinarProps) {
+export default function Webinar({ blok }: WebinarProps) {
 
   const sanitizedYoutubeId = () => {
     const youtubeId = blok.youtube_id;

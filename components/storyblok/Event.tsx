@@ -22,7 +22,7 @@ interface EventProps {
   }
 }
 
-export default function Glossary_Entry({ blok }: EventProps) {
+export default function Event({ blok }: EventProps) {
 
   
   return (
