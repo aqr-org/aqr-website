@@ -3,6 +3,7 @@ import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
 import { draftMode } from 'next/headers';
 import { generatePageMetadata } from '@/lib/metadata';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -54,15 +55,24 @@ export async function generateMetadata(
 }
 
 export default async function SlugPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const storyblok = await fetchStoryblokData(resolvedParams);
-  const storyBlokStory = storyblok?.data.story;
+  try {
+    const resolvedParams = await params;
+    const storyblok = await fetchStoryblokData(resolvedParams);
+    const storyBlokStory = storyblok?.data.story;
 
-  return (
-    <article className='max-w-164 animate-fade-in'>
-      <StoryblokStory story={storyBlokStory} />
-    </article>
-  );
+    if (!storyBlokStory) {
+      notFound();
+    }
+
+    return (
+      <article className='max-w-164 animate-fade-in'>
+        <StoryblokStory story={storyBlokStory} />
+      </article>
+    );
+  } catch (error) {
+    console.error("Error in SlugPage:", error);
+    notFound();
+  }
 }
 
 async function fetchStoryblokData(params: { slug: string }) {
@@ -71,19 +81,21 @@ async function fetchStoryblokData(params: { slug: string }) {
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     
-    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
+    const response = await storyblokApi.get(`cdn/stories/contacts/${params.slug}`, { 
       version: isDraftMode ? 'draft' : 'published' 
     });
     
     return response;
   } 
   catch (error) {
+    // Log error details for debugging
     console.error('Storyblok API Error Details:');
     console.error('- Error type:', typeof error);
     console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('- Full error object:', JSON.stringify(error, null, 2));
     console.error('- Slug being requested:', params.slug);
-    throw new Error(`Failed to fetch story: ${params.slug}`);
+    
+    // Re-throw to be caught by the main component's try-catch
+    throw error;
   }
 }

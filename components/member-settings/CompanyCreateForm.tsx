@@ -50,6 +50,7 @@ export default function CompanyCreateForm(data: UserBeaconData) {
           <CompanyAreaUpdateForm 
             companyId={createdCompanyId}
             companyAreas={[]}
+            userBeaconData={data}
           />
           <CompanyContactUpdateForm 
             companyId={createdCompanyId}

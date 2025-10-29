@@ -9,7 +9,9 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { MemberFormData, MemberFormFieldsProps } from '@/lib/types/members';
-import Select from 'react-select';
+import dynamic from 'next/dynamic';
+
+const Select = dynamic(() => import('react-select'), { ssr: false });
 
 export default function MemberFormFields({
   formValues,
@@ -376,7 +378,7 @@ export default function MemberFormFields({
       
       <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
-          <p className="!text-qlack/30">First Name {firstNameRequired ? '*' : ''}</p>
+          <p className="text-qlack/30!">First Name {firstNameRequired ? '*' : ''}</p>
           {!isSuperAdmin && <h2 className="text-3xl">{formValues.firstname}</h2>}
           <input
             type="text"
@@ -392,7 +394,7 @@ export default function MemberFormFields({
         </label>
 
         <label htmlFor="lastname">
-          <p className="!text-qlack/30">Last Name {lastNameRequired ? '*' : ''}</p>
+          <p className="text-qlack/30!">Last Name {lastNameRequired ? '*' : ''}</p>
           {!isSuperAdmin && <h2 className="text-3xl">{formValues.lastname}</h2>}
           <input
             type="text"
@@ -446,13 +448,15 @@ export default function MemberFormFields({
         <p>Company Association (Optional)</p>
         <Select
           unstyled
+          instanceId="maintag-select"
           classNames={{
             control: () => 
-              "bg-qlack/10 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+              "bg-white/80 border border-qreen/30 rounded-lg text-base text-qreen-dark md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
             menu: () => 
-              "bg-qaupe border-2 border-qlack/20 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+              "bg-white  border border-qreen/30 rounded-lg text-base text-qreen-dark md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
             placeholder: () => 
               "text-qlack/30",
+            
           }}
           name="maintag"
           id="maintag"

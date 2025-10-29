@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Check, Upload, X } from "lucide-react";
+import {Checkbox} from "@/components/ui/checkbox";
 import { profOrgsNameMap } from "@/lib/utils";
 import Image from "next/image";
 import MenuBar from "@/components/ui/richtext-editor-menu";
@@ -406,6 +407,9 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
 
       <label htmlFor="companyName" className="group relative">
         <p>Company Name</p>
+        {!isSuperAdmin && (
+          <h2 className="text-4xl text-qreen-dark">{formValues.companyName}</h2>
+        )}
         <input
           type="text"
           name="companyName"
@@ -414,31 +418,32 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
           onChange={(e) => setFormValues(prev => ({ ...prev, companyName: e.target.value }))}
           required
           disabled={!isSuperAdmin}
+          hidden={!isSuperAdmin}
         />
         {!isSuperAdmin && (
           <fieldset className="mt-2 border-0 p-0 m-0 absolute top-0 left-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <legend className="text-xs text-qrose rounded bg-qaupe shadow-md border border-qrose p-2 block leading-[1.1] max-w-[30rem]">
+            <legend className="text-xs text-qrose rounded bg-qaupe shadow-md border border-qrose p-2 block leading-[1.1] max-w-120">
               Your company name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
             </legend>
           </fieldset>
         )}
       </label>
 
-      <div>
+      <div className="bg-white/80 p-4 rounded border border-qreen/30">
         
         <div className="flex gap-4">
           {/* Current Logo Display */}
           {formValues.logo && (
             <div className={`mb-4 ${logoPreview ? 'opacity-50' : ''}`}>
+              <p className="relative text-xs text-qreen-dark inline-block">Current Logo</p>
               <div className="relative w-[200px] h-[100px] overflow-hidden">
-              <p className="absolute z-10 text-xs bg-gray-200 inline-block px-1 rounded">Current Logo</p>
                 <Image 
                   key={formValues.logo} // Force re-render when URL changes
                   src={formValues.logo} 
                   alt="Current company logo" 
                   fill
                   sizes="200px"
-                  className="w-[200px] object-contain bg-gray-300 p-4 rounded"
+                  className="w-[200px] object-contain bg-qreen/10 p-4 rounded"
                   unoptimized // Disable Next.js optimization to avoid caching issues
                 />
               </div>
@@ -476,7 +481,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
                   disabled={isUploadingLogo}
                   className="px-3 py-1 text-sm"
                 > 
-                  <Upload className="w-4 h-4 text-gray-400" />
+                  <Upload className="w-4 h-4 text-qlack" />
                   {isUploadingLogo ? "Uploading..." : "Upload Logo"}
                 </Button>
                 <Button 
@@ -502,11 +507,11 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
               accept="image/*"
               onChange={handleFileSelect}
               className="
-                block w-full text-sm text-gray-500 bg-transparent 
-                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-700 file:text-blue-50 file:cursor-pointer hover:file:bg-blue-600
+                block text-sm text-qlack bg-transparent 
+                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-qreen-dark file:text-qaupe file:cursor-pointer hover:file:bg-qreen
               "
             />
-            <Upload className="w-4 h-4 text-gray-400" />
+            <Upload className="w-4 h-4 text-qlack" />
           </div>
         )}
         
@@ -582,20 +587,20 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
 
       
       <div>
-        <p>Professional Organizations</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-y-auto border p-4 rounded bg-white">
+        <label htmlFor="profOrgs">
+          <p>Professional Organizations</p>
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-0 overflow-y-auto p-4 rounded bg-white/80">
           {Object.entries(profOrgsNameMap).map(([key, value]) => (
             <label key={key}>
               <div className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  value={key}
+                <Checkbox
                   checked={formValues.profOrgs?.split(',').includes(key) || false}
-                  onChange={(e) => {
+                  onCheckedChange={(checked) => {
                     const currentOrgs = formValues.profOrgs?.split(',').filter(org => org) || [];
                     let updatedOrgs;
                     
-                    if (e.target.checked) {
+                    if (checked === true) {
                       updatedOrgs = [...currentOrgs, key];
                     } else {
                       updatedOrgs = currentOrgs.filter(org => org !== key);
@@ -607,7 +612,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
                     }));
                   }}
                 />
-                <span title={value} className="text-sm whitespace-nowrap w-full overflow-hidden text-ellipsis">{value}</span>
+                <span title={value} className="text-sm text-qreen-dark whitespace-nowrap w-full overflow-hidden text-ellipsis">{value}</span>
               </div>
             </label>
           ))}
@@ -615,20 +620,20 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       </div>
 
       <div>
-        <p>Standards Compliance Accreditations</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 overflow-y-auto border p-4 rounded bg-white">
+        <label htmlFor="accred">
+          <p>Standards Compliance Accreditations</p>
+        </label>
+        <div className="md:flex gap-4 overflow-y-auto p-8 rounded bg-white/80">
           {accreditationValues.map((accreditation) => (
-            <label key={accreditation}>
+            <label key={accreditation} className="block md:flex-1">
               <div className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  value={accreditation}
+                <Checkbox
                   checked={formValues.accred?.split(',').includes(accreditation) || false}
-                  onChange={(e) => {
+                  onCheckedChange={(checked) => {
                     const currentAccreds = formValues.accred?.split(',').filter(acc => acc) || [];
                     let updatedAccreds;
                     
-                    if (e.target.checked) {
+                    if (checked === true) {
                       updatedAccreds = [...currentAccreds, accreditation];
                     } else {
                       updatedAccreds = currentAccreds.filter(acc => acc !== accreditation);
@@ -640,7 +645,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
                     }));
                   }}
                 />
-                <span className="text-sm whitespace-nowrap w-full overflow-hidden text-ellipsis">{accreditation}</span>
+                <span className="text-sm text-qreen-dark whitespace-nowrap w-full overflow-hidden text-ellipsis">{accreditation}</span>
               </div>
             </label>
           ))}
@@ -685,9 +690,11 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       </div>
 
       <div>
-        <p>Company Bio</p>
+        <label htmlFor="narrative">
+          <p>Company Bio</p>
+        </label>
         <MenuBar editor={editor} />
-        <div className="border p-8 rounded-b-md bg-qitrus/20">
+        <div className="border border-qreen p-8 rounded-b-md">
           <EditorContent editor={editor} />
         </div>
       </div>

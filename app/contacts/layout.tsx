@@ -7,7 +7,7 @@ import { draftMode } from 'next/headers';
 import DirectoryFilterBar from "@/components/Directory_Filter_Bar";
 import React from "react";
 
-export default async function DirPageLayout({ children }: { children: React.ReactNode }) {
+export default async function ContactsPageLayout({ children }: { children: React.ReactNode }) {
   // Fetch initial data in parallel
   const [sidebarData] = await Promise.all([
     fetchStoryblokData('site-settings/directory-sidebar'),
@@ -46,7 +46,6 @@ async function fetchStoryblokData(slug: string) {
   const isDraftMode = isEnabled;
   return await storyblokApi.get(`cdn/stories/${slug}`, { 
     version: isDraftMode ? 'draft' : 'published',
-    resolve_links: 'url',
-    resolve_relations: 'nav_items.add_link_list'
+    resolve_links: 'url'
   });
 }

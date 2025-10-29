@@ -93,8 +93,9 @@ export default function ProtectedTabs({
                 { companyData &&
                   <CompanyUpdateForm 
                     companyData={companyData ? companyData : null}
-                    companyAreas={companyAreas ? companyAreas.data : []}
+                    companyAreas={companyAreas && Array.isArray(companyAreas) ? companyAreas : []}
                     contactData={companyContactInfo || null}
+                    userBeaconData={userBeaconData}
                   />
                 }
 

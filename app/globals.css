@@ -140,12 +140,12 @@ p a {
 /* Form Global Defaults */
 .form {
   & label {
-    @apply block mb-2 text-sm;
+    @apply mb-2 text-sm;
   }
   & label > p {
     @apply mb-1 text-sm text-qlack font-semibold;
   }
-  & label > p:last-child {
+  & label > p:last-child:not(:first-child) {
     @apply mb-1 text-sm text-qlack font-normal italic;
   }
   & input[type="text"], 
@@ -157,7 +157,8 @@ p a {
   & input[type="password"], 
   & select,
   & textarea {
-    @apply bg-qlack/10 text-qlack rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all;
+    @apply bg-white/80 border border-qreen/30 text-qreen-dark rounded-lg text-[16px] md:text-xl; 
+    @apply disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all;
   }
   & input[type="checkbox"] {
     @apply w-4 h-4;
@@ -194,22 +195,22 @@ p a {
     @apply my-0;
   } 
   & h1, & .h1size {
-    @apply block text-6xl font-[400] my-[1.875rem] leading-none;
+    @apply block text-6xl font-normal my-7.5 leading-none;
   }
   & h2, & .h2size {
-    @apply block text-4xl font-[400] my-[1.875rem] leading-none;
+    @apply block text-4xl font-normal my-7.5 leading-none;
   }
   & h3, & .h3size {
-    @apply block text-[2.375rem] font-[400] my-[1.875rem] leading-tight tracking-[-0.07125rem];
+    @apply block text-[2.375rem] font-normal my-7.5 leading-tight tracking-[-0.07125rem];
   }
   & h4, & .h4size {
-    @apply block text-[1.5rem] font-[400] my-[1.875rem] leading-tight tracking-[-0.02rem];
+    @apply block text-[1.5rem] font-normal my-7.5 leading-tight tracking-[-0.02rem];
   }
   & h5, & .h5size {
-    @apply block text-[1.25rem] font-[400] my-[1.5rem] leading-tight tracking-[-0.02rem];
+    @apply block text-[1.25rem] font-normal my-6 leading-tight tracking-[-0.02rem];
   }
   & .tag {
-    @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-[0.625rem];
+    @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-2.5;
   }
   & .indent_left {
     @apply relative left-[1.88rem] w-[calc(100%-1.88rem)];
@@ -218,28 +219,28 @@ p a {
     @apply mt-0;
   }
   & p {
-    @apply text-lg my-[1.875rem] leading-[1.4];
+    @apply text-lg my-7.5 leading-[1.4];
   }
   & .small, & p .small {
     @apply text-base my-[0.975rem];
   }
   & .xsmall, & p .xsmall {
-    @apply text-sm my-[0.75rem];
+    @apply text-sm my-3;
   }
   & blockquote {
-    @apply my-[1.875rem];
+    @apply my-7.5;
     @apply text-lg text-qreen-dark italic;
     @apply leading-[1.4];
     @apply border-l border-qreen-dark/20 pl-4;
   }
   & ul {
-    @apply my-[1.875rem] list-disc ml-4;
+    @apply my-7.5 list-disc ml-4;
   }
   & ol {
-    @apply my-[1.875rem];
+    @apply my-7.5;
   }
   & li {
-    @apply my-[0.75rem] text-lg;
+    @apply my-3 text-lg;
     & > p {
       @apply my-0;
     }
@@ -254,12 +255,12 @@ p a {
 
 .prose.prose_article {
   & h2 {
-    @apply block text-2xl font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+    @apply block text-2xl font-normal my-7.5 leading-none tracking-[-0.07125rem];
   }
   & h3, & .h3size {
-    @apply block text-xl font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+    @apply block text-xl font-normal my-7.5 leading-none tracking-[-0.07125rem];
   }
   & h4, & .h4size {
-    @apply block text-[1.5rem] font-[400] my-[1.875rem] leading-none tracking-[-0.07125rem];
+    @apply block text-[1.5rem] font-normal my-7.5 leading-none tracking-[-0.07125rem];
   }
 }

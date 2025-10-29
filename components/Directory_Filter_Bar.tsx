@@ -187,6 +187,7 @@ export default function DirectoryFilterBar() {
             {isClient ? (
               <Select 
                 unstyled
+                instanceId="company-type-select"
                 className="inline-block"
                 value={{value: selectedCompanyType, label: selectedCompanyType === 'all' ? 'all of the companies' : selectedCompanyType}}
                 onChange={(option) => setSelectedCompanyType(option?.value || 'all')}
@@ -213,6 +214,7 @@ export default function DirectoryFilterBar() {
             {isClient ? (
               <Select
                 unstyled
+                instanceId="area-select"
                 className="inline-block"
                 value={{value: selectedArea, label: selectedArea === 'all' ? 'all of the quals sectors' : selectedArea}}
                 onChange={(option) => setSelectedArea(option?.value || 'all')}
@@ -239,6 +241,7 @@ export default function DirectoryFilterBar() {
             {isClient ? (
               <Select
                 unstyled
+                instanceId="country-filter-select"
                 className="inline-block"
                 value={{value: selectedCountry, label: selectedCountry === 'all' ? 'all over the world' : selectedCountry}}
                 onChange={(option) => setSelectedCountry(option?.value || 'all')}
