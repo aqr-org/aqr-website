@@ -34,6 +34,20 @@ Scheduled function that syncs Beacon CRM membership statuses with Supabase membe
 - Automatically cleans up logs older than 7 days
 - Processes both members and companies within the same scheduled run
 
+### Rotation System
+
+To stay within the 30-second function timeout and handle large datasets:
+
+- **If ≤300 entities of a type**: Processes all entities every day
+- **If >300 entities of a type**: Uses day-of-year rotation to process different chunks each day
+  - Day 1: Processes entities 0-299
+  - Day 2: Processes entities 300-599
+  - Day 3: Processes entities 600-899
+  - Continues rotating through all entities
+  - Wraps around after reaching the end (if day 365 processes 100-399 with wrap-around)
+
+This ensures all entities get synced over time, even with thousands of members/companies. Example: With 1,000 members, each member is synced approximately every 3-4 days.
+
 ### Testing Locally
 
 **Important**: You must start the Netlify dev server first before invoking functions.

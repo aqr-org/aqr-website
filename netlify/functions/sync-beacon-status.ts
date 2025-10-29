@@ -459,7 +459,12 @@ async function syncBeaconStatuses(
 
     const duration = Date.now() - startTime;
     const summary = {
-      message: processedCount < totalEntities ? 'Sync partially completed (timeout protection)' : 'Sync completed',
+      message: processedCount < (membersToProcess.length + companiesToProcess.length) ? 'Sync partially completed (timeout protection)' : 'Sync completed',
+      rotation: {
+        dayOfYear,
+        membersProcessed: membersToProcess.length,
+        companiesProcessed: companiesToProcess.length,
+      },
       total: {
         members: memberCount,
         companies: companyCount,
