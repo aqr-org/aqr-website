@@ -23,22 +23,80 @@ export const getProfessionalOrgName = (abbreviation: string): string => {
   return profOrgsNameMap[abbreviation as keyof typeof profOrgsNameMap] || abbreviation;
 };
 
+/**
+ * Directly calls the Beacon API to filter memberships by email
+ * This avoids making HTTP requests to our own Next.js routes from server components
+ */
+async function fetchBeaconMembershipByEmail(email: string, field: string = 'member'): Promise<any> {
+  const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
+  const beaconApiUrl = process.env.BEACON_API_URL;
+
+  if (!beaconAuthToken) {
+    throw new Error('Beacon auth token not configured');
+  }
+
+  if (!beaconApiUrl) {
+    throw new Error('Beacon API URL not configured');
+  }
+
+  const bodyData = {
+    filter_conditions: [
+      {
+        field: field,
+        reference: {
+          entity_type: 'person',
+          field: 'emails.email',
+          operator: '==',
+          value: email
+        }
+      }
+    ]
+  };
+
+  const response = await fetch(`${beaconApiUrl}/entities/membership/filter`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${beaconAuthToken}`,
+      'Beacon-Application': 'developer_api',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(bodyData)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch from Beacon API: ${response.status}`);
+  }
+
+  return await response.json();
+}
+
 export const beaconDataOf = async (email: string): Promise<object> => {
   
   const normalizedEmail = email.trim().toLowerCase();
   
-  const baseUrl = process.env.SITE_URL || 'https://localhost:3001';
-  // This has as a result the entity that contains the email address:
-  const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}`);
+  // Call Beacon API directly instead of making HTTP requests to our own routes
+  let beaconMembershipJson: any = { results: [] };
+  let beaconAdditionalMembershipJson: any = { results: [] };
+  
+  try {
+    // This has as a result the entity that contains the email address:
+    beaconMembershipJson = await fetchBeaconMembershipByEmail(normalizedEmail, 'member');
+  } catch (error) {
+    console.error('Failed to fetch beacon membership:', error);
+    // Continue to try the additional members check
+  }
+  
   // This second endpoint checks for memberships where the email is in the additional members field
-  const beaconAdditionalMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership/filter/email?value=${encodeURIComponent(normalizedEmail)}&field=additional_members`);
-
-  if (!beaconMembershipRes.ok && !beaconAdditionalMembershipRes.ok) {
-    return {error: "Failed to contact Beacon membership endpoint"};
+  try {
+    beaconAdditionalMembershipJson = await fetchBeaconMembershipByEmail(normalizedEmail, 'additional_members');
+  } catch (error) {
+    console.error('Failed to fetch beacon additional membership:', error);
+    // Continue processing with whatever we got from the first call
   }
 
-  const beaconMembershipJson = await beaconMembershipRes.json();
-  const beaconAdditionalMembershipJson = await beaconAdditionalMembershipRes.json();
+  if (!beaconMembershipJson?.results?.length && !beaconAdditionalMembershipJson?.results?.length) {
+    return {error: "Failed to contact Beacon membership endpoint"};
+  }
 
   const membershipResults: BeaconMembershipResult[] = []
     .concat(beaconMembershipJson?.results ?? [])
