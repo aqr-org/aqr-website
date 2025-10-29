@@ -76,7 +76,7 @@ export default async function ProtectedPage() {
           `}
         />
         <h1 className="text-3xl">Welcome, {membersInfo.data?.[0]?.firstname || "member"}!</h1>
-        {/* <section className="flex gap-4">
+        <section className="flex gap-4">
           <div>
             <pre>
               UserBeaconData:
@@ -86,7 +86,7 @@ export default async function ProtectedPage() {
           <pre>
             {JSON.stringify(thisCompanyRecord.data, null, 2)}
           </pre>
-        </section> */}
+        </section>
 
         <ProtectedTabs
           companyData={thisCompanyRecord.data}

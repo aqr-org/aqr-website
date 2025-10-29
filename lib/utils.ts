@@ -31,12 +31,9 @@ async function fetchBeaconMembershipByEmail(email: string, field: string = 'memb
   const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
   const beaconApiUrl = process.env.BEACON_API_URL;
 
-  if (!beaconAuthToken) {
-    throw new Error('Beacon auth token not configured');
-  }
-
-  if (!beaconApiUrl) {
-    throw new Error('Beacon API URL not configured');
+  if (!beaconAuthToken || !beaconApiUrl) {
+    // Return null to indicate configuration error - will be handled gracefully by caller
+    return { results: [] };
   }
 
   const bodyData = {
@@ -159,6 +156,7 @@ export const beaconDataOf = async (email: string): Promise<object> => {
     lastname: (membershipRecord.references[0].entity.name as { last: string }).last,
     email: normalizedEmail,
     hasCurrentMembership: memberShipIsActive,
+    joined: membershipRecord.entity.start_date,
     hasOrg: uniqueOrgs.length > 0,
     allMemberships: extraMembershipRecords.map((rec) => rec.entity.type[0]),
     organizations: uniqueOrgs.map((org) => ({

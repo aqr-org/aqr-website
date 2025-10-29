@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { checkActiveBeaconMembership } from "@/lib/utils";
 
 export function LoginForm({
   className,
@@ -35,7 +34,22 @@ export function LoginForm({
 
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const check = await checkActiveBeaconMembership(normalizedEmail);
+      
+      // Call the API route instead of the function directly (client components can't access server env vars)
+      const checkResponse = await fetch('/auth/beacon/check-membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      
+      if (!checkResponse.ok) {
+        setError('Unable to verify membership status. Please try again later.');
+        setIsLoading(false);
+        return;
+      }
+      
+      const check = await checkResponse.json();
+      
       if (!check.ok) {
         if (check.reason === 'beacon-not-found') {
           setError('No AQR membership found for this email address. Please contact support.');

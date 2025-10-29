@@ -9,6 +9,8 @@ export interface UserBeaconData {
   personName?: string;
   firstname?: string;
   lastname?: string;
+  start_date?: string;
+  joined?: string;
 }
 export interface BeaconMembershipEntity {
     id: string;
@@ -16,6 +18,7 @@ export interface BeaconMembershipEntity {
     additional_members: string[];
     type: string[];
     status: string[];
+    start_date: string;
 }
 export interface BeaconMembershipReferencePersonEntity {
     id: string;

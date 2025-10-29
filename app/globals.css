@@ -143,9 +143,9 @@ p a {
     @apply block mb-2 text-sm;
   }
   & label > p {
-    @apply mb-1 text-sm text-qlack font-bold;
+    @apply mb-1 text-sm text-qlack font-semibold;
   }
-  & label > p + input + p {
+  & label > p:last-child {
     @apply mb-1 text-sm text-qlack font-normal italic;
   }
   & input[type="text"], 

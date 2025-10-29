@@ -20,7 +20,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
     jobtitle: '',
     organisation: '',
     country: '',
-    joined: '',
+    joined: userBeaconData.joined || '',
     maintag: '',
     othertags: [],
     linkedin: '',

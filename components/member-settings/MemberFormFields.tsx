@@ -7,8 +7,9 @@ import { Plus, Upload, X } from "lucide-react";
 import MenuBar from "@/components/ui/richtext-editor-menu";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { MemberFormData, MemberFormFieldsProps } from '@/lib/types/members';
+import Select from 'react-select';
 
 export default function MemberFormFields({
   formValues,
@@ -66,12 +67,72 @@ export default function MemberFormFields({
     loadExistingPortrait();
   }, [memberId]);
 
+  // Load active companies for select dropdown
+  useEffect(() => {
+    const loadCompanies = async () => {
+      const supabase = createClient();
+      
+      try {
+        const { data, error } = await supabase
+          .from('companies')
+          .select('id, name, ident, slug')
+          .eq('beacon_membership_status', 'Active')
+          .order('name');
+
+        if (error) {
+          console.error('Error loading companies:', error);
+          return;
+        }
+
+        if (data) {
+          setCompanies(data);
+        }
+      } catch (error) {
+        console.error('Error loading companies:', error);
+      } finally {
+        setIsLoadingCompanies(false);
+      }
+    };
+
+    loadCompanies();
+  }, []);
+
   // Portrait upload state
   const [portraitFile, setPortraitFile] = useState<File | null>(null);
   const [portraitPreview, setPortraitPreview] = useState<string | null>(null);
   const [isUploadingPortrait, setIsUploadingPortrait] = useState(false);
   const [currentPortraitUrl, setCurrentPortraitUrl] = useState<string | null>(currentPortrait || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Companies state for select dropdown
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string; ident?: string | null; slug?: string | null }>>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
+
+  // Convert companies to react-select options
+  const companyOptions = useMemo(() => {
+    return companies.map((company) => {
+      const value = company.ident || company.slug || '';
+      return {
+        value: value,
+        label: company.name,
+      };
+    });
+  }, [companies]);
+
+  // Find the selected option for react-select
+  const selectedCompanyOption = useMemo(() => {
+    if (!formValues.maintag) return null;
+    
+    // Find the company that matches the current maintag value (could be ident or slug)
+    const matchingCompany = companies.find(
+      (c) => (c.ident && c.ident === formValues.maintag) || (c.slug && c.slug === formValues.maintag)
+    );
+    
+    if (!matchingCompany) return null;
+    
+    const value = matchingCompany.ident || matchingCompany.slug || '';
+    return companyOptions.find(option => option.value === value) || null;
+  }, [formValues.maintag, companies, companyOptions]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -270,11 +331,13 @@ export default function MemberFormFields({
   return (
     <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
       
-      <div className="flex flex-col md:flex-row md:gap-4">
+      <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
-          <p>First Name {firstNameRequired ? '*' : ''}</p>
+          <p className="!text-qlack/30">First Name {firstNameRequired ? '*' : ''}</p>
+          <h2 className="text-3xl">{formValues.firstname}</h2>
           <input
             type="text"
+            hidden
             name="firstname"
             id="firstname"
             value={formValues.firstname}
@@ -286,9 +349,11 @@ export default function MemberFormFields({
         </label>
 
         <label htmlFor="lastname">
-          <p>Last Name {lastNameRequired ? '*' : ''}</p>
+          <p className="!text-qlack/30">Last Name {lastNameRequired ? '*' : ''}</p>
+          <h2 className="text-3xl">{formValues.lastname}</h2>
           <input
             type="text"
+            hidden
             name="lastname"
             id="lastname"
             value={formValues.lastname}
@@ -299,11 +364,11 @@ export default function MemberFormFields({
           />
         </label>
       </div>
-      <fieldset className="border-0 p-0 m-0">
+      {/* <fieldset className="border-0 p-0 m-0">
         <legend className="-mt-4 mb-4 text-sm px-0">
           Your name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
         </legend>
-      </fieldset>
+      </fieldset> */}
       
       <label htmlFor="jobtitle">
         <p>Job Title {jobTitleRequired ? '*' : ''}</p>
@@ -331,6 +396,36 @@ export default function MemberFormFields({
           disabled={isLoading || wasSuccessful}
           placeholder="e.g., Company Name, University, etc."
         />
+        <p>This can be your own company name or name of the company you work for.</p>
+      </label>
+
+      <label htmlFor="maintag">
+        <p>Company Association (Optional)</p>
+        <Select
+          unstyled
+          classNames={{
+            control: () => 
+              "bg-qlack/10 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+            menu: () => 
+              "bg-qaupe border-2 border-qlack/20 rounded-lg text-[16px] md:text-xl disabled:opacity-50 disabled:cursor-not-allowed w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all",
+            placeholder: () => 
+              "text-qlack/30",
+          }}
+          name="maintag"
+          id="maintag"
+          options={companyOptions}
+          isSearchable={true}
+          isClearable={true}
+          value={selectedCompanyOption}
+          onChange={(option) =>
+            handleInputChange('maintag', option ? (option as { value: string; label: string }).value : '')
+          }
+          placeholder="-- Select a company --"
+          isDisabled={isLoading || wasSuccessful || isLoadingCompanies}
+        />
+        <p className="text-xs text-qlack mt-1">
+          If you&apos;re associated with a company in our directory and would like to link to it from your member profile, select it from the list above
+        </p>
       </label>
 
       <label htmlFor="country">
@@ -347,13 +442,14 @@ export default function MemberFormFields({
         />
       </label>
 
-      <label htmlFor="joined">
-        <p>Joined Date</p>
+      {/* <label htmlFor="joined">
+        <p>Joined Date</p> */}
         <input
           type="date"
           name="joined"
+          hidden
           id="joined"
-          value={formValues.joined}
+          value={formValues.joined ? new Date(formValues.joined).toISOString().split('T')[0] : ''}
           onChange={(e) => {
             handleInputChange('joined', e.target.value);
             console.log('Joined date changed to:', e.target.value);
@@ -361,26 +457,10 @@ export default function MemberFormFields({
           disabled={true}
           className="w-full"
         />
-        <p className="text-xs text-gray-500 mt-1">
-          When did you join the organization or become a member?
+        {/* <p className="text-xs text-gray-500 mt-1">
+          This is the date your AQR membership started. Can 
         </p>
-      </label>
-
-      <label htmlFor="maintag">
-        <p>Company Association (Optional)</p>
-        <input
-          type="text"
-          name="maintag"
-          id="maintag"
-          value={formValues.maintag}
-          onChange={(e) => handleInputChange('maintag', e.target.value)}
-          disabled={isLoading || wasSuccessful}
-          placeholder="Link to company slug if applicable"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          If you&apos;re associated with a company in our directory, enter the company slug here
-        </p>
-      </label>
+      </label> */}
 
       <div>
         <label>
