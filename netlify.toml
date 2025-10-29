@@ -1,6 +1,13 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  functions = "netlify/functions"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 3001
+  publish = ".next"
+  edge_functions = false
 
 [build.environment]
   NODE_VERSION = "18"
