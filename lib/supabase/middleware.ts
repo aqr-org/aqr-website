@@ -43,6 +43,7 @@ export async function updateSession(request: NextRequest) {
   // Define protected paths that require authentication
   const protectedPaths = [
     "/protected",
+    "/superadmin",
     // Add any other protected paths here
   ];
 

@@ -24,9 +24,10 @@ interface MemberData {
 
 interface MemberUpdateFormProps {
   memberData: MemberData | null;
+  isSuperAdmin?: boolean;
 }
 
-export default function MemberUpdateForm({ memberData }: MemberUpdateFormProps) {
+export default function MemberUpdateForm({ memberData, isSuperAdmin = false }: MemberUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -140,6 +141,7 @@ export default function MemberUpdateForm({ memberData }: MemberUpdateFormProps) 
       memberId={memberData.id}
       currentPortrait={undefined}
       onPortraitUploaded={handlePortraitUploaded}
+      isSuperAdmin={isSuperAdmin}
     />
   );
 }

@@ -32,6 +32,7 @@ interface CompanyInfoUpdateFormProps {
     organizations: { id: string; name: string }[];
     hasCurrentMembership: boolean;
   };
+  isSuperAdmin?: boolean;
 }
 
 const companyTypeValues = [
@@ -63,7 +64,7 @@ const accreditationValues = [
   "ISO 17100"
 ];
 
-export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconData }: CompanyInfoUpdateFormProps) {
+export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconData, isSuperAdmin = false }: CompanyInfoUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -412,13 +413,15 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
           value={formValues.companyName}
           onChange={(e) => setFormValues(prev => ({ ...prev, companyName: e.target.value }))}
           required
-          disabled={true}
+          disabled={!isSuperAdmin}
         />
-        <fieldset className="mt-2 border-0 p-0 m-0 absolute top-0 left-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <legend className="text-xs text-qrose rounded bg-qaupe shadow-md border border-qrose p-2 block leading-[1.1] max-w-[30rem]">
-            Your company name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
-          </legend>
-        </fieldset>
+        {!isSuperAdmin && (
+          <fieldset className="mt-2 border-0 p-0 m-0 absolute top-0 left-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <legend className="text-xs text-qrose rounded bg-qaupe shadow-md border border-qrose p-2 block leading-[1.1] max-w-[30rem]">
+              Your company name has to match the record you provided to AQR, that is why you can't edit it here. If you need to change it, please contact support.
+            </legend>
+          </fieldset>
+        )}
       </label>
 
       <div>
@@ -545,6 +548,10 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
             ))}
           </select>
         </label>
+
+      </div>
+      <div className="flex flex-col md:flex-row md:gap-4">
+
         <label htmlFor="established">
           <p>Established</p>
           <input
@@ -560,7 +567,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
         </label>
 
         <label htmlFor="gradprog">
-          <p>Grad Programme</p>
+          <p>Do you offer a Grad Programme?</p>
           <select 
             name="gradprog" 
             id="gradprog" 
@@ -641,9 +648,12 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       </div>
 
       <div>
-        <p>AQR Awards (Enter award years, e.g., 2020,2021)</p>
+        {isSuperAdmin &&
+          <p>AQR Awards (Enter award years, e.g., 2020,2021)</p>
+        }
         <textarea
           name="prsaward"
+          hidden={!isSuperAdmin}
           id="prsaward"
           rows={3}
           value={formValues.prsaward || ''}
@@ -651,10 +661,12 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
           placeholder="Enter award years separated by commas (e.g., 2015,2020,2023)"
           className="w-full border rounded p-2"
         />
+        {isSuperAdmin &&
         <p className="text-xs text-gray-500 mt-1">
           Awards before 2016 will display as &ldquo;Prosper Riley-Smith Qualitative Effectiveness Award Winner&rdquo;, 
           awards from 2016 onwards will display as &ldquo;AQR Qualitative Excellence Award Winner&rdquo;
         </p>
+        }
         {formValues.prsaward && (
           <div className="mt-2 p-2 bg-gray-100 rounded text-sm">
             <p className="font-medium">Preview:</p>

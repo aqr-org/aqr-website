@@ -24,7 +24,8 @@ export default function MemberFormFields({
   userBeaconData,
   memberId,
   currentPortrait,
-  onPortraitUploaded
+  onPortraitUploaded,
+  isSuperAdmin = false
 }: MemberFormFieldsProps) {
   
   const editor = useEditor({
@@ -321,6 +322,48 @@ export default function MemberFormFields({
     await handlePortraitUpload();
   };
 
+  // Helper function to convert mm/yyyy format to YYYY-MM-DD for date input
+  const parseJoinedDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return '';
+    
+    // Check if it's already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+          return date.toISOString().split('T')[0];
+        }
+      } catch {
+        // Fall through to other formats
+      }
+    }
+    
+    // Try to parse mm/yyyy format (e.g., "10/2022")
+    const mmYyyyMatch = dateString.match(/^(\d{1,2})\/(\d{4})$/);
+    if (mmYyyyMatch) {
+      const month = parseInt(mmYyyyMatch[1], 10);
+      const year = parseInt(mmYyyyMatch[2], 10);
+      
+      if (month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+        // Use first day of the month
+        const date = new Date(year, month - 1, 1);
+        return date.toISOString().split('T')[0];
+      }
+    }
+    
+    // Try to parse as a general date string
+    try {
+      const date = new Date(dateString);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch {
+      // Invalid date
+    }
+    
+    return '';
+  };
+
   // Determine which fields are required based on mode
   const firstNameRequired = isCreateMode;
   const lastNameRequired = isCreateMode;
@@ -334,32 +377,32 @@ export default function MemberFormFields({
       <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
           <p className="!text-qlack/30">First Name {firstNameRequired ? '*' : ''}</p>
-          <h2 className="text-3xl">{formValues.firstname}</h2>
+          {!isSuperAdmin && <h2 className="text-3xl">{formValues.firstname}</h2>}
           <input
             type="text"
-            hidden
+            hidden={!isSuperAdmin}
             name="firstname"
             id="firstname"
             value={formValues.firstname}
             onChange={(e) => handleInputChange('firstname', e.target.value)}
             required={firstNameRequired}
-            disabled={true}
+            disabled={!isSuperAdmin}
             className="w-full"
           />
         </label>
 
         <label htmlFor="lastname">
           <p className="!text-qlack/30">Last Name {lastNameRequired ? '*' : ''}</p>
-          <h2 className="text-3xl">{formValues.lastname}</h2>
+          {!isSuperAdmin && <h2 className="text-3xl">{formValues.lastname}</h2>}
           <input
             type="text"
-            hidden
+            hidden={!isSuperAdmin}
             name="lastname"
             id="lastname"
             value={formValues.lastname}
             onChange={(e) => handleInputChange('lastname', e.target.value)}
             required={lastNameRequired}
-            disabled={true}
+            disabled={!isSuperAdmin}
             className="w-full"
           />
         </label>
@@ -442,14 +485,30 @@ export default function MemberFormFields({
         />
       </label>
 
-      {/* <label htmlFor="joined">
-        <p>Joined Date</p> */}
+      {isSuperAdmin && (
+        <label htmlFor="joined">
+          <p>Joined Date</p>
+          <input
+            type="date"
+            name="joined"
+            id="joined"
+            value={parseJoinedDate(formValues.joined)}
+            onChange={(e) => {
+              handleInputChange('joined', e.target.value);
+              console.log('Joined date changed to:', e.target.value);
+            }}
+            disabled={!isSuperAdmin}
+            className="w-full"
+          />
+        </label>
+      )}
+      {!isSuperAdmin && (
         <input
           type="date"
           name="joined"
           hidden
           id="joined"
-          value={formValues.joined ? new Date(formValues.joined).toISOString().split('T')[0] : ''}
+          value={parseJoinedDate(formValues.joined)}
           onChange={(e) => {
             handleInputChange('joined', e.target.value);
             console.log('Joined date changed to:', e.target.value);
@@ -457,10 +516,7 @@ export default function MemberFormFields({
           disabled={true}
           className="w-full"
         />
-        {/* <p className="text-xs text-gray-500 mt-1">
-          This is the date your AQR membership started. Can 
-        </p>
-      </label> */}
+      )}
 
       <div>
         <label>

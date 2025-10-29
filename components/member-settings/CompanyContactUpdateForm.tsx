@@ -34,9 +34,10 @@ interface CompanyContactUpdateFormProps {
   companyId?: string;
   contactData: CompanyContactData | null;
   onSuccess?: () => void;
+  isSuperAdmin?: boolean;
 }
 
-export default function CompanyContactUpdateForm({ companyId, contactData, onSuccess }: CompanyContactUpdateFormProps) {
+export default function CompanyContactUpdateForm({ companyId, contactData, onSuccess, isSuperAdmin = false }: CompanyContactUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);

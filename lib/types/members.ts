@@ -38,6 +38,7 @@ export interface MemberFormFieldsProps {
   memberId?: string;
   currentPortrait?: string;
   onPortraitUploaded?: (url: string) => void;
+  isSuperAdmin?: boolean;
 }
 
 export type { MemberFormData as MemberFormDataType };

@@ -35,31 +35,45 @@ export function LoginForm({
     try {
       const normalizedEmail = email.trim().toLowerCase();
       
-      // Call the API route instead of the function directly (client components can't access server env vars)
-      const checkResponse = await fetch('/auth/beacon/check-membership', {
+      // First check if this is the superadmin (skip Beacon check if so)
+      const superadminCheckResponse = await fetch('/api/check-superadmin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normalizedEmail }),
       });
       
-      if (!checkResponse.ok) {
-        setError('Unable to verify membership status. Please try again later.');
-        setIsLoading(false);
-        return;
-      }
+      const superadminCheck = superadminCheckResponse.ok 
+        ? await superadminCheckResponse.json() 
+        : { skipBeaconCheck: false };
       
-      const check = await checkResponse.json();
-      
-      if (!check.ok) {
-        if (check.reason === 'beacon-not-found') {
-          setError('No AQR membership found for this email address. Please contact support.');
-        } else if (check.reason === 'no-active-membership') {
-          setError('No active AQR membership found for this email address. Please contact support.');
-        } else {
+      // Skip Beacon membership check for superadmin
+      if (!superadminCheck.skipBeaconCheck) {
+        // Call the API route to verify Beacon membership for regular users
+        const checkResponse = await fetch('/auth/beacon/check-membership', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail }),
+        });
+        
+        if (!checkResponse.ok) {
           setError('Unable to verify membership status. Please try again later.');
+          setIsLoading(false);
+          return;
         }
-        setIsLoading(false);
-        return;
+        
+        const check = await checkResponse.json();
+        
+        if (!check.ok) {
+          if (check.reason === 'beacon-not-found') {
+            setError('No AQR membership found for this email address. Please contact support.');
+          } else if (check.reason === 'no-active-membership') {
+            setError('No active AQR membership found for this email address. Please contact support.');
+          } else {
+            setError('Unable to verify membership status. Please try again later.');
+          }
+          setIsLoading(false);
+          return;
+        }
       }
 
       const { error } = await supabase.auth.signInWithPassword({
