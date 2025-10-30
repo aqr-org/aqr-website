@@ -1,36 +1,33 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
-import { notFound } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ parent: string; child: string }> | { parent: string; child: string };
 }
 
 export async function generateMetadata(
   { params }: PageProps,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata | (() => Promise<Metadata>)
 ): Promise<Metadata> {
   try {
-    const theseParams = await params;
-    
-    // Run in parallel with individual error handling
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const parentMetaPromise = typeof parent === 'function' ? parent() : parent;
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(theseParams),
-      parent
+      fetchStoryblokData(resolvedParams.parent, resolvedParams.child),
+      parentMetaPromise
     ]);
-    
     // Handle storyblok result
     let pageData = {};
     if (storyblokResult.status === 'fulfilled') {
-      pageData = storyblokResult.value.data.story.content;
+      pageData = storyblokResult.value?.data.story.content;
     } else {
       console.error('Failed to fetch storyblok data:', storyblokResult.reason);
     }
-    
+
     // Handle parent metadata
     let parentMeta = {};
     if (parentMetadata.status === 'fulfilled') {
@@ -38,16 +35,14 @@ export async function generateMetadata(
     } else {
       console.error('Failed to fetch parent metadata:', parentMetadata.reason);
     }
-    
+
     return await generatePageMetadata(pageData, parentMeta);
-    
   } catch (error) {
     console.error("Error in generateMetadata:", error);
-    
     // Fallback: try to get parent metadata
     try {
-      const parentMetadata = await parent;
-      return await generatePageMetadata({}, parentMetadata);
+      const parentMeta = typeof parent === 'function' ? await parent() : parent;
+      return await generatePageMetadata({}, parentMeta);
     } catch (parentError) {
       console.error("Failed to get parent metadata:", parentError);
       return await generatePageMetadata({}, {});
@@ -57,17 +52,16 @@ export async function generateMetadata(
 
 export default async function SlugPage({ params }: PageProps) {
   try {
-    const resolvedParams = await params;
-    const storyblok = await fetchStoryblokData(resolvedParams);
-    const storyBlokStory = storyblok.data.story;
-
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const storyblok = await fetchStoryblokData(resolvedParams.parent, resolvedParams.child);
+    const storyBlokStory = storyblok?.data.story;
+    if (!storyBlokStory) {
+      notFound();
+    }
     return (
-      <>
-        <Background />
-        { storyBlokStory && (
-          <StoryblokStory story={storyBlokStory} />
-        )}
-      </>
+      <div className='max-w-164 has-[aside]:max-w-full animate-fade-in'>
+        <StoryblokStory story={storyBlokStory} />
+      </div>
     );
   } catch (error) {
     console.error("Error in SlugPage:", error);
@@ -75,25 +69,27 @@ export default async function SlugPage({ params }: PageProps) {
   }
 }
 
-async function fetchStoryblokData(params: { slug: string }) {
+async function fetchStoryblokData(parent: string, child: string) {
   try {
     const { isEnabled } = await draftMode();
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
-    
-    const response = await storyblokApi.get(`cdn/stories/calendar/${params.slug}`, { 
-      version: isDraftMode ? 'draft' : 'published'
-    });
-    
+    const response = await storyblokApi.get(
+      `cdn/stories/${parent}/${child}`,
+      {
+        version: isDraftMode ? 'draft' : 'published',
+        resolve_links: 'url',
+      }
+    );
     return response;
-  } 
-  catch (error) {
+  } catch (error) {
+    // Log error details for debugging
     console.error('Storyblok API Error Details:');
     console.error('- Error type:', typeof error);
     console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('- Full error object:', JSON.stringify(error, null, 2));
-    console.error('- Slug being requested:', params.slug);
-    throw new Error(`Failed to fetch story: ${params.slug}`);
+    console.error('- Params being requested:', parent, child);
+    // Re-throw to be caught by the main component's try-catch
+    throw error;
   }
 }

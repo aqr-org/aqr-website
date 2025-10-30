@@ -7,8 +7,8 @@ return (
 	<main {...storyblokEditable(blok)} className={cn(blok.aside && blok.aside.length > 0 ? 'md:flex gap-8' : '')}>
     <article className={
         cn(blok.aside && blok.aside.length > 0 
-           ? 'md:basis-3/4 md:shrink-1 max-w-[41rem]' 
-           : '')
+           ? 'md:basis-3/4 md:shrink max-w-164' 
+           : 'space-y-7.5')
     }>
       {blok.body?.map((nestedBlok: any) => (
         <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
@@ -17,7 +17,7 @@ return (
     {blok.aside && blok.aside.length > 0 && (
       <aside className={
           cn(blok.aside && blok.aside.length > 0 
-             ? 'md:basis-1/4 md:grow-1 max-w-[24rem]' 
+             ? 'md:basis-1/4 md:grow max-w-[24rem]' 
              : '')
       }> 
         {blok.aside.map((nestedBlok: any) => (

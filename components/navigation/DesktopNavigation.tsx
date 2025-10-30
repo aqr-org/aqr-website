@@ -24,7 +24,7 @@ export default function DesktopNavigation({
   setExpandedSubmenus,
 }: DesktopNavigationProps) {
   return (
-    <ul className="hidden md:flex md:items-end md:gap-6 font-[500]" role="menubar">
+    <ul className="hidden md:flex md:items-end md:justify-between font-medium" role="menubar">
       {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => (
         <li 
           key={index} 
@@ -59,13 +59,13 @@ export default function DesktopNavigation({
                   }`} 
                   aria-hidden="true"
                 />
-                <span className="border-b border-transparent group-hover:border-qlack">
+                <span className="border-b border-transparent group-hover:border-qlack whitespace-nowrap">
                   {link.name}
                 </span>
               </button>
               <ul
                 id={`desktop-submenu-${index}`}
-                className={`absolute top-full -left-4 min-w-52 h-auto flex-col p-8 rounded-lg bg-qaupe shadow-md border-1 border-qlack/20 transition-all duration-200 ${
+                className={`absolute top-full -left-4 min-w-52 h-auto flex-col p-8 rounded-lg bg-qaupe shadow-md border border-qlack/20 transition-all duration-200 ${
                   expandedSubmenus.has(index) 
                     ? 'flex opacity-100 visible' 
                     : 'hidden opacity-0 invisible'

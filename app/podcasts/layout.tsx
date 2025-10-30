@@ -7,10 +7,10 @@ import { draftMode } from 'next/headers';
 import DirectoryFilterBar from "@/components/Directory_Filter_Bar";
 import React from "react";
 
-export default async function ContactsPageLayout({ children }: { children: React.ReactNode }) {
+export default async function PodcastsPageLayout({ children }: { children: React.ReactNode }) {
   // Fetch initial data in parallel
   const [sidebarData] = await Promise.all([
-    fetchStoryblokData('site-settings/directory-sidebar'),
+    fetchStoryblokData('site-settings/resources-sidebar'),
   ]);
   
   const sidebar_items = sidebarData.data.story.content.nav_items;

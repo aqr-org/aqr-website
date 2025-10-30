@@ -180,7 +180,7 @@ export default function DirectoryFilterBar() {
     <div className="w-full mb-12 py-2 bg-qellow">
       <div className='max-w-maxw mx-auto px-container'>
         { isDirPage ? (
-          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lg font-[600] tracking-tight flex flex-col md:flex-row md:items-center">
+          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lgcking-tight flex flex-col md:flex-row md:items-center">
             <div>
               Show 
             </div>
@@ -193,9 +193,9 @@ export default function DirectoryFilterBar() {
                 onChange={(option) => setSelectedCompanyType(option?.value || 'all')}
                 classNames={{
                   control: (state) => state.isFocused 
-                    ? 'text-lg text-qlack/30 font-[400] tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
-                    : 'text-lg font-[400] tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
-                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg font-[400] tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
+                    ? 'text-lg text-qlack/30 tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
+                    : 'text-lg tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
+                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
                   placeholder: () => 'text-qlack/30 whitespace-nowrap',
                   option: () => 'text-qlack whitespace-nowrap',
                   input: () => 'text-qlack whitespace-nowrap',
@@ -203,7 +203,7 @@ export default function DirectoryFilterBar() {
                 options={[{value: 'all', label: 'all of the companies'}, ...companyTypeOptions]}
               />
             ) : (
-              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg font-[400] tracking-tight">
+              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg tracking-tight">
                 all of the companies
               </span>
             )}
@@ -220,9 +220,9 @@ export default function DirectoryFilterBar() {
                 onChange={(option) => setSelectedArea(option?.value || 'all')}
                 classNames={{
                   control: (state) => state.isFocused 
-                    ? 'text-lg text-qlack/30 font-[400] tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
-                    : 'text-lg font-[400] tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
-                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg font-[400] tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
+                    ? 'text-lg text-qlack/30 tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
+                    : 'text-lg tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
+                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
                   placeholder: () => 'text-qlack/30 whitespace-nowrap',
                   option: () => 'text-qlack whitespace-nowrap',
                   input: () => 'text-qlack whitespace-nowrap',
@@ -230,7 +230,7 @@ export default function DirectoryFilterBar() {
                 options={[{value: 'all', label: 'all of the quals sectors'}, ...areaOptions]}
               />
             ) : (
-              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg font-[400] tracking-tight">
+              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg tracking-tight">
                 all of the quals sectors
               </span>
             )}
@@ -247,9 +247,9 @@ export default function DirectoryFilterBar() {
                 onChange={(option) => setSelectedCountry(option?.value || 'all')}
                 classNames={{
                   control: (state) => state.isFocused 
-                    ? 'text-lg text-qlack/30 font-[400] tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
-                    : 'text-lg font-[400] tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
-                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg font-[400] tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
+                    ? 'text-lg text-qlack/30 tracking-tight md:mx-1 px-2 md:rounded-t-lg bg-qaupe border-b border-qlack/30' 
+                    : 'text-lg tracking-tight md:mx-1 md:px-2 md:rounded-lg md:hover:bg-qaupe border-b border-transparent',
+                  menu: () => 'bg-qaupe rounded-lg rounded-tl-none md:ml-1 text-lg tracking-tight p-4 shadow-lg whitespace-nowrap md:min-w-[300px]',
                   placeholder: () => 'text-qlack/30 whitespace-nowrap',
                   option: () => 'text-qlack whitespace-nowrap',
                   input: () => 'text-qlack whitespace-nowrap',
@@ -257,14 +257,14 @@ export default function DirectoryFilterBar() {
                 options={[{value: 'all', label: 'all over the world'}, ...countryOptions]}
               />
             ) : (
-              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg font-[400] tracking-tight">
+              <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg tracking-tight">
                 all over the world
               </span>
             )}
             
           </div>
         ) : !isDirPage && !isSlugPage ? (
-          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lg font-[600] tracking-tight flex flex-col md:flex-row md:items-center">
+          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lgcking-tight flex flex-col md:flex-row md:items-center">
             <Link 
               href="/dir"
               className="cursor-pointer min-h-[38px] flex items-center gap-2 hover:text-gray-600 transition-colors"
@@ -273,7 +273,7 @@ export default function DirectoryFilterBar() {
             </Link>
           </div>
         ) : (
-          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lg font-[600] tracking-tight flex flex-col md:flex-row md:items-center">
+          <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lgcking-tight flex flex-col md:flex-row md:items-center">
             <button 
               onClick={() => router.back()} 
               className="cursor-pointer min-h-[38px] flex items-center gap-2 hover:text-gray-600 transition-colors"

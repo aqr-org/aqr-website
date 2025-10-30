@@ -7,6 +7,10 @@ import Article from '@/components/storyblok/Article';
 import Webinar from '@/components/storyblok/Webinar';
 import Event from '@/components/storyblok/Event';
 import BeaconForm from '@/components/storyblok/BeaconForm';
+import Youtube from '@/components/storyblok/Youtube';
+import Audio from '@/components/storyblok/Audio';
+import Image from '@/components/storyblok/Image';
+import Flex from '@/components/storyblok/Flex';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -18,6 +22,10 @@ const components = {
   webinar: Webinar,
   event: Event,
   beacon_form: BeaconForm,
+  youtube: Youtube,
+  audio: Audio,
+  image: Image,
+  flex: Flex,
 };
 
 export default components ;

@@ -124,7 +124,7 @@ export function AuthButton() {
     </div>
   ) : (
     <div className="flex gap-8 justify-between w-full">
-      <Link href="/auth/login" className="font-medium flex gap-2 items-center">
+      <Link href="/auth/login" className="font-medium flex gap-2 items-center whitespace-nowrap">
         <span>
           <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M13.2201 6.6105V3.9705C13.2201 2.3205 11.8701 0.970497 10.2201 0.970497H5.85008C4.20008 0.970497 2.85008 2.3205 2.85008 3.9705V6.6105H0.0800781V15.8905C0.0800781 18.1005 1.87008 19.8905 4.08008 19.8905H12.0001C14.2101 19.8905 16.0001 18.1005 16.0001 15.8905V6.6105H13.2201ZM4.86008 3.9705C4.86008 3.4205 5.31008 2.9705 5.86008 2.9705H10.2301C10.7801 2.9705 11.2301 3.4205 11.2301 3.9705V6.6105H4.86008V3.9705ZM14.0001 15.8905C14.0001 16.9905 13.1001 17.8905 12.0001 17.8905H4.08008C2.98008 17.8905 2.08008 16.9905 2.08008 15.8905V8.6105H14.0001V15.8905Z" fill="currentColor"/>

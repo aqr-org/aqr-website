@@ -1,10 +1,9 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
-import { notFound } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -26,7 +25,7 @@ export async function generateMetadata(
     // Handle storyblok result
     let pageData = {};
     if (storyblokResult.status === 'fulfilled') {
-      pageData = storyblokResult.value.data.story.content;
+      pageData = storyblokResult.value?.data.story.content;
     } else {
       console.error('Failed to fetch storyblok data:', storyblokResult.reason);
     }
@@ -59,15 +58,16 @@ export default async function SlugPage({ params }: PageProps) {
   try {
     const resolvedParams = await params;
     const storyblok = await fetchStoryblokData(resolvedParams);
-    const storyBlokStory = storyblok.data.story;
+    const storyBlokStory = storyblok?.data.story;
+
+    if (!storyBlokStory) {
+      notFound();
+    }
 
     return (
-      <>
-        <Background />
-        { storyBlokStory && (
-          <StoryblokStory story={storyBlokStory} />
-        )}
-      </>
+      <article className='max-w-164 animate-fade-in'>
+        <StoryblokStory story={storyBlokStory} />
+      </article>
     );
   } catch (error) {
     console.error("Error in SlugPage:", error);
@@ -81,19 +81,21 @@ async function fetchStoryblokData(params: { slug: string }) {
     const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     
-    const response = await storyblokApi.get(`cdn/stories/calendar/${params.slug}`, { 
-      version: isDraftMode ? 'draft' : 'published'
+    const response = await storyblokApi.get(`cdn/stories/podcasts/${params.slug}`, { 
+      version: isDraftMode ? 'draft' : 'published' 
     });
     
     return response;
   } 
   catch (error) {
+    // Log error details for debugging
     console.error('Storyblok API Error Details:');
     console.error('- Error type:', typeof error);
     console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('- Full error object:', JSON.stringify(error, null, 2));
     console.error('- Slug being requested:', params.slug);
-    throw new Error(`Failed to fetch story: ${params.slug}`);
+    
+    // Re-throw to be caught by the main component's try-catch
+    throw error;
   }
 }
