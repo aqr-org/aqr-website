@@ -5,6 +5,7 @@ import { getStoryblokApi } from "@/lib/storyblok";
 import { StoryblokStory } from "@storyblok/react/rsc";
 import { draftMode } from 'next/headers';
 import { generatePageMetadata } from '@/lib/metadata';
+import React from "react";
 
 export async function generateMetadata({ params: _params }: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
   // read route params and resolve parent metadata in parallel
@@ -45,26 +46,32 @@ export default async function DirVFLocationsPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="max-w-[41rem] mb-12">
+      <div className="max-w-210 mb-12">
         <StoryblokStory story={storyblokVFLocationsStory} />
       </div>
       {/* <pre>{JSON.stringify(companiesWithAddresses, null, 2)}</pre> */}
-      <div className="max-w-[41rem]" >
-        {companiesWithAddresses.map(company => {
+      <div className="max-w-210 space-y-4" >
+        {companiesWithAddresses.map((company, index) => {
           const addressArray = [company.addr2, company.addr3, company.addr4, company.addr5];
           // create a string out of the last two items in the array that are not empty strings or null, separated by a comma and add the county after that 
           const addressString = addressArray.filter(item => item && item.length > 0).slice(-2).join(', ') + ', ' + company.country;
           return (
-            <Link 
-              href={`/dir/companies/${company.slug}`} 
-              key={company.slug}
-              className="hover:text-qreen-dark text-qlack w-full border-b border-dashed flex justify-between items-baseline"
-            >
-              <h3 className="text-[1.375rem]">
-                {company.name}
-              </h3>
-              <p>{addressString}</p>
-            </Link>
+            <React.Fragment key={company.slug}>
+              <Link 
+                href={`/dir/companies/${company.slug}`} 
+                className="hover:text-qreen-dark text-qlack w-full flex justify-between items-baseline"
+              >
+                <h3 className="text-[1.375rem]">
+                  {company.name}
+                </h3>
+                <p>{addressString}</p>
+              </Link>
+              {index < companiesWithAddresses.length - 1 && (
+                <svg className="h-1 w-full" width="100%" height="100%">
+                  <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
+                </svg>
+              )}
+            </React.Fragment>
           )
         })}
       </div>            
