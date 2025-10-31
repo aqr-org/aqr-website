@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { profOrgsNameMap } from "@/lib/utils";
 import { countries } from "@/lib/countries";
 import Fern from "@/components/svgs/Fern";
@@ -175,10 +176,10 @@ export default function Company(props: CompanyProps) {
             }
             <p className="text-base uppercase tracking-[0.04rem]">{data.type}</p>
           </div>
-          <h1 className="text-[6.25rem] leading-[0.95] tracking-[-0.1875rem] mb-6">
+          <h1 className="text-6xl md:text-[6.25rem] leading-[0.95] tracking-[-0.1875rem] mb-6">
             <a href={data.contact_info?.website} target="_blank" rel="noopener noreferrer" className="relative">
               {data.name}
-              <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-19 left-[calc(100%+1rem)]">
+              <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 md:w-8 absolute bottom-10 md:bottom-19 left-[calc(100%+1rem)]">
                 <path d="M4.91519 3H32V30.3415M31.7278 3L3 32" stroke="black" strokeWidth="6"/>
               </svg>
             </a>
@@ -216,11 +217,11 @@ export default function Company(props: CompanyProps) {
           <svg className="h-1 w-full" width="100%" height="100%">
             <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
           </svg>
-          <div className="flex items-start gap-12 py-4">
+          <div className="flex flex-col md:flex-row items-start gap-12 py-4 w-full overflow-hidden">
             {/* contact info */}
             <div> 
               {data.contact_info?.email &&
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 whitespace-nowrap">
                   {/* envelope icon */}
                   <svg width="14" height="9" viewBox="0 0 14 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M14 0.851064C14 0.381915 13.6141 0 13.14 0H0.860017C0.385933 0 0 0.381915 0 0.851064V8.15106C0 8.3766 0.0903018 8.58191 0.23543 8.73404C0.392383 8.89787 0.613837 9 0.858942 9H13.1389C13.3851 9 13.6055 8.89681 13.7624 8.73298C13.9086 8.58085 13.9979 8.37553 13.9979 8.14894V0.851064H14ZM0.645013 1.11702L4.79137 4.54894L0.645013 7.98085V1.11702ZM8.54749 4.26383C8.51309 4.28298 8.48084 4.30745 8.45397 4.33936C8.45289 4.34149 8.45182 4.34255 8.45074 4.34468L7.00054 5.54468L5.55033 4.34468C5.55033 4.34468 5.54818 4.34149 5.54711 4.33936C5.52023 4.30745 5.48798 4.28298 5.45358 4.26383L1.07287 0.638298H12.9282L8.54749 4.26383ZM5.2934 4.96489L6.79306 6.20638C6.85326 6.25638 6.92636 6.28085 6.99946 6.28085C7.07256 6.28085 7.14674 6.25638 7.20587 6.20638L8.70552 4.96489L12.8121 8.36489H1.18682L5.2934 4.96489ZM9.20971 4.54894L13.355 1.11702V7.98085L9.20863 4.54894H9.20971Z" fill="#11160C"/>
@@ -234,7 +235,7 @@ export default function Company(props: CompanyProps) {
                 </div>
               }
               {data.contact_info?.phone &&
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full overflow-hidden whitespace-nowrap">
                   {/* mobile icon */}
                   <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7.2 13.8438V14.5H1.8V13.8438H7.2ZM8.325 12.75V2.25C8.325 1.64594 7.82132 1.15625 7.2 1.15625H1.8C1.17868 1.15625 0.675 1.64594 0.675 2.25V12.75C0.675 13.3541 1.17868 13.8438 1.8 13.8438V14.5L1.61631 14.4906C0.7085 14.4011 0 13.6562 0 12.75V2.25C0 1.2835 0.805887 0.5 1.8 0.5H7.2C8.19411 0.5 9 1.2835 9 2.25V12.75C9 13.7165 8.19411 14.5 7.2 14.5V13.8438C7.82132 13.8438 8.325 13.3541 8.325 12.75ZM5.10732 2.51233C5.29366 2.51233 5.44473 2.65931 5.44482 2.84045C5.44482 3.02167 5.29372 3.16858 5.10732 3.16858H3.89268C3.70628 3.16858 3.55518 3.02167 3.55518 2.84045C3.55527 2.65931 3.70634 2.51233 3.89268 2.51233H5.10732Z" fill="#11160C"/>
@@ -250,7 +251,7 @@ export default function Company(props: CompanyProps) {
                 </div>
               }
               {data.contact_info?.mobile &&
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full overflow-hidden whitespace-nowrap">
                   {/* mobile icon */}
                   <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7.2 13.8438V14.5H1.8V13.8438H7.2ZM8.325 12.75V2.25C8.325 1.64594 7.82132 1.15625 7.2 1.15625H1.8C1.17868 1.15625 0.675 1.64594 0.675 2.25V12.75C0.675 13.3541 1.17868 13.8438 1.8 13.8438V14.5L1.61631 14.4906C0.7085 14.4011 0 13.6562 0 12.75V2.25C0 1.2835 0.805887 0.5 1.8 0.5H7.2C8.19411 0.5 9 1.2835 9 2.25V12.75C9 13.7165 8.19411 14.5 7.2 14.5V13.8438C7.82132 13.8438 8.325 13.3541 8.325 12.75ZM5.10732 2.51233C5.29366 2.51233 5.44473 2.65931 5.44482 2.84045C5.44482 3.02167 5.29372 3.16858 5.10732 3.16858H3.89268C3.70628 3.16858 3.55518 3.02167 3.55518 2.84045C3.55527 2.65931 3.70634 2.51233 3.89268 2.51233H5.10732Z" fill="#11160C"/>
@@ -266,7 +267,7 @@ export default function Company(props: CompanyProps) {
                 </div>
               }
               {data.contact_info?.website &&
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full overflow-hidden whitespace-nowrap">
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 0C2.23858 0 0 2.23858 0 5C0 7.76142 2.23858 10 5 10C7.76142 10 10 7.76142 10 5C10 2.23858 7.76142 0 5 0ZM5 8.33333C3.80653 8.33333 2.83333 7.36013 2.83333 6.16667C2.83333 4.9732 3.80653 4 5 4C6.19347 4 7.16667 4.9732 7.16667 6.16667C7.16667 7.36013 6.19347 8.33333 5 8.33333Z" fill="#11160C"/>
                   </svg>
@@ -334,24 +335,44 @@ export default function Company(props: CompanyProps) {
         {data.areas && Object.keys(data.areas).length > 0 && (
         <section id="areas">
             <div className="space-y-24">
-              {Object.entries(data.areas).map(([category, areas]) => (
-                <div key={category} className="space-y-5">
-                  <h2 className="text-[2.375rem] leading-none">{category}</h2>
-                  <svg className="h-1 w-full" width="100%" height="100%">
-                    <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
-                  </svg>
-                  <ul className="flex flex-wrap gap-2">
-                    {areas.map((area, index) => (
-                      <li 
-                        key={`${category}-${area}-${index}`}
-                        className="text-qreen-dark bg-qellow px-3 py-1 rounded-full"
-                      >
-                        {area}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              {Object.entries(data.areas).map(([category, areas]) => {
+                // Map category name to URL parameter name
+                const getCategoryParam = (cat: string): string | null => {
+                  if (cat === 'Business Sectors') return 'sectors';
+                  if (cat === 'Skills, Expertise & Services') return 'skills';
+                  if (cat === 'Recruitment Expertise') return 'recruitment';
+                  return null;
+                };
+
+                const categoryParam = getCategoryParam(category);
+
+                return (
+                  <div key={category} className="space-y-5">
+                    <h2 className="text-[2.375rem] leading-none">{category}</h2>
+                    <svg className="h-1 w-full" width="100%" height="100%">
+                      <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
+                    </svg>
+                    <ul className="flex flex-wrap gap-2">
+                      {areas.map((area, index) => {
+                        const areaUrl = categoryParam 
+                          ? `/dir/advanced?${categoryParam}=${encodeURIComponent(area)}`
+                          : '/dir/advanced';
+                        
+                        return (
+                          <li key={`${category}-${area}-${index}`}>
+                            <Link
+                              href={areaUrl}
+                              className="text-qreen-dark bg-qellow px-3 py-1 rounded-full hover:bg-qreen-dark hover:text-qellow transition-colors inline-block"
+                            >
+                              {area}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
         </section>
         )}
