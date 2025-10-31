@@ -140,6 +140,15 @@ export default function Company(props: CompanyProps) {
     ? `https://lucent-kashata-62c75a.netlify.app/.netlify/images?url=${encodeURIComponent(data.logo.data.publicUrl)}&w=240` 
     : null;
 
+  let sanitizedNarrative = data.narrative ? data.narrative : '';
+  // if sanitizedNarrative starts without an html tag, add a <p> tag to the beginning and a </p> tag before the next html tag
+  if (!sanitizedNarrative.startsWith('<p>')) {
+    sanitizedNarrative = '<p>' + sanitizedNarrative + '</p>';
+  }
+  if (!sanitizedNarrative.endsWith('</p>')) {
+    sanitizedNarrative = sanitizedNarrative + '</p>';
+  }
+
   return (
     <article 
       className="
@@ -350,7 +359,7 @@ export default function Company(props: CompanyProps) {
         <section id="narrative">
           <div 
             className="pl-8 prose" 
-            dangerouslySetInnerHTML={{ __html: data.narrative }} 
+            dangerouslySetInnerHTML={{ __html: sanitizedNarrative }} 
           />
         </section>
 
