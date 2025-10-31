@@ -58,10 +58,9 @@ export default async function SlugPage({ params }: PageProps) {
     const storyBlokStory = storyblok.data.story;
 
     return (
-      <>
-        <Background />
+      <div className='max-w-210 has-[aside]:max-w-full animate-fade-in'>
         {storyBlokStory && <StoryblokStory story={storyBlokStory} />}
-      </>
+      </div>
     );
   } catch (error) {
     console.error("Error in SlugPage:", error);

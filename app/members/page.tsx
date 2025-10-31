@@ -86,7 +86,7 @@ export default async function ComnpaniesPage() {
 
   return (
     <div className="animate-fade-in">
-      <div className="max-w-[41rem] mb-12">
+      <div className="max-w-210 mb-12">
         <StoryblokStory story={storyBlokStory} />
       </div>
       <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden sticky top-0 py-4 -mt-4 bg-qaupe z-10">

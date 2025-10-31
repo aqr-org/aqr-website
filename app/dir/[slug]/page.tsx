@@ -59,7 +59,7 @@ export default async function SlugPage({ params }: PageProps) {
   const storyBlokStory = storyblok?.data.story;
 
   return (
-    <article className='max-w-164 animate-fade-in'>
+    <article className='max-w-210 animate-fade-in'>
       <StoryblokStory story={storyBlokStory} />
     </article>
   );

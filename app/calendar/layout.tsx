@@ -19,7 +19,7 @@ export default async function CalendarPageLayout({ children }: { children: React
           <aside className="pb-8 md:pb-0 md:basis-1/4 md:pr-8 md:box-border">
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
-          <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
+          <div className="group md:basis-3/4">
             <Suspense fallback={<LoadingAnimation text="Loading Resources..." />}>
                {children}
             </Suspense>

@@ -59,7 +59,7 @@ export default async function SlugPage({ params }: PageProps) {
       notFound();
     }
     return (
-      <div className='max-w-164 has-[aside]:max-w-full animate-fade-in'>
+      <div className='max-w-210 has-[aside]:max-w-full animate-fade-in'>
         <StoryblokStory story={storyBlokStory} />
       </div>
     );
@@ -93,4 +93,6 @@ async function fetchStoryblokData(parent: string, child: string, grandchild: str
     throw error;
   }
 }
+
+
 

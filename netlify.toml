@@ -14,3 +14,6 @@
   # All secrets (SUPABASE_URL, SUPABASE_ANON_KEY, BEACON_API_URL, BEACON_AUTH_TOKEN, STORYBLOK_ACCESS_TOKEN)
   # and optional config (SITE_URL, PRIMARY_SITE_URL) should be set in Netlify Dashboard > Site settings > Environment variables
   # Netlify automatically provides URL env var for the current deployment URL
+
+[images]
+  remote_images = ["https://bhmfxxloeuhdqpgnfweo.supabase.co/storage/v1/object/public/images/.*"]

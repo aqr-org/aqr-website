@@ -7,7 +7,7 @@ return (
 	<main {...storyblokEditable(blok)} className={cn(blok.aside && blok.aside.length > 0 ? 'md:flex gap-8' : '')}>
     <article className={
         cn(blok.aside && blok.aside.length > 0 
-           ? 'md:basis-3/4 md:shrink max-w-164' 
+           ? 'md:basis-3/4 md:shrink max-w-210' 
            : 'space-y-7.5')
     }>
       {blok.body?.map((nestedBlok: any) => (

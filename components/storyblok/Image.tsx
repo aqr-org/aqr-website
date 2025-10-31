@@ -33,21 +33,55 @@ export default function Image({ blok }: ImageProps) {
     return null;
   }
 
+  // Round width to nearest 10% step (10, 20, 30, ..., 100)
+  const roundedWidth = blok.width 
+    ? Math.round(blok.width / 10) * 10 
+    : 100;
+  const clampedWidth = Math.min(Math.max(roundedWidth, 10), 100);
+
+  // Map width percentage to Tailwind class (only for md and above)
+  const widthClasses: Record<number, string> = {
+    10: 'md:w-[10%]',
+    20: 'md:w-[20%]',
+    30: 'md:w-[30%]',
+    40: 'md:w-[40%]',
+    50: 'md:w-[50%]',
+    60: 'md:w-[60%]',
+    70: 'md:w-[70%]',
+    80: 'md:w-[80%]',
+    90: 'md:w-[90%]',
+    100: 'md:w-full',
+  };
+
+  // Text alignment classes
+  const textAlignClass = 
+    blok.align === 'center' ? 'text-center' 
+    : blok.align === 'right' ? 'text-right'
+    : 'text-left';
+
+  // Margin classes for alignment (only for md and above)
+  const marginClass = 
+    blok.align === 'center' ? 'md:mx-auto' 
+    : blok.align === 'right' ? 'md:ml-auto'
+    : 'md:mr-auto';
+
+  // Mix blend mode class
+  const blendModeClass = blok.special_class === 'multiply' ? 'mix-blend-multiply' : '';
+
   return (
     <div 
       {...storyblokEditable(blok)} 
-      className='w-full bg-qaupe'
-      style={{ 
-        textAlign: blok.align === 'center' ? 'center' 
-                 : blok.align === 'right' ? 'right'
-                 : 'left' as 'left' | 'right' | 'center',
-      }}
+      className={cn('w-full bg-qaupe', textAlignClass)}
     >
       <figure
+        className={cn(
+          'w-full my-7.5', // Always full width on mobile
+          widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
+          marginClass,
+          blendModeClass
+        )}
         style={{
-          width: blok.width ? `${blok.width}%` : '100%',
-          margin: blok.align === 'center' ? '0 auto' : blok.align === 'right' ? '0 0 0 auto' : '0 auto 0 0',
-          mixBlendMode: blok.special_class === 'multiply' ? 'multiply' : 'normal',
+          maxWidth: dimensions.width ? `${dimensions.width}px` : undefined,
         }}
       >
         <Picture 
@@ -55,7 +89,7 @@ export default function Image({ blok }: ImageProps) {
           alt={altText}
           aspectRatioDesktop={blok.aspect_ratio.toString() || '1.77778'}
           aspectRatioMobile={blok.aspect_ratio.toString() || '1.77778'}
-          sizes={`(max-width: 768px) ${blok.width ? `${blok.width}vw` : '100vw'}, ${blok.width ? `${blok.width*0.7}vw` : '70vw'}`}
+          sizes={`(max-width: 768px) 90vw, 70vw`}
           className={`w-full h-auto aspect-[${blok.aspect_ratio}]`}
         />
         </figure> 

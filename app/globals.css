@@ -195,19 +195,29 @@ p a {
     @apply my-0;
   } 
   & h1, & .h1size {
-    @apply block text-6xl my-7.5 leading-none;
+    @apply block text-6xl my-7.5 leading-none tracking-[-0.07125rem];
+    
+    @media (max-width: 768px) {
+      @apply text-5xl hyphens-auto;
+    }
   }
   & h2, & .h2size {
-    @apply block text-4xl my-7.5 leading-none;
+    @apply block text-4xl my-7.5 leading-none tracking-[-0.07125rem];
+    @media (max-width: 768px) {
+      @apply hyphens-auto;
+    }
   }
   & h3, & .h3size {
-    @apply block text-[2.375rem] my-7.5 leading-tight tracking-[-0.07125rem];
+    @apply block text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.07125rem];
   }
   & h4, & .h4size {
     @apply block text-[1.5rem] my-7.5 leading-tight tracking-[-0.02rem];
   }
   & h5, & .h5size {
     @apply block text-[1.25rem] my-6 leading-tight tracking-[-0.02rem];
+  }
+  & .intro {
+    @apply block text-[1.5rem] my-7.5 leading-tight tracking-[-0.02rem] text-qreen;
   }
   & .tag {
     @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-2.5;
@@ -253,6 +263,27 @@ p a {
   }
   & a {
     @apply underline;
+  }
+  & table {
+    @apply my-7.5 w-full;
+  }
+  & table th, & table td {
+    @apply p-4;
+    & p {
+      @apply my-0;
+    }
+  }
+  & table th {
+    @apply  text-qlack text-left font-medium;
+  }
+  & table tr:has(th) {
+    @apply border-b-2 border-dashed border-qreen-dark;
+  }
+  & table td {
+    @apply bg-qaupe;
+  }
+  & table tr:nth-child(odd) td {
+    @apply bg-qreen/10 text-qreen-dark;
   }
   /* & p a {
     @apply no-underline inline-block relative overflow-visible text-qreen;

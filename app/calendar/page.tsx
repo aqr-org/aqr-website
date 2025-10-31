@@ -116,7 +116,7 @@ export default async function CalendarPage() {
   const sortedGroups = sortSeasonGroups(groupedEvents);
   
   return (
-    <main className="flex-1 w-full max-w-maxw mx-auto px-container flex flex-col gap-20 min-h-screen">
+    <div className="max-w-210">
       <Background />
       {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
         <StoryblokStory story={storyBlokStory} />
@@ -145,7 +145,7 @@ export default async function CalendarPage() {
           );
         })}
       </div>
-    </main>
+    </div>
   );
 }
 
