@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import AdvancedDirectoryFilterModal from './AdvancedDirectoryFilterModal';
 import AdvancedDirectoryResults from './AdvancedDirectoryResults';
 
@@ -36,21 +37,29 @@ interface AdvancedDirectoryPageProps {
     recruitment: FilterOption[];
     countries: FilterOption[];
   };
+  initialFilters?: FilterOptions;
 }
 
-export default function AdvancedDirectoryPage({ filterOptions }: AdvancedDirectoryPageProps) {
-  const [filters, setFilters] = useState<FilterOptions>({
-    companyTypes: [],
-    sectors: [],
-    skills: [],
-    recruitment: [],
-    countries: []
-  });
+export default function AdvancedDirectoryPage({ filterOptions, initialFilters }: AdvancedDirectoryPageProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  const [filters, setFilters] = useState<FilterOptions>(
+    initialFilters || {
+      companyTypes: [],
+      sectors: [],
+      skills: [],
+      recruitment: [],
+      countries: []
+    }
+  );
   
   const [companies, setCompanies] = useState<CompanyResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const urlUpdateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isInitialMountRef = useRef(true);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -101,10 +110,50 @@ export default function AdvancedDirectoryPage({ filterOptions }: AdvancedDirecto
     }
   };
 
+  // Update URL search params when filters change
+  const updateURLParams = useCallback((newFilters: FilterOptions) => {
+    if (urlUpdateTimeoutRef.current) {
+      clearTimeout(urlUpdateTimeoutRef.current);
+    }
+    
+    urlUpdateTimeoutRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      
+      // Add each filter category to URL if it has values
+      Object.entries(newFilters).forEach(([key, values]) => {
+        if (values.length > 0) {
+          // Join multiple values with comma
+          params.set(key, values.map(v => encodeURIComponent(v)).join(','));
+        }
+      });
+      
+      // Update URL without adding to history (using replace)
+      const newURL = params.toString() 
+        ? `${pathname}?${params.toString()}`
+        : pathname;
+      
+      router.replace(newURL, { scroll: false });
+    }, 300); // Debounce URL updates
+  }, [pathname, router]);
+
   const handleFiltersChange = (newFilters: FilterOptions) => {
     setFilters(newFilters);
     debouncedSearch(newFilters);
+    updateURLParams(newFilters);
   };
+
+  // Perform initial search if initialFilters are provided
+  useEffect(() => {
+    if (isInitialMountRef.current && initialFilters) {
+      const hasActiveFilters = Object.values(initialFilters).some(filterArray => filterArray.length > 0);
+      if (hasActiveFilters) {
+        isInitialMountRef.current = false;
+        performSearch(initialFilters);
+      }
+    }
+    isInitialMountRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - initialFilters should only come from URL params on initial load
 
   const hasActiveFilters = Object.values(filters).some(filterArray => filterArray.length > 0);
 

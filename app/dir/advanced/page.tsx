@@ -46,8 +46,22 @@ export async function generateMetadata(_: { params: Promise<Record<string, never
   }
 }
 
-export default async function AdvancedDirectoryPage() {
-  // Fetch data in parallel
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function AdvancedDirectoryPage({ searchParams }: PageProps) {
+  // Parse search params for initial filters
+  const params = await searchParams;
+  
+  // Helper function to parse comma-separated values from URL params
+  const parseFilterParam = (param: string | string[] | undefined): string[] => {
+    if (!param) return [];
+    const paramStr = Array.isArray(param) ? param[0] : param;
+    return paramStr.split(',').filter(Boolean).map(v => decodeURIComponent(v.trim()));
+  };
+
+  // Fetch data first to get available filter options for validation
   const [supabase, storyblok] = await Promise.all([
     createClient(),
     fetchStoryblokData()
@@ -55,7 +69,7 @@ export default async function AdvancedDirectoryPage() {
 
   const storyBlokStory = storyblok?.data.story;
 
-  // Fetch all filter options data
+  // Fetch all filter options data to validate URL params
   const [
     companies,
     companyAreas,
@@ -97,7 +111,6 @@ export default async function AdvancedDirectoryPage() {
       count: activeCompanyContactInfo.filter(contact => contact.country === country).length || 0
     }));
 
-
   // Pre-compute area counts once using a Map for better performance
   const areaCounts = new Map<string, number>();
   companyAreas.data?.forEach(ca => {
@@ -133,6 +146,29 @@ export default async function AdvancedDirectoryPage() {
       count: areaCounts.get(area.area) || 0
     })) || [];
 
+  // Helper function to validate filter values against available options
+  const validateFilterValues = (values: string[], availableOptions: { value: string }[]): string[] => {
+    const validValues = new Set(availableOptions.map(opt => opt.value));
+    return values.filter(v => validValues.has(v));
+  };
+
+  // Parse and validate initial filters from URL params
+  const rawFilters = {
+    companyTypes: parseFilterParam(params.companyTypes),
+    sectors: parseFilterParam(params.sectors),
+    skills: parseFilterParam(params.skills),
+    recruitment: parseFilterParam(params.recruitment),
+    countries: parseFilterParam(params.countries)
+  };
+
+  const initialFilters = {
+    companyTypes: validateFilterValues(rawFilters.companyTypes, companyTypes),
+    sectors: validateFilterValues(rawFilters.sectors, sectors),
+    skills: validateFilterValues(rawFilters.skills, skills),
+    recruitment: validateFilterValues(rawFilters.recruitment, recruitment),
+    countries: validateFilterValues(rawFilters.countries, countries)
+  };
+
   const filterOptions = {
     companyTypes,
     sectors,
@@ -143,10 +179,13 @@ export default async function AdvancedDirectoryPage() {
 
   return (
     <>
-      <div className="max-w-[41rem] mb-12">
+      <div className="max-w-210 mb-12">
         <StoryblokStory story={storyBlokStory} />
       </div>
-      <AdvancedDirectoryPageComponent filterOptions={filterOptions} />
+      <AdvancedDirectoryPageComponent 
+        filterOptions={filterOptions} 
+        initialFilters={initialFilters}
+      />
     </>
   );
 }

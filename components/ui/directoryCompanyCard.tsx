@@ -22,7 +22,7 @@ export default function DirectoryCompanyCard(props: DirectoryCompanyCardProps) {
       className="flex flex-col justify-between items-center gap-4 mb-0 outline outline-qlack rounded-lg px-2.5 py-5 bg-white text-center hover:outline-[3px] hover:outline-qreen-dark hover:text-qreen-dark transition-all"
     >
       <div className="aspect-[19/8] overflow-hidden w- px-3 h-auto relative flex justify-center items-center">
-        { company.logo && (
+        { company.logo && company.logo.publicUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={company.logo.publicUrl}
