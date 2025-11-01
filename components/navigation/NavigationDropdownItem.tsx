@@ -24,7 +24,7 @@ export default function NavigationDropdownItem({
     // Mobile styling
     const indentClass = level > 0 ? `pl-${4 + (level * 4)}` : 'pl-4';
     const textSizeClass = level > 0 ? 'text-base' : 'text-lg';
-    const textColorClass = level > 0 ? 'text-qlack' : 'text-qlack';
+    const textColorClass = level > 0 ? 'text-qreen-dark' : 'text-qreen-dark';
     
     return (
       <li key={itemIndex} role="none">
@@ -97,9 +97,10 @@ export default function NavigationDropdownItem({
     // Desktop styling
     // const indentClass = level > 1 ? `pl-${2 + (level * 1)}` : '';
     const textSizeClass = level > 1 ? 'text-sm' : 'text-base';
-    const textColorClass = level > 0 ? 'text-qlack' : 'text-qlack/80';
-    const textWeightClass = level > 1 ? 'font-[400]' : 'font-[500]';
+    const textColorClass = level > 0 ? 'text-qreen-dark' : 'text-qreen-dark/80';
+    const textWeightClass = level > 1 ? 'font-normal' : 'font-medium';
     const textBorderClass = (level > 0 && hasNestedDropdown) ? 'border-b border-qlack/20 mb-2 pb-2' : '';
+    const menuBaseClass = '[&>li_ul]:mb-4';
     const menuBasisClass = hasDropdown3 ? 'basis-1/3' : hasDropdown2 ? 'basis-[calc(50%-(var(--spacing)*8))] min-w-0' : 'basis-full';
     
     return (
@@ -117,10 +118,10 @@ export default function NavigationDropdownItem({
                 }
               </div>
             )}
-            <div className="flex gap-16 mt-1">
+            <div className="flex gap-6 mt-1">
               {/* Primary dropdown menu */}
               {hasNestedDropdown && (
-                <ul className={`mb-2 ${menuBasisClass}`} role="menu" aria-label={`${item.name} submenu`}>
+                <ul className={`mb-2 ${menuBasisClass} ${menuBaseClass}`} role="menu" aria-label={`${item.name} submenu`}>
                   {item.dropdown_menu?.map((nestedItem, nestedIndex) => 
                     <NavigationDropdownItem 
                       key={nestedIndex}
@@ -135,7 +136,7 @@ export default function NavigationDropdownItem({
               
               {/* Secondary dropdown menu */}
               {hasDropdown2 && (
-                <ul className={`${menuBasisClass}`} role="menu" aria-label={`${item.name} submenu 2 `}>
+                <ul className={`${menuBasisClass} ${menuBaseClass}`} role="menu" aria-label={`${item.name} submenu 2 `}>
                   {item.dropdown_menu_2?.map((nestedItem, nestedIndex) => 
                     <NavigationDropdownItem 
                       key={`2-${nestedIndex}`}
@@ -150,7 +151,7 @@ export default function NavigationDropdownItem({
               
               {/* Tertiary dropdown menu */}
               {hasDropdown3 && (
-                <ul role="menu" aria-label={`${item.name} submenu 3 ${menuBasisClass}`}>
+                <ul className={`${menuBasisClass} ${menuBaseClass}`} role="menu" aria-label={`${item.name} submenu 3`}>
                   {item.dropdown_menu_3?.map((nestedItem, nestedIndex) => 
                     <NavigationDropdownItem 
                       key={`3-${nestedIndex}`}
@@ -167,7 +168,13 @@ export default function NavigationDropdownItem({
         ) : (
           <Link 
             href={normalizeStoryblokUrl(item.link?.cached_url)}
-            className={`block min-w-[14em] p-2 ${textWeightClass} ${textSizeClass} ${textColorClass} ${textBorderClass} hover:bg-qlack/5 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
+            className={`
+              ${textWeightClass} ${textSizeClass} ${textColorClass} ${textBorderClass} 
+              block min-w-[14em] px-2 py-1 
+              hover:bg-qellow 
+              rounded 
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+            `}
             role="menuitem"
           >
             {item.name}

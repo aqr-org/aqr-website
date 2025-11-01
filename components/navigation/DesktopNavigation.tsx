@@ -24,11 +24,11 @@ export default function DesktopNavigation({
   setExpandedSubmenus,
 }: DesktopNavigationProps) {
   return (
-    <ul className="hidden md:flex md:items-end md:justify-between font-medium" role="menubar">
+    <ul className="hidden md:flex md:items-end md:justify-between font-medium relative" role="menubar">
       {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => (
         <li 
           key={index} 
-          className="group relative" 
+          className="group" 
           role="none"
           onMouseEnter={() => toggleSubmenu(index)}
           onMouseLeave={() => setExpandedSubmenus(prev => {
@@ -50,7 +50,7 @@ export default function DesktopNavigation({
                 aria-expanded={expandedSubmenus.has(index)}
                 aria-haspopup="true"
                 aria-controls={`desktop-submenu-${index}`}
-                className={`group py-2 px-4 flex items-center gap-[4px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${expandedSubmenus.has(index) ? 'border-qlack' : ''}`}
+                className={`group py-2 px-4 flex items-center gap-[4px] rounded-lg focus:bg-qlack/10 focus:outline-none ${expandedSubmenus.has(index) ? 'border-qlack' : ''}`}
                 role="menuitem"
               >
                 <ChevronDown 
@@ -59,13 +59,13 @@ export default function DesktopNavigation({
                   }`} 
                   aria-hidden="true"
                 />
-                <span className="border-b border-transparent group-hover:border-qlack whitespace-nowrap">
+                <span className=" hover:text-qreen-dark whitespace-nowrap">
                   {link.name}
                 </span>
               </button>
               <ul
                 id={`desktop-submenu-${index}`}
-                className={`absolute top-full -left-4 min-w-52 h-auto flex-col p-8 rounded-lg bg-qaupe shadow-md border border-qlack/20 transition-all duration-200 ${
+                className={`absolute top-full -left-4 min-w-full h-auto flex-col gap-12 p-8 rounded-lg bg-qaupe shadow-md border border-qlack/20 transition-all duration-200 ${
                   expandedSubmenus.has(index) 
                     ? 'flex opacity-100 visible' 
                     : 'hidden opacity-0 invisible'
