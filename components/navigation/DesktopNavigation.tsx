@@ -59,7 +59,7 @@ export default function DesktopNavigation({
                   }`} 
                   aria-hidden="true"
                 />
-                <span className=" hover:text-qreen-dark whitespace-nowrap">
+                <span className=" hover:text-qreen-dark">
                   {link.name}
                 </span>
               </button>

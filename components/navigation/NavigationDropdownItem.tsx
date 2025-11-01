@@ -99,7 +99,7 @@ export default function NavigationDropdownItem({
     const textSizeClass = level > 1 ? 'text-sm' : 'text-base';
     const textColorClass = level > 0 ? 'text-qreen-dark' : 'text-qreen-dark/80';
     const textWeightClass = level > 1 ? 'font-normal' : 'font-medium';
-    const textBorderClass = (level > 0 && hasNestedDropdown) ? 'border-b border-qlack/20 mb-2 pb-2' : '';
+    const textBorderClass = (level > 0 && hasNestedDropdown) ? 'border-b border-dashed border-qlack/40 mb-2 pb-2' : '';
     const menuBaseClass = '[&>li_ul]:mb-4';
     const menuBasisClass = hasDropdown3 ? 'basis-1/3' : hasDropdown2 ? 'basis-[calc(50%-(var(--spacing)*8))] min-w-0' : 'basis-full';
     
@@ -108,7 +108,7 @@ export default function NavigationDropdownItem({
         {hasAnyDropdown ? (
           <div className="relative group/nested">
             {level !== 0 && (
-              <div className={`${textSizeClass} ${textWeightClass} ${textColorClass} ${textBorderClass} font-medium pb-2 cursor-default whitespace-nowrap`}>
+              <div className={`${textSizeClass} ${textWeightClass} text-qlack ${textBorderClass} font-medium pb-2 cursor-default`}>
                 {item.link?.cached_url ? <Link href={normalizeStoryblokUrl(item.link?.cached_url)} className="hover:text-qreen-dark">
                   {item.name}
                 </Link> :
