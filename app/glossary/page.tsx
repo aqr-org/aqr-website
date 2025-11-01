@@ -75,14 +75,14 @@ export default async function DirPage() {
 
   return (
     <>
-      <div className="mb-12 *:[p]:columns-2 max-w-[44rem]">
+      <div className="mb-12 *:[p]:columns-2 max-w-176">
         <StoryblokStory story={glossaryHomeStory.data.story} />
       </div>
       <Suspense fallback={<LoadingAnimation text="Loading glossary..." />}>
         <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden sticky top-0 py-4 -mt-4 bg-qaupe z-10">
           <AlphabetNav entries={groupedTerms} />
         </nav>
-        <div className="space-y-8 md:grid md:grid-cols-2 md:gap-5" >
+        <div className="md:grid md:grid-cols-2 md:gap-y-0 md:gap-x-40" >
           <div className="text-2xl border-b col-span-2 group-data-[liststyle=filters]:block hidden">
             Filter Results:
           </div>
@@ -100,14 +100,8 @@ export default async function DirPage() {
                 <React.Fragment key={letter}>
                   <h2 id={letter} className={`text-6xl col-span-2 group-data-[liststyle=filters]:hidden md:mb-4 ${index === 0 ? 'mt-0 md:mt-0' : 'md:mt-12'}`}>
                     {letter}
-                    <svg className="h-1 w-full mt-6" width="100%" height="100%">
-                      <rect 
-                        x="1" y="1" 
-                        width="100%" height="100%" 
-                        fill="none" 
-                        stroke="var(--color-qlack)" 
-                        strokeWidth="1" 
-                        strokeDasharray="4 4" />
+                    <svg className="h-1 w-full mt-6 mb-4" width="100%" height="100%">
+                      <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
                     </svg>
                   </h2>
                   {groupedTerms[letter].map((term: {
@@ -122,7 +116,7 @@ export default async function DirPage() {
                       <Link 
                         key={term.id} 
                         href={`/glossary/${finalSlug}`} 
-                        className="break-inside-avoid-column flex items-start gap-4 mb-0"
+                        className="break-inside-avoid-column flex items-start gap-4 mb-0 hover:text-qreen-dark transition-all duration-300"
                       >
                         <div>
                           <h3 className="text-[1.375rem]">{term.name}</h3>

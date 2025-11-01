@@ -50,7 +50,7 @@ export default function DesktopNavigation({
                 aria-expanded={expandedSubmenus.has(index)}
                 aria-haspopup="true"
                 aria-controls={`desktop-submenu-${index}`}
-                className={`group py-2 px-4 flex items-center gap-[4px] rounded-lg focus:bg-qlack/10 focus:outline-none ${expandedSubmenus.has(index) ? 'border-qlack' : ''}`}
+                className={`group py-2 px-4 flex items-center gap-[4px] rounded-lg focus:bg-qlack/10 focus:outline-none ${expandedSubmenus.has(index) ? 'text-qreen-dark' : ''}`}
                 role="menuitem"
               >
                 <ChevronDown 

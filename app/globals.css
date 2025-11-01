@@ -209,7 +209,7 @@ p a {
     }
   }
   & h3, & .h3size {
-    @apply block text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.07125rem];
+    @apply block text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.035rem];
   }
   & h4, & .h4size {
     @apply block text-[1.5rem] my-7.5 leading-tight tracking-[-0.02rem];
@@ -310,7 +310,7 @@ p a {
     @apply block text-2xl font-normal my-7.5 leading-none tracking-[-0.07125rem];
   }
   & h3, & .h3size {
-    @apply block text-xl font-normal my-7.5 leading-none tracking-[-0.07125rem];
+    @apply block text-xl font-normal my-7.5 leading-none tracking-[-0.035rem];
   }
   & h4, & .h4size {
     @apply block text-[1.5rem] font-normal my-7.5 leading-none tracking-[-0.07125rem];

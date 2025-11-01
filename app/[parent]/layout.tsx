@@ -24,6 +24,12 @@ export default async function SlugPageLayout({
   if (parent === 'careers' || parent === 'resources' || parent === 'podcasts' ) {
     sidebarPath = 'site-settings/resources-sidebar';
   }
+  else if (parent === 'about') {
+    sidebarPath = 'site-settings/about-sidebar';
+  }
+  else if (parent === 'awards') {
+    sidebarPath = 'site-settings/awards-sidebar';
+  }
   else if (parent === 'calendar') {
     sidebarPath = 'site-settings/whatson-sidebar';
   }

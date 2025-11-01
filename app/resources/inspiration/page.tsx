@@ -85,11 +85,13 @@ export default async function DirPage() {
 
   return (
     <>
-      <div className="mb-12 *:[p]:columns-2 max-w-[44rem]">
-        <StoryblokStory story={inspirationHomeStory.data.story} />
-      </div>
+      { inspirationHomeStory.data.story && inspirationHomeStory.data.story.content.body && inspirationHomeStory.data.story.content.body.length > 0 && (
+        <div className="mb-12 *:[p]:columns-2 max-w-176">
+          <StoryblokStory story={inspirationHomeStory.data.story} />
+        </div>
+      )}
       <Suspense fallback={<LoadingAnimation text="Getting Inspiration..." />}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-40 gap-y-6">
           {articlesWithAuthors.map((article, index) => {
             const isFirst = index === 0;
             const finalSlug = article.slug;
@@ -105,71 +107,76 @@ export default async function DirPage() {
                 href={`/resources/inspiration/${finalSlug}`}
                 className={`group ${isFirst ? 'md:col-span-2' : ''}`}
               >
-                <article className="h-full border-b border-gray-200 pb-6 group-hover:opacity-70 transition-opacity">
+                <article className="h-full pb-6">
                   {isFirst ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        {date && (
-                          <p className="text-sm text-gray-600 mb-2">{date}</p>
+                    <div className="space-y-8 group/main-article">
+                      <div className="flex justify-center items-center gap-3">
+                        {article.authorImage && (
+                          <div className="relative w-15 h-15 rounded-full overflow-hidden shrink-0">
+                            <Image
+                              src={article.authorImage}
+                              alt={authorName}
+                              fill
+                              sizes="60px"
+                              className="object-cover"
+                            />
+                          </div>
                         )}
-                        <h3 className="text-2xl md:text-3xl font-[500] mb-2">
+                        {authorLink ? (
+                          <p className="text-base uppercase tracking-[0.04rem]">{authorName}</p>
+                        ) : (
+                          <p className="text-base uppercase tracking-[0.04rem]">{authorName}</p>
+                        )}
+                      </div>
+                      <div className="text-center space-y-8">
+                        <h2 className="text-4xl md:text-6xl tracking-[-0.1125rem] group-hover/main-article:text-qreen transition-all duration-300">
                           {articleTitle}
-                        </h3>
+                        </h2>
                         {articleIntro && (
-                          <p className="text-lg text-qreen-dark line-clamp-3">
+                          <p className="text-lg line-clamp-3">
                             {articleIntro}
                           </p>
                         )}
+                        {/* {date && (
+                          <p className="text-sm text-qlack">{date}</p>
+                        )} */}
                       </div>
-                      <div className="flex items-center gap-3">
-                        {article.authorImage && (
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                            <Image
-                              src={article.authorImage}
-                              alt={authorName}
-                              fill
-                              sizes="40px"
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                        {authorLink ? (
-                          <p className="text-sm text-gray-600">{authorName}</p>
-                        ) : (
-                          <p className="text-sm text-gray-600">{authorName}</p>
-                        )}
-                      </div>
+                      
                     </div>
                   ) : (
-                    <div>
-                      {date && (
-                        <p className="text-sm text-gray-600 mb-2">{date}</p>
-                      )}
-                      <h3 className="text-2xl font-[500] mb-2">
-                        {articleTitle}
-                      </h3>
-                      {articleIntro && (
-                        <p className="text-lg text-qreen-dark line-clamp-3 mb-4">
-                          {articleIntro}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3">
+                    <div className="group/article flex flex-col gap-6 h-full justify-between pb-2 border-b border-dashed border-qlack/20 hover:border-qreen-dark/20 transition-all duration-300">
+                      <div className="flex flex-col items-start gap-6">
+                        <div className="relative w-15 h-15 rounded-full overflow-hidden shrink-0">
                         {article.authorImage && (
-                          <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                            <Image
-                              src={article.authorImage}
-                              alt={authorName}
-                              fill
-                              sizes="40px"
-                              className="object-cover"
-                            />
-                          </div>
+                          <Image
+                            src={article.authorImage}
+                            alt={authorName}
+                            fill
+                            sizes="60px"
+                            className="object-cover"
+                          />
                         )}
-                        {authorLink ? (
-                          <p className="text-sm text-gray-600">{authorName}</p>
-                        ) : (
-                          <p className="text-sm text-gray-600">{authorName}</p>
+                        </div>
+                        {/* {date && (
+                          <p className="text-sm text-gray-600 mb-2">{date}</p>
+                        )} */}
+                        <h3 className="text-3xl group-hover/article:text-qreen-dark transition-all duration-300">
+                          {articleTitle}
+                        </h3>
+                      </div>
+                      <div className="flex flex-col items-end gap-6">
+                        {articleIntro && (
+                          <p className="text-base pl-8 line-clamp-3 mb-4 group-hover/article:text-qreen-dark transition-all duration-300">
+                            {articleIntro}
+                          </p>
                         )}
+                        <div>
+                          {authorLink ? (
+                            <p className="text-sm text-right group-hover/article:text-qreen-dark transition-all duration-300">{authorName}</p>
+                          ) : (
+                            <p className="text-sm text-right group-hover/article:text-qreen-dark transition-all duration-300">&nbsp;</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

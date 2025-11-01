@@ -30,9 +30,9 @@ export default function Article({ blok }: ArticleProps) {
   
   return (
     <div {...storyblokEditable(blok)} className='flex gap-8'>
-      <div className='max-w-[41rem] basis-3/4'>
+      <div className='max-w-164 basis-3/4'>
         <div className='flex justify-between items-center mb-4'>
-          <p className='text-sm'>
+          <p className='text-sm text-qreen-dark'>
             {blok.date && new Date(blok.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
           {/* {blok.authorLink && blok.authorName && (
@@ -41,7 +41,7 @@ export default function Article({ blok }: ArticleProps) {
             </Link>
           )} */}
         </div>
-        <h1 className='text-4xl tracking-tight font-[500] mb-8'>
+        <h1 className='text-6xl tracking-[-0.07125rem] mb-8'>
           {blok.title}
         </h1>
         <p className='text-2xl tracking-tight my-4 text-qreen-dark'>
@@ -51,28 +51,29 @@ export default function Article({ blok }: ArticleProps) {
           {render(blok.content)}
         </div>
       </div>
-      <div className='basis-1/4 grow-1'>
+      <div className='basis-1/4 grow'>
         
         {blok.authorName && blok.authorLink && (
-          <div className="prose prose_article"> 
+          <div className='space-y-5'>  
             {blok.authorImage && (
-            <figure className='relative aspect-[0.75] w-full rounded'>
+            <figure className='relative aspect-square w-30 h-30 rounded-full overflow-hidden'>
               <Image 
                 src={blok.authorImage || ''} 
                 alt={blok.authorName} 
                 fill
                 sizes='(max-width: 768px) 70vw, (max-width: 1440px) 24vw, 240px'
-                className='aspect-[0.75] w-full'
+                className='w-full h-full object-cover object-top'
               />
             </figure >
             )}
-            
-            <p>Author: <Link href={blok.authorLink}>{blok.authorName}</Link></p>
+            <h3 className='text-2xl tracking-[-0.035rem]'><Link href={blok.authorLink}>{blok.authorName}</Link></h3>
             <p>
               {blok.authorBiognotes && blok.authorBiognotes.length > 200 
                 ? `${blok.authorBiognotes.substring(0, 200)}... ` 
                 : blok.authorBiognotes}
-              {blok.authorBiognotes && blok.authorBiognotes.length > 200 && (
+            </p>
+            <p>
+              {blok.authorBiognotes && blok.authorBiognotes.length > 200 && blok.authorLink && blok.authorLink.length > 0 && (
                 <Link href={blok.authorLink}>
                   read more
                 </Link>
