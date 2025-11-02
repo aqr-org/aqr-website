@@ -14,6 +14,7 @@ import Flex from '@/components/storyblok/Flex';
 import FeatureCards from '@/components/storyblok/FeatureCards';
 import HomepageJoinUsBlock from '@/components/storyblok/HomepageJoinUsBlock';
 import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
+import BoardMembers from '@/components/storyblok/BoardMembers';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -32,6 +33,7 @@ const components = {
   feature_cards: FeatureCards,
   homepage_joinus_block: HomepageJoinUsBlock,
   latest_season_calendar: LatestSeasonCalendar,
+  board_members: BoardMembers,
 };
 
 export default components ;

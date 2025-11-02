@@ -21,7 +21,7 @@ export default async function SuperadminPage() {
   }
 
   return (
-    <main className="flex-1 w-full max-w-[60rem] mx-auto flex flex-col gap-12">
+    <main className="flex-1 w-full max-w-240 mx-auto flex flex-col gap-12">
       <Background
         css={`
           body { background-image: linear-gradient(to bottom, rgba(0,0,0,0) 10vw, rgba(0,50,0,0.2) 100vw); }
