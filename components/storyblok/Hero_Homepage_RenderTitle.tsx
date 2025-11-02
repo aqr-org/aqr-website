@@ -64,7 +64,7 @@ export default function Hero_Homepage_RenderTitle( richtext: HeroHomepageRenderT
         id="connect-graphic" 
         className="
           pointer-none
-          absolute top-0 -translate-y-2/3 left-0 w-full 
+          absolute top-full -translate-y-2/3 left-0 w-full 
           data-[showing='false']:opacity-0 
           data-[showing='false']:scale-x-110 
           transition-all duration-300
@@ -88,9 +88,9 @@ export default function Hero_Homepage_RenderTitle( richtext: HeroHomepageRenderT
         id="develop-graphic" 
         className="
           pointer-none
-          absolute top-0 -translate-y-[66%] left-0 w-full 
+          absolute top-0 -translate-y-[25%] left-0 w-full 
           data-[showing='false']:opacity-0 
-          data-[showing='false']:-translate-y-[55%] 
+          data-[showing='false']:translate-y-[30%] 
           data-[showing='false']:-translate-x-[2%] 
           transition-all duration-300
         "

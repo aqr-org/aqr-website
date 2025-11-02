@@ -12,6 +12,8 @@ import Audio from '@/components/storyblok/Audio';
 import Image from '@/components/storyblok/Image';
 import Flex from '@/components/storyblok/Flex';
 import FeatureCards from '@/components/storyblok/FeatureCards';
+import HomepageJoinUsBlock from '@/components/storyblok/HomepageJoinUsBlock';
+import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -28,6 +30,8 @@ const components = {
   image: Image,
   flex: Flex,
   feature_cards: FeatureCards,
+  homepage_joinus_block: HomepageJoinUsBlock,
+  latest_season_calendar: LatestSeasonCalendar,
 };
 
 export default components ;

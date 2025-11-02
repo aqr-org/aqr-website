@@ -218,23 +218,12 @@ export default async function FeatureCards({
       ? await getPhoneticSpelling(glossaryTerm.content.name || glossaryTerm.name || "")
       : null;
     
-    console.log("[FeatureCards] Fetched data internally:", {
-      hasNextEvent: !!nextEvent,
-      hasGlossaryTerm: !!glossaryTerm,
-      hasLatestWebinar: !!latestWebinar,
-    });
   } else {
     // Use provided props (optimized path from page level)
     nextEvent = nextEventProp ?? null;
     glossaryTerm = glossaryTermProp ?? null;
     latestWebinar = latestWebinarProp ?? null;
     phoneticGlossaryTerm = phoneticGlossaryTermProp ?? null;
-    
-    console.log("[FeatureCards] Using provided props:", {
-      hasNextEvent: !!nextEvent,
-      hasGlossaryTerm: !!glossaryTerm,
-      hasLatestWebinar: !!latestWebinar,
-    });
   }
 
   // Use phonetic spelling
@@ -243,9 +232,7 @@ export default async function FeatureCards({
   const cards = [];
 
   // Card 1: Latest Event (only if future event exists)
-  console.log("[FeatureCards] Checking nextEvent:", nextEvent, "Type check:", typeof nextEvent, "Null check:", nextEvent === null, "Undefined check:", nextEvent === undefined);
   if (nextEvent) {
-    console.log("[FeatureCards] Adding event card");
     cards.push({
       title: "Latest event",
       linkText: "Learn more",
@@ -274,9 +261,7 @@ export default async function FeatureCards({
   }
 
   // Card 2: Glossary Term of the Day
-  console.log("[FeatureCards] Checking glossaryTerm:", glossaryTerm, "Null check:", glossaryTerm === null, "Undefined check:", glossaryTerm === undefined);
   if (glossaryTerm) {
-    console.log("[FeatureCards] Adding glossary card");
     // Extract plain text from description if it's a rich text object
     const getDescriptionText = (description: unknown): string => {
       if (!description) return "";
@@ -370,9 +355,7 @@ export default async function FeatureCards({
   });
 
   // Card 4: Latest Webinar
-  console.log("[FeatureCards] Checking latestWebinar:", latestWebinar, "Null check:", latestWebinar === null, "Undefined check:", latestWebinar === undefined);
   if (latestWebinar) {
-    console.log("[FeatureCards] Adding webinar card");
     cards.push({
       title: "Webinar",
       linkText: "View Webinar",
@@ -419,12 +402,13 @@ export default async function FeatureCards({
   }
 
   // Don't render if no cards (shouldn't happen as membership is always there, but just in case)
-  console.log("[FeatureCards] Total cards created:", cards.length);
-  console.log("[FeatureCards] Card titles:", cards.map(c => c.title));
   if (cards.length === 0) return null;
 
   return (
-    <div {...storyblokEditable(blok)} className="w-full my-18">
+    <div {...storyblokEditable(blok)} className="w-full max-w-maxw mx-auto px-container overflow-hidden my-18" style={{
+      maskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
+      WebkitMaskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
+    }}>
       <h2 className="uppercase tracking-[0.03em] my-8">{blok.title}</h2>
       <FeatureCardsClient cards={cards} />
     </div>

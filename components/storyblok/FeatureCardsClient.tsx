@@ -219,8 +219,7 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
           paddingLeft: "var(--spacing-container)",
           scrollPaddingLeft: "var(--spacing-container)",
           // Mask with gradient fade on left and right edges
-          maskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
+         
         }}
       >
         {cards.map((card, index) => {

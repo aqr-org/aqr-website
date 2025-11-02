@@ -46,22 +46,22 @@ export default function EventPreview({ event }: EventPreviewProps) {
   return (
     <Link 
       href={`/events/${event.slug}`}
-      className="flex gap-6 hover:opacity-80 transition-opacity"
+      className="flex flex-col md:flex-row gap-6 hover:opacity-80 transition-opacity"
     >
       {/* Left Column - Image */}
       {content.image && content.image.filename ? (
-        <div className="w-40 h-40 flex-shrink-0">
+        <div className="w-40 h-40 shrink-0">
           <Picture
             src={content.image.filename}
             alt={content.image.alt || name}
             sizes="128px"
             aspectRatioDesktop="1"
             aspectRatioMobile="1"
-            className="w-full h-full object-cover rounded"
+            className="w-full h-full object-cover"
           />
         </div>
       ) : (
-        <div className="w-32 h-32 bg-gray-200 flex-shrink-0 rounded"></div>
+        <div className="w-40 h-40 bg-gray-200 shrink-0"></div>
       )}
       
       {/* Right Column - Info */}
@@ -91,7 +91,7 @@ export default function EventPreview({ event }: EventPreviewProps) {
         
         {/* Third row - Description */}
         {description && (
-          <p className="text-base">{description}</p>
+          <p className="text-base line-clamp-3">{description}</p>
         )}
       </div>
     </Link>

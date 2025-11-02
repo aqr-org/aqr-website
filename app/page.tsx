@@ -1,9 +1,11 @@
 import { getStoryblokApi } from '@/lib/storyblok';
-import { StoryblokStory } from '@storyblok/react/rsc';
+import { StoryblokStory, StoryblokServerComponent } from '@storyblok/react/rsc';
 import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import FeatureCards from '@/components/storyblok/FeatureCards';
+import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
 import { getPhoneticSpelling } from '@/lib/phonetic';
+import React from 'react';
 
 interface Event {
   id: string;
@@ -11,9 +13,16 @@ interface Event {
   name: string;
   content: {
     title: string;
-    description?: string;
+    description: string;
     date?: string;
     hide_time?: boolean;
+    admission?: string;
+    image?: {
+      filename: string;
+      alt: string;
+    };
+    organised_by?: string;
+    type?: string;
   };
 }
 
@@ -58,10 +67,7 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
       excluding_slugs: "events/",
     });
 
-    console.log("[fetchNextUpcomingEvent] Total events fetched:", events?.length);
-    
     if (!events || events.length === 0) {
-      console.log("[fetchNextUpcomingEvent] No events found");
       return null;
     }
 
@@ -72,15 +78,11 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
     const futureEvents = events
       .filter((event: Event) => {
         if (!event.content?.date) {
-          console.log("[fetchNextUpcomingEvent] Event missing date:", event.slug);
           return false;
         }
         const eventDate = new Date(event.content.date);
         eventDate.setHours(0, 0, 0, 0);
         const isFuture = eventDate >= today;
-        if (!isFuture) {
-          console.log("[fetchNextUpcomingEvent] Event in past:", event.slug, event.content.date);
-        }
         return isFuture;
       })
       .sort((a: Event, b: Event) => {
@@ -89,11 +91,7 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
         return dateA - dateB;
       });
 
-    console.log("[fetchNextUpcomingEvent] Future events found:", futureEvents.length);
     const result = futureEvents.length > 0 ? (futureEvents[0] as Event) : null;
-    if (result) {
-      console.log("[fetchNextUpcomingEvent] Selected event:", result.slug, result.content?.title);
-    }
     return result;
   } catch (error) {
     console.error("Error fetching events:", error);
@@ -195,16 +193,32 @@ async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null>
   }
 }
 
+async function fetchAllEvents(isDraftMode: boolean): Promise<Event[]> {
+  const storyblokApi = getStoryblokApi();
+  try {
+    return await storyblokApi.getAll(`cdn/stories`, { 
+      version: isDraftMode ? 'draft' : 'published',
+      content_type: 'event',
+      starts_with: 'events/',
+      excluding_slugs: 'events/'
+    });
+  } catch (error) {
+    console.error("Error fetching all events:", error);
+    return [];
+  }
+}
+
 export default async function Home() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
   
   // Fetch all data in parallel
-  const [storyblok, nextEvent, glossaryTerm, latestWebinar] = await Promise.all([
+  const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents] = await Promise.all([
     fetchStoryblokData(),
     fetchNextUpcomingEvent(isDraftMode),
     fetchGlossaryTermOfTheDay(isDraftMode),
     fetchLatestWebinar(isDraftMode),
+    fetchAllEvents(isDraftMode),
   ]);
   
   const storyBlokStory = storyblok.data.story;
@@ -219,22 +233,43 @@ export default async function Home() {
     hasNextEvent: !!nextEvent,
     hasGlossaryTerm: !!glossaryTerm,
     hasLatestWebinar: !!latestWebinar,
+    hasAllEvents: allEvents.length > 0,
     nextEventSlug: nextEvent?.slug,
     glossaryTermSlug: glossaryTerm?.slug,
     webinarSlug: latestWebinar?.slug,
   });
+
+  // Helper function to render Storyblok body with optimization for latest_season_calendar
+  const renderStoryblokBody = () => {
+    if (!storyBlokStory?.content?.body || storyBlokStory.content.body.length === 0) {
+      return null;
+    }
+
+    return (
+      <>
+        {storyBlokStory.content.body.map((blok: any) => {
+          // Intercept latest_season_calendar component to pass events prop
+          if (blok.component === 'latest_season_calendar') {
+            return (
+              <LatestSeasonCalendar 
+                key={blok._uid} 
+                blok={blok} 
+                events={allEvents}
+              />
+            );
+          }
+          // Render other components normally
+          return <StoryblokServerComponent blok={blok} key={blok._uid} />;
+        })}
+      </>
+    );
+  };
   
   return (
-    <main className="flex-1 w-full max-w-maxw mx-auto px-container flex flex-col gap-20 min-h-screen">
-      <Background 
-        css={`
-          #bg_svg_circle_1 { transform: translate(0%, 0%); }
-        `} 
-      />
+    <main className="flex-1 flex flex-col gap-20 min-h-screen">
+      <Background />
       
-      {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
-        <StoryblokStory story={storyBlokStory} />
-      }
+      {renderStoryblokBody()}
 
       {/* Feature Cards - check if blok exists in story content */}
       {storyBlokStory?.content?.feature_cards && (
