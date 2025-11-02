@@ -11,6 +11,7 @@ import Youtube from '@/components/storyblok/Youtube';
 import Audio from '@/components/storyblok/Audio';
 import Image from '@/components/storyblok/Image';
 import Flex from '@/components/storyblok/Flex';
+import FeatureCards from '@/components/storyblok/FeatureCards';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -26,6 +27,7 @@ const components = {
   audio: Audio,
   image: Image,
   flex: Flex,
+  feature_cards: FeatureCards,
 };
 
 export default components ;

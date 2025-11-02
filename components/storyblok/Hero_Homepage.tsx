@@ -162,7 +162,7 @@ return (
     </div>
     <Hero_Homepage_RenderTitle richtext={blok.headline} />
     {blok.intro && 
-      <div className='relative mt-10 md:ml-[10%] max-w-[36rem]'>
+      <div className='relative mt-10 md:ml-[10%] max-w-xl'>
         <p className="text-2xl tracking-tight leading-[120%] animate-appear-text delay-100">
           {blok.intro}
         </p>

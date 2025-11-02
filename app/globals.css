@@ -13,7 +13,8 @@
   --spacing-container: 5rem;
   
   --breakpoint-md: 768px;
-  --breakpoint-xl: 1440px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1400px;
   --container-maxw: var(--breakpoint-xl);
 
   @keyframes appearText {
@@ -59,6 +60,9 @@
   
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
+  --animate-animated-circle-slow: animatedCircle 30s linear infinite forwards;
+  --animate-animated-circle-backwards: animatedCircle 15s linear infinite reverse;
+  --animate-animated-circle-backwards-slow: animatedCircle 30s linear infinite reverse;
   --animate-scale-pulse: scalePulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-scale-pulse-slow: scalePulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;

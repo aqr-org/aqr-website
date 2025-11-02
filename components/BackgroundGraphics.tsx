@@ -11,7 +11,7 @@ export default function BackgroundGraphics() {
         absolute inset-0 -z-10 
         bg-graphics 
         flex items-start md:items-center justify-center 
-        w-full max-w-maxw h-[100%] mx-auto
+        w-full max-w-maxw h-full mx-auto
         overflow-visible
         
       `}

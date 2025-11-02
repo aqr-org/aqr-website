@@ -48,7 +48,7 @@ export default function Hero_Homepage_RenderTitle( richtext: HeroHomepageRenderT
 
   return (
     <>
-      <div id="hero-title" className="text-5xl md:text-[4.3125rem] tracking-[-0.03em] leading-none md:max-w-[15em] font-[400] animate-appear-text **:no-underline!">
+      <div id="hero-title" className="text-5xl md:text-[4.3125rem] tracking-[-0.03em] leading-none md:max-w-[15em] animate-appear-text **:no-underline!">
         {render(richtext.richtext)}
         <div className='inline float-right -translate-y-[25%] w-[15vw]'>
           <svg className='relative hidden md:block w-full h-auto' width="242" height="176" viewBox="0 0 242 176" fill="none" xmlns="http://www.w3.org/2000/svg">
