@@ -1,25 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { storyblokEditable } from "@storyblok/react/rsc";
-import { getStoryblokApi } from "@/lib/storyblok";
 import FeatureCardsClient from "./FeatureCardsClient";
 import React from "react";
 import Image from "next/image";
-import { getPhoneticSpelling } from '@/lib/phonetic';
 import MemberCardBG from "@/components/svgs/MemberCardBG";
+import { getStoryblokApi } from "@/lib/storyblok";
+import { getPhoneticSpelling } from "@/lib/phonetic";
 
-
-interface FeatureCardsProps {
-  blok: any;
-}
-
-// Helper to check draft mode without importing next/headers at module level
+// Helper function to get draft mode dynamically (avoids build errors when component is imported in client contexts)
 async function getDraftMode(): Promise<boolean> {
   try {
-    const { cookies } = await import("next/headers");
-    const cookieStore = await cookies();
-    return !!cookieStore.get("__prerender_bypass");
-  } catch {
-    // If cookies() is not available (e.g., in client context), default to published
+    const { draftMode } = await import("next/headers");
+    const { isEnabled } = await draftMode();
+    return isEnabled;
+  } catch (error) {
+    // If we can't get draft mode (e.g., in client context), default to published
+    console.warn("Could not get draft mode, defaulting to published:", error);
     return false;
   }
 }
@@ -66,8 +62,32 @@ interface Webinar {
   created_at?: string;
 }
 
-async function fetchNextUpcomingEvent(): Promise<Event | null> {
-  const isDraftMode = await getDraftMode();
+interface FeatureCardsProps {
+  blok: any;
+  // Props are optional - if not provided, component will fetch its own data
+  nextEvent?: Event | null;
+  glossaryTerm?: GlossaryTerm | null;
+  latestWebinar?: Webinar | null;
+  phoneticGlossaryTerm?: string | null;
+}
+
+function formatEventDate(dateString?: string, hideTime?: boolean): string {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const dateStr = date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  if (hideTime) return dateStr;
+  const timeStr = date.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${dateStr} | ${timeStr}h`;
+}
+
+async function fetchNextUpcomingEventInternal(isDraftMode: boolean): Promise<Event | null> {
   const storyblokApi = getStoryblokApi();
 
   try {
@@ -83,7 +103,6 @@ async function fetchNextUpcomingEvent(): Promise<Event | null> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Filter and sort future events
     const futureEvents = events
       .filter((event: Event) => {
         if (!event.content?.date) return false;
@@ -104,8 +123,7 @@ async function fetchNextUpcomingEvent(): Promise<Event | null> {
   }
 }
 
-async function fetchGlossaryTermOfTheDay(): Promise<GlossaryTerm | null> {
-  const isDraftMode = await getDraftMode();
+async function fetchGlossaryTermOfTheDayInternal(isDraftMode: boolean): Promise<GlossaryTerm | null> {
   const storyblokApi = getStoryblokApi();
 
   try {
@@ -117,7 +135,6 @@ async function fetchGlossaryTermOfTheDay(): Promise<GlossaryTerm | null> {
 
     if (!glossaryTerms || glossaryTerms.length === 0) return null;
 
-    // Get date-based seed for consistent daily selection
     const today = new Date();
     const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
     let seed = 0;
@@ -125,31 +142,15 @@ async function fetchGlossaryTermOfTheDay(): Promise<GlossaryTerm | null> {
       seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
     }
 
-    // Use seed to select a term consistently for the day
     const selectedIndex = Math.abs(seed) % glossaryTerms.length;
     return glossaryTerms[selectedIndex] as GlossaryTerm;
   } catch (error) {
     console.error("Error fetching glossary terms:", error);
-    // Fallback to random selection
-    try {
-      const glossaryTerms = await storyblokApi.getAll("cdn/stories", {
-        version: isDraftMode ? "draft" : "published",
-        starts_with: "glossary/",
-        excluding_slugs: "glossary/",
-      });
-      if (glossaryTerms && glossaryTerms.length > 0) {
-        const randomIndex = Math.floor(Math.random() * glossaryTerms.length);
-        return glossaryTerms[randomIndex] as GlossaryTerm;
-      }
-    } catch (fallbackError) {
-      console.error("Error in fallback glossary fetch:", fallbackError);
-    }
     return null;
   }
 }
 
-async function fetchLatestWebinar(): Promise<Webinar | null> {
-  const isDraftMode = await getDraftMode();
+async function fetchLatestWebinarInternal(isDraftMode: boolean): Promise<Webinar | null> {
   const storyblokApi = getStoryblokApi();
 
   try {
@@ -162,7 +163,6 @@ async function fetchLatestWebinar(): Promise<Webinar | null> {
 
     if (!webinars || webinars.length === 0) return null;
 
-    // Sort by date descending (most recent first)
     const sortedWebinars = webinars.sort((a: Webinar, b: Webinar) => {
       const dateA = a.content?.date
         ? new Date(a.content.date).getTime()
@@ -184,37 +184,68 @@ async function fetchLatestWebinar(): Promise<Webinar | null> {
   }
 }
 
-function formatEventDate(dateString?: string, hideTime?: boolean): string {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const dateStr = date.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  if (hideTime) return dateStr;
-  const timeStr = date.toLocaleTimeString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${dateStr} | ${timeStr}h`;
-}
+export default async function FeatureCards({ 
+  blok, 
+  nextEvent: nextEventProp, 
+  glossaryTerm: glossaryTermProp, 
+  latestWebinar: latestWebinarProp,
+  phoneticGlossaryTerm: phoneticGlossaryTermProp 
+}: FeatureCardsProps) {
+  // If props are not provided (rendered through Storyblok), fetch data ourselves
+  const needsDataFetch = nextEventProp === undefined;
+  
+  let nextEvent: Event | null;
+  let glossaryTerm: GlossaryTerm | null;
+  let latestWebinar: Webinar | null;
+  let phoneticGlossaryTerm: string | null;
 
-export default async function FeatureCards({ blok }: FeatureCardsProps) {
-  // Fetch all data in parallel
-  const [nextEvent, glossaryTerm, latestWebinar] = await Promise.all([
-    fetchNextUpcomingEvent(),
-    fetchGlossaryTermOfTheDay(),
-    fetchLatestWebinar(),
-  ]);
+  if (needsDataFetch) {
+    // Fetch data internally - need to get draft mode first
+    const isDraftMode = await getDraftMode();
+    
+    const [fetchedEvent, fetchedGlossary, fetchedWebinar] = await Promise.all([
+      fetchNextUpcomingEventInternal(isDraftMode),
+      fetchGlossaryTermOfTheDayInternal(isDraftMode),
+      fetchLatestWebinarInternal(isDraftMode),
+    ]);
 
-  const phoneticGlossaryTerm = await getPhoneticSpelling(glossaryTerm?.content.name || glossaryTerm?.name || "");
+    nextEvent = fetchedEvent;
+    glossaryTerm = fetchedGlossary;
+    latestWebinar = fetchedWebinar;
+    
+    // Fetch phonetic spelling if glossary term exists
+    phoneticGlossaryTerm = glossaryTerm
+      ? await getPhoneticSpelling(glossaryTerm.content.name || glossaryTerm.name || "")
+      : null;
+    
+    console.log("[FeatureCards] Fetched data internally:", {
+      hasNextEvent: !!nextEvent,
+      hasGlossaryTerm: !!glossaryTerm,
+      hasLatestWebinar: !!latestWebinar,
+    });
+  } else {
+    // Use provided props (optimized path from page level)
+    nextEvent = nextEventProp ?? null;
+    glossaryTerm = glossaryTermProp ?? null;
+    latestWebinar = latestWebinarProp ?? null;
+    phoneticGlossaryTerm = phoneticGlossaryTermProp ?? null;
+    
+    console.log("[FeatureCards] Using provided props:", {
+      hasNextEvent: !!nextEvent,
+      hasGlossaryTerm: !!glossaryTerm,
+      hasLatestWebinar: !!latestWebinar,
+    });
+  }
 
+  // Use phonetic spelling
+  const phoneticTerm = phoneticGlossaryTerm || "";
 
   const cards = [];
 
   // Card 1: Latest Event (only if future event exists)
+  console.log("[FeatureCards] Checking nextEvent:", nextEvent, "Type check:", typeof nextEvent, "Null check:", nextEvent === null, "Undefined check:", nextEvent === undefined);
   if (nextEvent) {
+    console.log("[FeatureCards] Adding event card");
     cards.push({
       title: "Latest event",
       linkText: "Learn more",
@@ -243,7 +274,9 @@ export default async function FeatureCards({ blok }: FeatureCardsProps) {
   }
 
   // Card 2: Glossary Term of the Day
+  console.log("[FeatureCards] Checking glossaryTerm:", glossaryTerm, "Null check:", glossaryTerm === null, "Undefined check:", glossaryTerm === undefined);
   if (glossaryTerm) {
+    console.log("[FeatureCards] Adding glossary card");
     // Extract plain text from description if it's a rich text object
     const getDescriptionText = (description: unknown): string => {
       if (!description) return "";
@@ -289,7 +322,7 @@ export default async function FeatureCards({ blok }: FeatureCardsProps) {
           <h4 className="text-[2.375rem] tracking-[-0.07125rem] text-qaupe group-hover:text-qlack transition-all duration-300">
             {glossaryTerm.content.name || glossaryTerm.name}
           </h4>
-          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-[1.375rem] mb-8">{phoneticGlossaryTerm}</p>
+          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-[1.375rem] mb-8">{phoneticTerm}</p>
           <p className="text-qaupe leading-[1.31] px-4 group-hover:text-qlack transition-all duration-300 line-clamp-4 @[280px]:line-clamp-8">
             {getDescriptionText(glossaryTerm.content.description)}
           </p>
@@ -337,7 +370,9 @@ export default async function FeatureCards({ blok }: FeatureCardsProps) {
   });
 
   // Card 4: Latest Webinar
+  console.log("[FeatureCards] Checking latestWebinar:", latestWebinar, "Null check:", latestWebinar === null, "Undefined check:", latestWebinar === undefined);
   if (latestWebinar) {
+    console.log("[FeatureCards] Adding webinar card");
     cards.push({
       title: "Webinar",
       linkText: "View Webinar",
@@ -384,6 +419,8 @@ export default async function FeatureCards({ blok }: FeatureCardsProps) {
   }
 
   // Don't render if no cards (shouldn't happen as membership is always there, but just in case)
+  console.log("[FeatureCards] Total cards created:", cards.length);
+  console.log("[FeatureCards] Card titles:", cards.map(c => c.title));
   if (cards.length === 0) return null;
 
   return (

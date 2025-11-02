@@ -66,12 +66,20 @@ export function BackgroundColorProvider({
 
 export function useBackgroundColor() {
   const setter = useContext(BackgroundColorContext);
+  // During SSR, the context might not be available, return a no-op function
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
   if (!setter) throw new Error('useBackgroundColor must be used inside BackgroundColorProvider');
   return setter;
 }
 
 export function useBackgroundCss() {
   const setter = useContext(BackgroundCssContext);
+  // During SSR, the context might not be available, return a no-op function
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
   if (!setter) throw new Error('useBackgroundCss must be used inside BackgroundColorProvider');
   return setter;
 }
