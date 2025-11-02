@@ -3,8 +3,9 @@ import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
 import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
+import { checkStoryblokPageAuth, isStoryblokEditor } from '@/lib/auth-utils';
 
 interface PageProps {
   params: Promise<{ parent: string }> | { parent: string };
@@ -52,20 +53,32 @@ export async function generateMetadata(
 }
 
 export default async function SlugPage({ params }: PageProps) {
+  const resolvedParams = params instanceof Promise ? await params : params;
+  let storyBlokStory;
+  
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
     const storyblok = await fetchStoryblokData(resolvedParams);
-    const storyBlokStory = storyblok.data.story;
-
-    return (
-      <div className='max-w-210 has-[aside]:max-w-full animate-fade-in'>
-        {storyBlokStory && <StoryblokStory story={storyBlokStory} />}
-      </div>
-    );
+    storyBlokStory = storyblok.data.story;
   } catch (error) {
     console.error("Error in SlugPage:", error);
     notFound();
   }
+
+  // Check if we're in Storyblok editor (skip auth check if so)
+  const inStoryblokEditor = await isStoryblokEditor();
+  
+  // Check if page is protected and user is authenticated
+  // This must be outside try-catch to allow Next.js to handle redirect properly
+  const authStatus = await checkStoryblokPageAuth(storyBlokStory!, inStoryblokEditor);
+  if (authStatus.isProtected && !authStatus.isAuthenticated) {
+    redirect("/auth/login");
+  }
+
+  return (
+    <div className='max-w-210 has-[aside]:max-w-full animate-fade-in'>
+      {storyBlokStory && <StoryblokStory story={storyBlokStory} />}
+    </div>
+  );
 }
 
 async function fetchStoryblokData(params: { parent: string }) {
