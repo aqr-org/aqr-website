@@ -123,7 +123,7 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
       Object.entries(newFilters).forEach(([key, values]) => {
         if (values.length > 0) {
           // Join multiple values with comma
-          params.set(key, values.map(v => encodeURIComponent(v)).join(','));
+          params.set(key, values.map((v: string) => encodeURIComponent(v)).join(','));
         }
       });
       
