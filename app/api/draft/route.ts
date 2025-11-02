@@ -1,6 +1,7 @@
 // route handler enabling draft mode
 import { draftMode, cookies } from 'next/headers';
 import { getStoryblokApi, storyblokInit, apiPlugin } from '@storyblok/react'
+import { redirect } from 'next/navigation';
 
 storyblokInit({
   accessToken: process.env.STORYBLOK_PREVIEW_TOKEN || process.env.STORYBLOK_ACCESS_TOKEN,
@@ -55,47 +56,29 @@ export async function GET(request: Request) {
       path: '/',
   });
  
-  // Redirect to the path from the fetched post.
-  // // If the slug resolves to 'home' redirect to '/', otherwise redirect to '/{slug}'.
-  // if (searchslug === 'home') {
-  //   redirect(`/`)
-  // } else {
-  //   redirect(`/${searchslug}`)
-  // }
+  // Redirect to the same page the user came from
+  // Check for explicit redirect parameter first, then Referer header, then fall back to slug-based redirect
+  const redirectPath = searchParams.get('redirect') || 
+    request.headers.get('referer')?.replace(new URL(request.url).origin, '') ||
+    (searchslug === 'home' ? '/' : `/${searchslug}`)
+  
+  // Normalize redirect path - ensure it's a valid path
+  const normalizedPath = redirectPath.startsWith('http') 
+    ? new URL(redirectPath).pathname 
+    : redirectPath.split('?')[0] // Remove query string if present
+  
+  redirect(normalizedPath || '/')
 
   const responseHtml = `<!doctype html>
   <html>
     <head>
     <meta charset="utf-8">
-    <title>Draft Mode Disabled</title></head>
+    <title>Draft Mode Enabled</title></head>
     <body style="padding:3em; position:relative; font-family:system-ui,-apple-system,sans-serif;">
-      <h1>Draft mode disabled</h1>
-      <p>Draft mode disabled! In Storyblok editor, just refresh this preview page to view published mode.</p>
-      <style>
-        .refresh-indicator {
-          position:fixed; 
-          font-style:italic;
-          color: green;
-          top: 0.5em; 
-          right: 1.5em; 
-          font-size:2em; 
-        }
-          @keyframes bounce {
-            0%, 100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-10px);
-            }
-          }
-          .arrow {
-            display: inline-block;
-            position: relative;
-            animation: bounce 1s infinite;
-            font-weight:bold;
-          }
-      </style>
-      <div class="refresh-indicator">Refresh page <span class="arrow">↑</span></div>
+      <h1>Draft mode enabled</h1>
+      <p>Draft mode enabled! In Storyblok editor, just refresh this preview page to view published mode.</p>
+      
+      <div class="refresh-indicator">Refresh page now.</div>
 
     </body>
   </html>`;

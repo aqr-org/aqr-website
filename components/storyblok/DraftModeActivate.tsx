@@ -17,7 +17,7 @@ export default function DraftModeAlert() {
       {isStoryblokEditor && (
         <a 
           href={`/api/draft?secret=${process.env.NEXT_PUBLIC_STORYBLOK_ACCESS_TOKEN}`}
-          className="bg-black text-white fixed bottom-0 left-0 z-40 p-2 text-center text-sm"
+          className="bg-qreen-dark text-white fixed bottom-0 right-0 z-40 p-2 text-center text-sm"
         >
           Activate Draft Mode
         </a>

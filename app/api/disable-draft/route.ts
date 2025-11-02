@@ -1,6 +1,7 @@
 import { draftMode, cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export async function GET() {
+export async function GET(request: Request) {
   
   (await draftMode()).disable();
   
@@ -16,6 +17,20 @@ export async function GET() {
     sameSite: "none",
   });
 
+  // Redirect to the same page the user came from
+  // Check for explicit redirect parameter first, then Referer header, then fall back to home
+  const { searchParams } = new URL(request.url);
+  const redirectPath = searchParams.get('redirect') || 
+    request.headers.get('referer')?.replace(new URL(request.url).origin, '') ||
+    '/';
+  
+  // Normalize redirect path - ensure it's a valid path
+  const normalizedPath = redirectPath.startsWith('http') 
+    ? new URL(redirectPath).pathname 
+    : redirectPath.split('?')[0]; // Remove query string if present
+  
+  redirect(normalizedPath || '/');
+
   const responseHtml = `<!doctype html>
   <html>
     <head>
@@ -24,31 +39,7 @@ export async function GET() {
     <body style="padding:3em; position:relative; font-family:system-ui,-apple-system,sans-serif;">
       <h1>Draft mode disabled</h1>
       <p>Draft mode disabled! In Storyblok editor, just refresh this preview page to view published mode.</p>
-      <style>
-        .refresh-indicator {
-          position:fixed; 
-          top: 0.5em; 
-          right: 1.5em; 
-          font-size:2em; 
-          font-style:italic;
-          color: green;
-        }
-          @keyframes bounce {
-            0%, 100% {
-              transform: translateY(0);
-            }
-            50% {
-              transform: translateY(-10px);
-            }
-          }
-          .arrow {
-            display: inline-block;
-            position: relative;
-            animation: bounce 1s infinite;
-            font-weight:bold;
-          }
-      </style>
-      <div class="refresh-indicator">Refresh page <span class="arrow">↑</span></div>
+      <div class="refresh-indicator">Refresh the page now</span></div>
 
     </body>
   </html>`;

@@ -160,10 +160,7 @@ async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null>
       excluding_slugs: "events/thehub/",
     });
 
-    console.log("[fetchLatestWebinar] Total webinars fetched:", webinars?.length);
-
     if (!webinars || webinars.length === 0) {
-      console.log("[fetchLatestWebinar] No webinars found");
       return null;
     }
 
@@ -183,9 +180,6 @@ async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null>
     });
 
     const result = sortedWebinars.length > 0 ? (sortedWebinars[0] as Webinar) : null;
-    if (result) {
-      console.log("[fetchLatestWebinar] Selected webinar:", result.slug, result.content?.title || result.name);
-    }
     return result;
   } catch (error) {
     console.error("Error fetching webinars:", error);
