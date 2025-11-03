@@ -20,7 +20,11 @@ export default async function GlossaryPageLayout({ children }: { children: React
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
           <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
-            <Suspense fallback={<LoadingAnimation text="Loading glossary..." />}>
+            <Suspense fallback={
+              <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
+                <LoadingAnimation text="Loading glossary..." />
+              </div>
+            }>
                {children}
             </Suspense>
           </div>

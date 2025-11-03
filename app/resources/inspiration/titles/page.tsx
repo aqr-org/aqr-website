@@ -84,7 +84,11 @@ export default async function DirPage() {
       <div className="mb-12 *:[p]:columns-2 max-w-[44rem]">
         <StoryblokStory story={inspirationHomeStory.data.story} />
       </div>
-      <Suspense fallback={<LoadingAnimation text="Getting Inspiration..." />}>
+      <Suspense fallback={
+        <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
+          <LoadingAnimation text="Getting Inspiration..." />
+        </div>
+      }>
         <div className="space-y-8" >
           <div className="text-2xl border-b col-span-2 group-data-[liststyle=filters]:block hidden">
             Filter Results:

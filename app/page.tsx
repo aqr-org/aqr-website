@@ -236,7 +236,10 @@ export default async function Home() {
         latestWebinar={latestWebinar}
         phoneticGlossaryTerm={phoneticGlossaryTerm}
       >
+        {/* Reserve space to prevent footer layout shift during initial render */}
+        <div className="w-full min-h-[1000px] md:min-h-[1200px]">
           <StoryblokStory story={storyBlokStory} />
+        </div>
       </HomepageDataProvider>
     </main>
   );

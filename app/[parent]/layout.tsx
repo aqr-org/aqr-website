@@ -50,7 +50,11 @@ export default async function SlugPageLayout({
           <RenderSidebar sidebar_items={sidebar_items} />
         </aside>
         <div className="group md:basis-3/4">
-          <Suspense fallback={<LoadingAnimation text="Loading..." />}>
+          <Suspense fallback={
+            <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
+              <LoadingAnimation text="Loading..." />
+            </div>
+          }>
             {children}
           </Suspense>
         </div>

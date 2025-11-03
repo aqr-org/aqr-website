@@ -126,15 +126,7 @@ export default async function RootLayout({
           <DraftModeWrapper />
           <BackgroundColorProvider>
             <BackgroundGraphics />
-            <Suspense fallback={
-              <div className="w-full min-h-[calc(100vh)] flex items-center justify-center">
-                <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <LoadingAnimation text="Loading layout..." />
-                </div>
-              </div>
-            }>
-              {children}
-            </Suspense>
+            {children}
           </BackgroundColorProvider>
           {/* Footer streams in progressively */}
           <Suspense fallback={<div className="min-h-[200px]" />}>

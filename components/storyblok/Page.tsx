@@ -3,21 +3,31 @@ import { storyblokEditable, StoryblokServerComponent } from '@storyblok/react/rs
 import { Suspense } from 'react';
 import { cn } from '@/lib/utils';
 
-// Fallback for Hero_Homepage that matches its approximate height to prevent layout shift
-function HeroHomepageFallback() {
-  return (
-    <div className="w-full max-w-maxw mx-auto px-container box-border pt-32">
-      {/* Matches approximate height: pt-32 (128px) + SVG (~500-600px) + title (~150px) + optional content (~100px) */}
-      <div className="min-h-[600px] md:min-h-[800px]" aria-hidden="true" />
-    </div>
-  );
+// Fallback for async components that fetch data
+function AsyncComponentFallback({ component }: { component: string }) {
+  // Reserve space for components that might suspend
+  if (component === 'feature_cards') {
+    return (
+      <div className="w-full min-h-[600px] md:min-h-[700px]" aria-hidden="true" />
+    );
+  }
+  if (component === 'latest_season_calendar') {
+    return (
+      <div className="w-full min-h-[400px] md:min-h-[500px]" aria-hidden="true" />
+    );
+  }
+  // Default fallback
+  return <div className="w-full min-h-[200px]" aria-hidden="true" />;
 }
 
 function StoryblokComponentWrapper({ blok }: { blok: any }) {
-  // Wrap hero_homepage in Suspense to prevent layout shift
-  if (blok.component === 'hero_homepage') {
+  // Only wrap async components that might actually suspend in Suspense
+  // Components like feature_cards and latest_season_calendar can fetch data if props aren't provided
+  const asyncComponents = ['feature_cards', 'latest_season_calendar'];
+  
+  if (asyncComponents.includes(blok.component)) {
     return (
-      <Suspense fallback={<HeroHomepageFallback />}>
+      <Suspense fallback={<AsyncComponentFallback component={blok.component} />}>
         <StoryblokServerComponent blok={blok} />
       </Suspense>
     );

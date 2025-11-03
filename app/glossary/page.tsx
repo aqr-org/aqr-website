@@ -78,7 +78,11 @@ export default async function DirPage() {
       <div className="mb-12 *:[p]:columns-2 max-w-176">
         <StoryblokStory story={glossaryHomeStory.data.story} />
       </div>
-      <Suspense fallback={<LoadingAnimation text="Loading glossary..." />}>
+      <Suspense fallback={
+        <div className="w-full min-h-[400px] flex items-center justify-center">
+          <LoadingAnimation text="Loading glossary..." />
+        </div>
+      }>
         <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden sticky top-0 py-4 -mt-4 bg-qaupe z-10">
           <AlphabetNav entries={groupedTerms} />
         </nav>

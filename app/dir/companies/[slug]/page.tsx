@@ -1,8 +1,6 @@
 import Company from '@/components/Company'
 import { Metadata, ResolvingMetadata } from 'next'
 import { getCompanyData } from '@/lib/company-data'
-import { Suspense } from 'react'
-import { LoadingAnimation } from '@/components/ui/loading-animation'
 import { generatePageMetadata } from '@/lib/metadata';
 
 type Props = {
@@ -57,14 +55,12 @@ export default async function CompaniesPage({
     // If no company found, return early
     if (!companyData) {
       return (
-        <Suspense fallback={<LoadingAnimation text="Loading company..." />}>
-          <div>
-            <h1>Company Detail Page for slug: {slug}</h1>
-            <div className="mb-4">
-              <p className="text-red-500">Company not found</p>
-            </div>
+        <div className="animate-fade-in">
+          <h1>Company Detail Page for slug: {slug}</h1>
+          <div className="mb-4">
+            <p className="text-red-500">Company not found</p>
           </div>
-        </Suspense>
+        </div>
       )
     }
 

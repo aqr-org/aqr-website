@@ -89,7 +89,7 @@ html {
   scroll-padding-top: 120px;
   @apply text-qlack bg-qaupe;
   /* font-size: clamp(10px, 1.11vw, 160px); */
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth; */
 }
 @media (max-width: 768px) {
   /* html {

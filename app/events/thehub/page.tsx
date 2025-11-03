@@ -84,7 +84,11 @@ export default async function TheHubPage() {
       <div className="mb-12 *:[p]:columns-2 max-w-[44rem]">
         <StoryblokStory story={TheHubHomeStory.data.story} />
       </div>
-      <Suspense fallback={<LoadingAnimation text="Getting Webinars..." />}>
+      <Suspense fallback={
+        <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
+          <LoadingAnimation text="Getting Webinars..." />
+        </div>
+      }>
         <div className="space-y-8" >
           <div className="text-2xl border-b col-span-2 group-data-[liststyle=filters]:block hidden">
             Filter Results:

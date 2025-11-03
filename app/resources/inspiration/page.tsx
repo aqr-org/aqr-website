@@ -90,7 +90,11 @@ export default async function DirPage() {
           <StoryblokStory story={inspirationHomeStory.data.story} />
         </div>
       )}
-      <Suspense fallback={<LoadingAnimation text="Getting Inspiration..." />}>
+      <Suspense fallback={
+        <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
+          <LoadingAnimation text="Getting Inspiration..." />
+        </div>
+      }>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-40 gap-y-6">
           {articlesWithAuthors.map((article, index) => {
             const isFirst = index === 0;
