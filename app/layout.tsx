@@ -120,7 +120,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
           {/* Navigation streams in progressively */}
-          <Suspense fallback={<div className="min-h-[80px]" />}>
+          <Suspense fallback={<div className="min-h-[120px]" />}>
             <NavigationAsync />
           </Suspense>
           <DraftModeWrapper />
