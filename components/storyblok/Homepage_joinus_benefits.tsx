@@ -46,12 +46,12 @@ export default function Homepage_joinus_benefits({ blok }: Homepage_joinus_benef
           <h3 className="text-2xl md:text-4xl tracking-[-0.0375em] leading-tight">Benefits include:</h3>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-16 mt-16'>
             {blok.benefits?.map((benefitBlok: any) => (
-              <div className='flex items-start gap-4'>
+              <div className='flex items-start gap-4' key={benefitBlok._uid}>
                 <svg width="37" height="37" viewBox="0 0 37 37" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="18.5" cy="18.5" r="18.5" fill="#7BBD40"/>
                 <path d="M8.70806 17.6851L16.2295 25.8934L27.4824 11.8071" stroke="#FCFAF0" stroke-width="2"/>
                 </svg>
-                <StoryblokServerComponent blok={benefitBlok} key={benefitBlok._uid} />
+                <StoryblokServerComponent blok={benefitBlok} />
               </div>
             ))}
           </div>
