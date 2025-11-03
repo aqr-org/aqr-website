@@ -304,10 +304,10 @@ export default async function FeatureCards({
       buttonHoverColor: "group-hover:text-qlack",
       content: (
         <div className="w-full @container">
-          <h4 className="text-[2.375rem] tracking-[-0.07125rem] text-qaupe group-hover:text-qlack transition-all duration-300">
+          <h4 className="text-[2.375rem] tracking-[-0.07125rem] leading-none text-qaupe group-hover:text-qlack transition-all duration-300">
             {glossaryTerm.content.name || glossaryTerm.name}
           </h4>
-          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-[1.375rem] mb-8">{phoneticTerm}</p>
+          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-[1.375rem] leading-[1.2] mt-2 mb-8">{phoneticTerm}</p>
           <p className="text-qaupe leading-[1.31] px-4 group-hover:text-qlack transition-all duration-300 line-clamp-4 @[280px]:line-clamp-8">
             {getDescriptionText(glossaryTerm.content.description)}
           </p>

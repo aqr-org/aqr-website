@@ -1,6 +1,7 @@
 import { storyblokEditable } from '@storyblok/react/rsc';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import React from 'react';
 
 interface HomepageJoinUsBlockProps {
   blok: {
@@ -34,7 +35,8 @@ export default function HomepageJoinUsBlock({ blok }: HomepageJoinUsBlockProps) 
   );
 }
 
-function Rectangle({ delay }: { delay: string }) {
+// Memoized Rectangle component to prevent unnecessary re-renders
+const Rectangle = React.memo(({ delay }: { delay: string }) => {
   const gradientStyle = {
     background: 'linear-gradient(to top, #F5F5F5 0%, #EAA0B1 100%)',
     width: '56px',
@@ -55,7 +57,9 @@ function Rectangle({ delay }: { delay: string }) {
       <div style={{ ...gradientStyle, ...getAnimationStyle(0.6), position: 'absolute', top: '489.854px', left: '0' }} />
     </div>
   );
-}
+});
+
+Rectangle.displayName = 'Rectangle';
 
 function RectanglesAligned() {
   return (

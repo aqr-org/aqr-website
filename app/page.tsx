@@ -5,7 +5,7 @@ import { draftMode } from 'next/headers';
 import FeatureCards from '@/components/storyblok/FeatureCards';
 import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
 import { getPhoneticSpelling } from '@/lib/phonetic';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 interface Event {
   id: string;
@@ -60,13 +60,18 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
   const storyblokApi = getStoryblokApi();
 
   try {
-    const events = await storyblokApi.getAll("cdn/stories", {
+    // Fetch a limited set of events sorted by date (much more efficient than getAll)
+    // Fetch 20 most recent events sorted ascending by date to find the next upcoming one
+    const response = await storyblokApi.get("cdn/stories", {
       version: isDraftMode ? "draft" : "published",
       content_type: "event",
       starts_with: "events/",
       excluding_slugs: "events/",
+      sort_by: "content.date:asc",
+      per_page: 20, // Limit to 20 most recent events instead of fetching all
     });
 
+    const events = response.data?.stories || [];
     if (!events || events.length === 0) {
       return null;
     }
@@ -74,25 +79,17 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Filter and sort future events
-    const futureEvents = events
-      .filter((event: Event) => {
-        if (!event.content?.date) {
-          return false;
-        }
-        const eventDate = new Date(event.content.date);
-        eventDate.setHours(0, 0, 0, 0);
-        const isFuture = eventDate >= today;
-        return isFuture;
-      })
-      .sort((a: Event, b: Event) => {
-        const dateA = a.content?.date ? new Date(a.content.date).getTime() : Infinity;
-        const dateB = b.content?.date ? new Date(b.content.date).getTime() : Infinity;
-        return dateA - dateB;
-      });
+    // Filter for future events (Storyblok sorts, but we still need to filter by today)
+    const futureEvent = events.find((event: Event) => {
+      if (!event.content?.date) {
+        return false;
+      }
+      const eventDate = new Date(event.content.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= today;
+    });
 
-    const result = futureEvents.length > 0 ? (futureEvents[0] as Event) : null;
-    return result;
+    return futureEvent ? (futureEvent as Event) : null;
   } catch (error) {
     console.error("Error fetching events:", error);
     return null;
@@ -103,25 +100,30 @@ async function fetchGlossaryTermOfTheDay(isDraftMode: boolean): Promise<Glossary
   const storyblokApi = getStoryblokApi();
 
   try {
-    const glossaryTerms = await storyblokApi.getAll("cdn/stories", {
+    // Calculate date-based seed first to determine which page/index we need
+    const today = new Date();
+    const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    let seed = 0;
+    for (let i = 0; i < dateString.length; i++) {
+      seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+    }
+
+    // Fetch first page of glossary terms (limited to 100 per page for efficiency)
+    // If we have more than 100 terms, we'd need pagination, but this covers most cases
+    const response = await storyblokApi.get("cdn/stories", {
       version: isDraftMode ? "draft" : "published",
       starts_with: "glossary/",
       excluding_slugs: "glossary/",
+      per_page: 100, // Limit to 100 terms instead of fetching all
     });
+
+    const glossaryTerms = response.data?.stories || [];
 
     console.log("[fetchGlossaryTermOfTheDay] Total glossary terms fetched:", glossaryTerms?.length);
 
     if (!glossaryTerms || glossaryTerms.length === 0) {
       console.log("[fetchGlossaryTermOfTheDay] No glossary terms found");
       return null;
-    }
-
-    // Get date-based seed for consistent daily selection
-    const today = new Date();
-    const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-    let seed = 0;
-    for (let i = 0; i < dateString.length; i++) {
-      seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
     }
 
     // Use seed to select a term consistently for the day
@@ -131,13 +133,15 @@ async function fetchGlossaryTermOfTheDay(isDraftMode: boolean): Promise<Glossary
     return result;
   } catch (error) {
     console.error("Error fetching glossary terms:", error);
-    // Fallback to random selection
+    // Fallback to random selection with limited fetch
     try {
-      const glossaryTerms = await storyblokApi.getAll("cdn/stories", {
+      const response = await storyblokApi.get("cdn/stories", {
         version: isDraftMode ? "draft" : "published",
         starts_with: "glossary/",
         excluding_slugs: "glossary/",
+        per_page: 100,
       });
+      const glossaryTerms = response.data?.stories || [];
       if (glossaryTerms && glossaryTerms.length > 0) {
         const randomIndex = Math.floor(Math.random() * glossaryTerms.length);
         return glossaryTerms[randomIndex] as GlossaryTerm;
@@ -153,34 +157,23 @@ async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null>
   const storyblokApi = getStoryblokApi();
 
   try {
-    const webinars = await storyblokApi.getAll("cdn/stories", {
+    // Fetch only the most recent webinar using sorting and pagination
+    const response = await storyblokApi.get("cdn/stories", {
       version: isDraftMode ? "draft" : "published",
       content_type: "webinar",
       starts_with: "events/thehub/",
       excluding_slugs: "events/thehub/",
+      sort_by: "created_at:desc", // Sort by creation date descending
+      per_page: 1, // Only fetch the first (most recent) webinar
     });
 
+    const webinars = response.data?.stories || [];
     if (!webinars || webinars.length === 0) {
       return null;
     }
 
-    // Sort by date descending (most recent first)
-    const sortedWebinars = webinars.sort((a: Webinar, b: Webinar) => {
-      const dateA = a.content?.date
-        ? new Date(a.content.date).getTime()
-        : a.published_at
-          ? new Date(a.published_at).getTime()
-          : 0;
-      const dateB = b.content?.date
-        ? new Date(b.content.date).getTime()
-        : b.published_at
-          ? new Date(b.published_at).getTime()
-          : 0;
-      return dateB - dateA;
-    });
-
-    const result = sortedWebinars.length > 0 ? (sortedWebinars[0] as Webinar) : null;
-    return result;
+    // Return the first (and only) webinar from the sorted result
+    return webinars[0] as Webinar;
   } catch (error) {
     console.error("Error fetching webinars:", error);
     return null;
@@ -202,70 +195,181 @@ async function fetchAllEvents(isDraftMode: boolean): Promise<Event[]> {
   }
 }
 
+// Helper function to fetch phonetic spelling in parallel with other data
+async function fetchPhoneticForGlossary(glossaryTermPromise: Promise<GlossaryTerm | null>): Promise<string | null> {
+  const glossaryTerm = await glossaryTermPromise;
+  if (!glossaryTerm) {
+    return null;
+  }
+  const termName = glossaryTerm.content?.name || glossaryTerm.name || "";
+  if (!termName) {
+    return null;
+  }
+  return getPhoneticSpelling(termName);
+}
+
 export default async function Home() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
   
-  // Fetch all data in parallel
-  const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents] = await Promise.all([
+  // Create promises for glossary term and phonetic spelling
+  const glossaryTermPromise = fetchGlossaryTermOfTheDay(isDraftMode);
+  const phoneticPromise = fetchPhoneticForGlossary(glossaryTermPromise);
+  
+  // Fetch all data in parallel (including phonetic spelling)
+  const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents, phoneticGlossaryTerm] = await Promise.all([
     fetchStoryblokData(),
     fetchNextUpcomingEvent(isDraftMode),
-    fetchGlossaryTermOfTheDay(isDraftMode),
+    glossaryTermPromise,
     fetchLatestWebinar(isDraftMode),
     fetchAllEvents(isDraftMode),
+    phoneticPromise,
   ]);
   
   const storyBlokStory = storyblok.data.story;
   
-  // Get phonetic spelling for glossary term (optimized - only if glossary term exists)
-  const phoneticGlossaryTerm = glossaryTerm
-    ? await getPhoneticSpelling(glossaryTerm.content.name || glossaryTerm.name || "")
-    : null;
-  
+  // Extract hero from body if it exists (typically first blok)
+  const heroBlok = storyBlokStory?.content?.body?.find((blok: any) => blok.component === 'hero_homepage');
+  const bodyBloks = storyBlokStory?.content?.body?.filter((blok: any) => blok.component !== 'hero_homepage' && blok.component !== 'latest_season_calendar') || [];
 
-  // Helper function to render Storyblok body with optimization for latest_season_calendar
-  const renderStoryblokBody = () => {
-    if (!storyBlokStory?.content?.body || storyBlokStory.content.body.length === 0) {
-      return null;
-    }
-
-    return (
-      <>
-        {storyBlokStory.content.body.map((blok: any) => {
-          // Intercept latest_season_calendar component to pass events prop
-          if (blok.component === 'latest_season_calendar') {
-            return (
-              <LatestSeasonCalendar 
-                key={blok._uid} 
-                blok={blok} 
-                events={allEvents}
-              />
-            );
-          }
-          // Render other components normally
-          return <StoryblokServerComponent blok={blok} key={blok._uid} />;
-        })}
-      </>
-    );
-  };
-  
   return (
     <main className="flex-1 flex flex-col gap-20 min-h-screen">
       <Background />
       
-      {renderStoryblokBody()}
+      {/* Hero section - renders immediately with storyblok data already fetched */}
+      {heroBlok && (
+        <StoryblokServerComponent blok={heroBlok} />
+      )}
 
-      {/* Feature Cards - check if blok exists in story content */}
+      {/* Storyblok body content - separate Suspense boundary for progressive rendering */}
+      {bodyBloks.length > 0 && (
+        <Suspense fallback={<StoryblokBodySkeleton />}>
+          <StoryblokBodyContent bloks={bodyBloks} />
+        </Suspense>
+      )}
+
+      {/* Feature Cards - separate Suspense boundary */}
       {storyBlokStory?.content?.feature_cards && (
-        <FeatureCards 
-          blok={storyBlokStory.content.feature_cards}
-          nextEvent={nextEvent}
-          glossaryTerm={glossaryTerm}
-          latestWebinar={latestWebinar}
-          phoneticGlossaryTerm={phoneticGlossaryTerm}
-        />
+        <Suspense fallback={<FeatureCardsSkeleton />}>
+          <FeatureCardsAsync
+            blok={storyBlokStory.content.feature_cards}
+            nextEvent={nextEvent}
+            glossaryTerm={glossaryTerm}
+            latestWebinar={latestWebinar}
+            phoneticGlossaryTerm={phoneticGlossaryTerm}
+          />
+        </Suspense>
+      )}
+
+      {/* Latest Season Calendar - separate Suspense boundary (loads last, needs allEvents) */}
+      {storyBlokStory?.content?.body?.find((blok: any) => blok.component === 'latest_season_calendar') && (
+        <Suspense fallback={<EventsCalendarSkeleton />}>
+          <LatestSeasonCalendarAsync 
+            blok={storyBlokStory.content.body.find((blok: any) => blok.component === 'latest_season_calendar')}
+            allEvents={allEvents}
+          />
+        </Suspense>
       )}
     </main>
+  );
+}
+
+// Separate async component for Storyblok body content
+async function StoryblokBodyContent({ bloks }: { bloks: any[] }) {
+  return (
+    <>
+      {bloks.map((blok: any) => (
+        <StoryblokServerComponent blok={blok} key={blok._uid} />
+      ))}
+    </>
+  );
+}
+
+// Separate async component for FeatureCards (allows progressive loading)
+async function FeatureCardsAsync({ 
+  blok, 
+  nextEvent, 
+  glossaryTerm, 
+  latestWebinar,
+  phoneticGlossaryTerm 
+}: { 
+  blok: any; 
+  nextEvent: Event | null; 
+  glossaryTerm: GlossaryTerm | null; 
+  latestWebinar: Webinar | null;
+  phoneticGlossaryTerm: string | null;
+}) {
+  return (
+    <FeatureCards 
+      blok={blok}
+      nextEvent={nextEvent}
+      glossaryTerm={glossaryTerm}
+      latestWebinar={latestWebinar}
+      phoneticGlossaryTerm={phoneticGlossaryTerm}
+    />
+  );
+}
+
+// Separate async component for LatestSeasonCalendar (allows progressive loading)
+async function LatestSeasonCalendarAsync({ 
+  blok, 
+  allEvents 
+}: { 
+  blok: any; 
+  allEvents: Event[];
+}) {
+  return (
+    <LatestSeasonCalendar 
+      blok={blok}
+      events={allEvents}
+    />
+  );
+}
+
+// Loading skeleton components for progressive rendering
+function StoryblokBodySkeleton() {
+  return (
+    <div className="min-h-[200px] w-full max-w-maxw mx-auto px-container animate-pulse">
+      <div className="space-y-4">
+        <div className="h-8 bg-gray-200 rounded w-3/4" />
+        <div className="h-4 bg-gray-200 rounded w-full" />
+        <div className="h-4 bg-gray-200 rounded w-5/6" />
+      </div>
+    </div>
+  );
+}
+
+function FeatureCardsSkeleton() {
+  return (
+    <div className="w-full max-w-maxw mx-auto px-container my-18 animate-pulse">
+      <div className="h-8 bg-gray-200 rounded w-48 mb-8" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-[400px] bg-gray-200 rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EventsCalendarSkeleton() {
+  return (
+    <div className="relative space-y-12 bg-qlack text-qaupe min-h-[600px] animate-pulse">
+      <div className="w-full max-w-maxw mx-auto px-container py-36">
+        <div className="md:flex md:gap-12">
+          <div className="h-8 bg-gray-700 rounded w-32 mb-6" />
+          <div className="space-y-6 flex-1">
+            <div className="h-16 bg-gray-700 rounded w-3/4 mb-18" />
+            {[1, 2, 3].map((i) => (
+              <div key={i}>
+                <div className="h-24 bg-gray-700 rounded mb-4" />
+                {i < 3 && <div className="border-b border-dashed border-gray-600 my-8" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

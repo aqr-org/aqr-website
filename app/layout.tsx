@@ -51,23 +51,18 @@ const mapNavigationItem = (item: NavigationLinkData): NavigationLinkData => ({
   )
 });
 
-async function fetchLayoutData(isDraftMode: boolean) {
-  const storyblokApi = getStoryblokApi();
-
+// Async component for Navigation that fetches its own data
+async function NavigationAsync() {
   try {
-    // Fetch navigation and footer data in parallel
-    const [navigationResponse, footerResponse] = await Promise.all([
-      storyblokApi.get('cdn/stories', { 
-        version: isDraftMode ? 'draft' : 'published',
-        starts_with: 'site-settings/main-navigation',
-        resolve_links: 'url'
-      }),
-      storyblokApi.get('cdn/stories', {
-        version: isDraftMode ? 'draft' : 'published',
-        starts_with: 'site-settings/footer',
-        resolve_links: 'url'
-      })
-    ]);
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const storyblokApi = getStoryblokApi();
+    
+    const navigationResponse = await storyblokApi.get('cdn/stories', { 
+      version: isDraftMode ? 'draft' : 'published',
+      starts_with: 'site-settings/main-navigation',
+      resolve_links: 'url'
+    });
 
     const navigationData = {
       links: [] as NavigationLinkData[]
@@ -77,22 +72,40 @@ async function fetchLayoutData(isDraftMode: boolean) {
       navigationData.links = navigationResponse.data.stories[0].content.nav_items.map(mapNavigationItem);
     }
 
-    const footerData = footerResponse.data?.stories[0]?.content || null;
-
-    return { navigationData, footerData };
+    return <Navigation links={navigationData.links} />;
   } catch (error: any) {
     // Silently handle prerendering errors to avoid build failures
     if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
-      return {
-        navigationData: { links: [] },
-        footerData: null
-      };
+      return <Navigation links={[]} />;
     }
-    console.error('Error fetching layout data from Storyblok:', error);
-    return {
-      navigationData: { links: [] },
-      footerData: null
-    };
+    console.error('Error fetching navigation data from Storyblok:', error);
+    return <Navigation links={[]} />;
+  }
+}
+
+// Async component for Footer that fetches its own data
+async function FooterAsync() {
+  try {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const storyblokApi = getStoryblokApi();
+    
+    const footerResponse = await storyblokApi.get('cdn/stories', {
+      version: isDraftMode ? 'draft' : 'published',
+      starts_with: 'site-settings/footer',
+      resolve_links: 'url'
+    });
+
+    const footerData = footerResponse.data?.stories[0]?.content || null;
+
+    return <Footer footerData={footerData} />;
+  } catch (error: any) {
+    // Silently handle prerendering errors to avoid build failures
+    if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
+      return <Footer footerData={null} />;
+    }
+    console.error('Error fetching footer data from Storyblok:', error);
+    return <Footer footerData={null} />;
   }
 }
 
@@ -101,35 +114,41 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
-  
-  // Fetch navigation and footer data together
-  const { navigationData, footerData } = await fetchLayoutData(isDraftMode);
-
+  // No longer blocking on navigation/footer data - layout renders immediately
   return (
     <StoryblokProvider>
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-          <Suspense fallback={<div>Loading navigation...</div>}>
-            <Navigation links={navigationData.links} />
+          {/* Navigation streams in progressively */}
+          <Suspense fallback={<div className="min-h-[80px]" />}>
+            <NavigationAsync />
           </Suspense>
-          {isDraftMode && (
-            <DraftModeAlert />
-          )}
-          {!isDraftMode && 
-            <DraftModeActivate />
-          }
+          <DraftModeWrapper />
           <BackgroundColorProvider>
             <BackgroundGraphics />
             <Suspense fallback={<LoadingAnimation text="Loading ..." />}>
               {children}
             </Suspense>
           </BackgroundColorProvider>
-          <Footer footerData={footerData} />
+          {/* Footer streams in progressively */}
+          <Suspense fallback={<div className="min-h-[200px]" />}>
+            <FooterAsync />
+          </Suspense>
       </body>
     </html>
     </StoryblokProvider>
+  );
+}
+
+// Separate async component for draft mode indicators (non-blocking)
+async function DraftModeWrapper() {
+  const { isEnabled } = await draftMode();
+  const isDraftMode = isEnabled;
+  
+  return (
+    <>
+      {isDraftMode && <DraftModeAlert />}
+      {!isDraftMode && <DraftModeActivate />}
+    </>
   );
 }
