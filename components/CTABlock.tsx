@@ -1,11 +1,57 @@
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 
 export function CTABlock() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            setShouldLoadVideo(true);
+            // Disconnect after first intersection to avoid unnecessary re-observations
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        // Start loading when component is 200px away from viewport
+        rootMargin: "200px",
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <div className="bg-qreen text-qaupe relative my-16 md:my-25">
-      <video src="/AQRCTAVideoOpt.mp4" playsInline autoPlay muted loop className="w-full h-full object-cover absolute top-0 left-0 opacity-10" />
+    <div ref={containerRef} className="bg-qreen text-qaupe relative my-16 md:my-25">
+      {shouldLoadVideo && (
+        <video
+          src="/AQRCTAVideoOpt.mp4"
+          playsInline
+          autoPlay
+          muted
+          loop
+          preload="none"
+          className={`w-full h-full object-cover absolute top-0 left-0 transition-opacity duration-1000 ${
+            isVisible ? "opacity-10" : "opacity-0"
+          }`}
+        />
+      )}
       <div className="max-w-maxw mx-auto px-container py-24 space-y-8 relative z-10">
         <div className="md:flex">
           <h2 className="md:basis-[160px] uppercase tracking-[0.04em]">Membership</h2>
