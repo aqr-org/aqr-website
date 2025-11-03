@@ -6,6 +6,7 @@ import { draftMode } from 'next/headers';
 import React from "react";
 import { generatePageMetadata } from '@/lib/metadata';
 import { Suspense } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
 
 export async function generateMetadata(
@@ -81,7 +82,7 @@ export default async function TheHubPage() {
 
   return (
     <>
-      <div className="mb-12 *:[p]:columns-2 max-w-[44rem]">
+      <div className="mb-12 *:[p]:columns-2 max-w-176">
         <StoryblokStory story={TheHubHomeStory.data.story} />
       </div>
       <Suspense fallback={
@@ -114,7 +115,7 @@ export default async function TheHubPage() {
               })
               .map((monthYear, index) => (
                 <React.Fragment key={monthYear}>
-                  <h2 id={monthYear.replace(/\s+/g, '-').toLowerCase()} className={`text-2xl col-span-2 group-data-[liststyle=filters]:hidden md:mb-4 ${index === 0 ? 'mt-0 md:mt-0' : 'md:mt-12'}`}>
+                  <h2 id={monthYear.replace(/\s+/g, '-').toLowerCase()} className={`text-4xl col-span-2 group-data-[liststyle=filters]:hidden md:mb-4 ${index === 0 ? 'mt-0 md:mt-0' : 'md:mt-12'}`}>
                     {monthYear}
                     <svg className="h-1 w-full mt-6" width="100%" height="100%">
                       <rect 
@@ -126,27 +127,31 @@ export default async function TheHubPage() {
                         strokeDasharray="4 4" />
                     </svg>
                   </h2>
-                  {groupedWebinars[monthYear].map((webinar: {
-                    slug: string;
-                    id: string;
-                    name: string;
-                    content: {
-                      description: string;
-                    };
-                  }) => {
+                  <div className="space-y-6 md:grid md:grid-cols-2 md:gap-x-6 md:gap-y-2 px-4">
+                    {groupedWebinars[monthYear].map((webinar: {
+                      slug: string;
+                      id: string;
+                      name: string;
+                      content: {
+                        description: string;
+                      };
+                    }) => {
 
-                    const finalSlug = webinar.slug;
+                      const finalSlug = webinar.slug;
 
-                    return (
-                      <Link 
-                        key={webinar.id} 
-                        href={`/events/thehub/${finalSlug}`} 
-                      >
-                        <h3 className="text-lg">{webinar.name}</h3>
-                        <p>{webinar.content.description}</p>
-                      </Link>
-                    );
-                  })}
+                      return (
+                        <Link 
+                          key={webinar.id} 
+                          href={`/events/thehub/${finalSlug}`} 
+                          className="block hover:text-qreen-dark transition-colors duration-300"
+                        >
+                          <h3 className="text-xl leading-[1.2] mb-2">{webinar.name}</h3>
+                          <p className="text-qreen-dark">{webinar.content.description}</p>
+                          <p className="font-semibold py-4">Watch recording <ArrowUpRight className="w-4 h-4 inline-block" /></p>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </React.Fragment>
               ))
           ) : (
