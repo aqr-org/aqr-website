@@ -92,7 +92,7 @@ export default function DesktopNavigation({
       className="hidden md:flex md:items-end md:justify-between font-medium relative" 
       role="menubar"
     >
-      {/* Expanded navigation (when viewport >= 1100px) */}
+      {/* Expanded navigation (when viewport >= 1295px) */}
       <div className="hidden min-[1295px]:flex items-end justify-between w-full">
         {filteredLinks.map((link: NavigationLinkData, index) => (
           <li 
@@ -162,8 +162,8 @@ export default function DesktopNavigation({
         ))}
       </div>
 
-      {/* Collapsed menu button (when viewport < 1100px) */}
-      <div className="flex min-[1100px]:hidden">
+      {/* Collapsed menu button (when viewport < 1295px) */}
+      <div className="flex min-[1295px]:hidden">
         {mounted ? (
           <DropdownMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <DropdownMenuTrigger asChild>
