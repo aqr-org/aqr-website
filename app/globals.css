@@ -71,6 +71,28 @@
   }
 }
 
+@keyframes collapsibleDown {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsibleUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
   --animate-animated-circle-slow: animatedCircle 30s linear infinite forwards;
@@ -81,6 +103,8 @@
   --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-fade-in: fadeInAnimation 0.5s ease-in-out forwards;
   --animate-shrink-grow: shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-collapsible-down: collapsibleDown 0.2s ease-out forwards;
+  --animate-collapsible-up: collapsibleUp 0.2s ease-out forwards;
 }
 
 html {
@@ -102,6 +126,12 @@ html {
 @layer utilities {
   .animate-shrink-grow {
     animation: var(--animate-shrink-grow);
+  }
+  .animate-collapsible-down {
+    animation: var(--animate-collapsible-down);
+  }
+  .animate-collapsible-up {
+    animation: var(--animate-collapsible-up);
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;

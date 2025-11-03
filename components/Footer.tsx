@@ -5,6 +5,7 @@ import { NewsletterSignUp } from "@/components/NewsletterSignUp";
 import { CTABlock } from "@/components/CTABlock";
 import { render } from "storyblok-rich-text-react-renderer";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 
 interface FooterData {
   linklist_1: NavigationLinkData[];
@@ -33,21 +34,21 @@ export default async function Footer({ footerData }: { footerData: any }) {
               <div className="flex gap-16 justify-between w-full md:w-auto">
                 <div className="flex flex-col gap-2 basis-1/3">
                   {footerData.linklist_1.map((link: NavigationLinkData) => (
-                    <Link href={link.link?.cached_url || ''} key={link.name}>
+                    <Link href={normalizeStoryblokUrl(link.link?.cached_url)} key={link.name}>
                       {link.name}
                     </Link>
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 basis-1/3">
                   {footerData.linklist_2.map((link: NavigationLinkData) => (
-                    <Link href={link.link?.cached_url || ''} key={link.name}>
+                    <Link href={normalizeStoryblokUrl(link.link?.cached_url)} key={link.name}>
                       {link.name}
                     </Link>
                   ))}
                 </div>
                 <div className="flex flex-col gap-2 basis-1/3">
                   {footerData.linklist_3.map((link: NavigationLinkData) => (
-                    <Link href={link.link?.cached_url || ''} key={link.name}>
+                    <Link href={normalizeStoryblokUrl(link.link?.cached_url)} key={link.name}>
                       {link.name}
                     </Link>
                   ))}
@@ -59,7 +60,7 @@ export default async function Footer({ footerData }: { footerData: any }) {
                 </div>
                 <div className="flex flex-row justify-between md:flex-col items-end gap-2 text-qreen-dark w-full md:w-auto">
                   {footerData.social_links.map((link: NavigationLinkData) => (
-                    <Link href={link.link?.cached_url || ''} key={link.name} className="flex items-center gap-1">
+                    <Link href={normalizeStoryblokUrl(link.link?.cached_url)} key={link.name} className="flex items-center gap-1">
                       {link.name} <ArrowUpRight className="w-5 h-5 inline-block" />
                     </Link>
                   ))}
