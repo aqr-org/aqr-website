@@ -15,6 +15,7 @@ import FeatureCards from '@/components/storyblok/FeatureCards';
 import HomepageJoinUsBlock from '@/components/storyblok/HomepageJoinUsBlock';
 import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
 import BoardMembers from '@/components/storyblok/BoardMembers';
+import TestimonialCarousel from '@/components/storyblok/TestimonialCarousel';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -34,6 +35,7 @@ const components = {
   homepage_joinus_block: HomepageJoinUsBlock,
   latest_season_calendar: LatestSeasonCalendar,
   board_members: BoardMembers,
+  testimonials_carousel: TestimonialCarousel,
 };
 
 export default components ;

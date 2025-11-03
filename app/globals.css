@@ -70,7 +70,7 @@
     transform: scaleY(100%);
   }
 }
-  
+
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
   --animate-animated-circle-slow: animatedCircle 30s linear infinite forwards;

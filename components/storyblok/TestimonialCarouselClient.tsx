@@ -1,32 +1,30 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 import { cn } from "@/lib/utils";
-import FeatureCard from "./FeatureCard";
+import TestimonialCard from "./TestimonialCard";
 import CarouselNavigation from "@/components/CarouselNavigation";
 
-interface CardData {
-  title: string;
-  linkText: string;
-  linkHref: string;
-  content: React.ReactNode;
-  backgroundLayer1?: React.ReactNode;
-  backgroundLayer2?: React.ReactNode;
-  titleColor?: string;
-  titleHoverColor?: string;
-  buttonColor?: string;
-  buttonHoverColor?: string;
+interface TestimonialData {
+  quote: string;
+  name: string;
+  subtitle: string;
+  portrait: {
+    filename: string;
+    alt: string;
+  };
 }
 
-interface FeatureCardsClientProps {
-  cards: CardData[];
+interface TestimonialCarouselClientProps {
+  testimonials: TestimonialData[];
 }
 
-export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
+export default function TestimonialCarouselClient({
+  testimonials,
+}: TestimonialCarouselClientProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [isScrolling, setIsScrolling] = useState(false);
 
   const updateScrollButtons = () => {
     const container = scrollContainerRef.current;
@@ -34,8 +32,6 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
 
     const { scrollLeft, scrollWidth, clientWidth } = container;
     // Account for padding when checking scroll position
-    // When scrollLeft is 0, we're at the padded position (first card visible)
-    // We consider it scrollable left only if we've scrolled past the padding
     const paddingLeft = parseFloat(getComputedStyle(container).paddingLeft) || 0;
     setCanScrollLeft(scrollLeft > paddingLeft + 5); // Small threshold
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10); // 10px threshold
@@ -49,12 +45,8 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
 
     const handleScroll = () => {
       updateScrollButtons();
-      setIsScrolling(true);
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => setIsScrolling(false), 150);
     };
 
-    let scrollTimeout: NodeJS.Timeout;
     container.addEventListener("scroll", handleScroll);
 
     // Handle resize
@@ -66,17 +58,16 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
     return () => {
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
-      clearTimeout(scrollTimeout);
     };
-  }, [cards]);
+  }, [testimonials]);
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const cardWidth = container.querySelector("div[data-card]")?.clientWidth || 0;
+    const testimonialWidth = container.querySelector("div[data-testimonial]")?.clientWidth || 0;
     const gap = parseInt(getComputedStyle(container).gap) || 0;
-    const scrollAmount = cardWidth + gap;
+    const scrollAmount = testimonialWidth + gap;
 
     container.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
@@ -120,9 +111,9 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
       if (Math.abs(deltaX) > 50) {
         // Threshold for swipe - scroll in opposite direction of swipe
         const direction = deltaX > 0 ? "right" : "left";
-        const cardWidth = container.querySelector("div[data-card]")?.clientWidth || 0;
+        const testimonialWidth = container.querySelector("div[data-testimonial]")?.clientWidth || 0;
         const gap = parseInt(getComputedStyle(container).gap) || 0;
-        const scrollAmount = cardWidth + gap;
+        const scrollAmount = testimonialWidth + gap;
         container.scrollBy({
           left: direction === "left" ? -scrollAmount : scrollAmount,
           behavior: "smooth",
@@ -176,16 +167,36 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
     };
   }, []);
 
-  if (cards.length === 0) return null;
+
+  if (testimonials.length === 0) return null;
 
   return (
-    <div className="relative w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container)">
-      <CarouselNavigation
-        onScrollLeft={() => scroll("left")}
-        onScrollRight={() => scroll("right")}
-        canScrollLeft={canScrollLeft}
-        canScrollRight={canScrollRight}
-      />
+    <div className="w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container) py-18">
+      {/* Animated background shapes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className={cn(
+          "grid h-full w-full",
+          "grid-cols-2 grid-rows-2 gap-8", // Mobile: 2x2 grid (4 shapes visible)
+          "md:grid-cols-4 md:grid-rows-2 md:gap-6", // Desktop: 4x2 grid (8 shapes visible)
+          "p-6 md:p-8" // Padding to prevent shapes from touching edges
+        )}>
+          {Array.from({ length: 8 }, (_, i) => (
+            <AnimatedShape
+              key={`testimonial-shape-${i}`}
+              id={`testimonial-shape-${i}`}
+              desktopOnly={i >= 4}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="relative z-10">
+        <CarouselNavigation
+          onScrollLeft={() => scroll("left")}
+          onScrollRight={() => scroll("right")}
+          canScrollLeft={canScrollLeft}
+          canScrollRight={canScrollRight}
+        />
 
       {/* Scroll container */}
       <div
@@ -195,51 +206,99 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
           "flex overflow-x-auto overflow-y-hidden",
           "scroll-smooth snap-x snap-mandatory",
           "no-scrollbar", // Use existing utility
-          // Gap between cards
+          // Gap between testimonials
           "gap-4 md:gap-6",
-          "pr-4 md:pr-container pb-12"
+          "pr-4 md:pr-container py-18"
         )}
         style={{
           paddingLeft: "var(--spacing-container)",
           scrollPaddingLeft: "var(--spacing-container)",
-          // Mask with gradient fade on left and right edges
-         
         }}
       >
-        {cards.map((card, index) => {
-          // Calculate card widths for responsive peeking
-          const cardWidthClass = "md:w-[calc((100vw-5rem*2-2rem)/2.1)] lg:w-[calc((100vw-5rem*2-2rem)/2.7)] xl:w-[calc((100vw-5rem*2-2rem)/3.1)]";
+        {testimonials.map((testimonial, index) => {
+          // Calculate testimonial widths for responsive peeking
+          // Each testimonial fills almost the whole width minus 1/3 of next (divide by 1.33)
+          const testimonialWidthClass = "md:w-[calc((100vw-5rem*2-1.5rem)/1.33)] lg:w-[calc((100vw-5rem*2-1.5rem)/1.33)] xl:w-[calc((100vw-5rem*2-1.5rem)/1.33)]";
           
-          const mobileWidthClass = "w-[calc(85vw)]"
+          const mobileWidthClass = "w-[calc(85vw)]";
 
           return (
             <div
               key={index}
-              data-card
+              data-testimonial
               className={cn(
                 "shrink-0 snap-start",
                 mobileWidthClass,
-                cardWidthClass,
+                testimonialWidthClass,
               )}
             >
-              <FeatureCard
-                title={card.title}
-                linkText={card.linkText}
-                linkHref={card.linkHref}
-                backgroundLayer1={card.backgroundLayer1}
-                backgroundLayer2={card.backgroundLayer2}
-                titleColor={card.titleColor}
-                titleHoverColor={card.titleHoverColor}
-                buttonColor={card.buttonColor}
-                buttonHoverColor={card.buttonHoverColor}
-              >
-                {card.content}
-              </FeatureCard>
+              <TestimonialCard
+                quote={testimonial.quote}
+                name={testimonial.name}
+                subtitle={testimonial.subtitle}
+                portrait={testimonial.portrait}
+              />
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
 }
 
+// Memoized Shape component with unique gradient ID to prevent conflicts
+const AnimatedShape = memo(function AnimatedShape({ 
+  id,
+  desktopOnly = false
+}: { 
+  id: string;
+  desktopOnly?: boolean;
+}) {
+  const gradientId = `paint0_linear_${id}`;
+  
+  return (
+    <svg 
+      width="149" 
+      height="149" 
+      viewBox="0 0 149 149" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={cn(
+        "animate-animated-circle origin-bottom-right",
+        "w-[80px] h-[80px] md:w-[100px] md:h-[100px]", // Responsive sizing
+        desktopOnly && "hidden md:block", // Hide on mobile, show on desktop
+        "justify-self-center self-center" // Center shapes in grid cells
+      )}
+      style={{
+        animationDuration: '30s',
+        willChange: "transform, opacity",
+        transformBox: 'fill-box'
+      }}
+      >
+      <path 
+        opacity="0.7" 
+        d="M28.5 148.5C28.5 82.2301 82.2199 28.5 148.5 28.5" 
+        stroke={`url(#${gradientId})`} 
+        strokeWidth="57" 
+        strokeMiterlimit="10"
+      />
+      <defs>
+        <linearGradient 
+          id={gradientId} 
+          x1="73.9655" 
+          y1="-0.579161" 
+          x2="73.9655" 
+          y2="148.5" 
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#7BBD42" stopOpacity="0"/>
+          <stop offset="1" stopColor="#7BBD42"/>
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+});
+
+AnimatedShape.displayName = 'AnimatedShape';
