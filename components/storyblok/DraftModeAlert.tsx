@@ -14,13 +14,6 @@ export default function DraftModeAlert() {
       <span className="mr-2">Draft Mode Active</span>
       
       <button 
-        onClick={toggleGridLines}
-        className="underline hover:no-underline font-semibold cursor-pointer"
-      >
-        Toggle Grid
-      </button>
-      &nbsp;|&nbsp;
-      <button 
         onClick={disableDraftMode}
         className="underline hover:no-underline font-semibold cursor-pointer"
       >
