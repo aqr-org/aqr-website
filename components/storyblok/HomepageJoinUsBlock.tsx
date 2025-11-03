@@ -35,65 +35,86 @@ export default function HomepageJoinUsBlock({ blok }: HomepageJoinUsBlockProps) 
   );
 }
 
-// Memoized Rectangle component to prevent unnecessary re-renders
-const Rectangle = React.memo(({ delay }: { delay: string }) => {
-  const gradientStyle = {
-    background: 'linear-gradient(to top, #F5F5F5 0%, #EAA0B1 100%)',
-    width: '56px',
-    height: '315px',
-  };
+// Static styles that don't change - moved outside component
+const GRADIENT_STYLE: React.CSSProperties = {
+  background: 'linear-gradient(to top, #F5F5F5 0%, #EAA0B1 100%)',
+  width: '56px',
+  height: '315px',
+};
 
-  const baseDelay = parseFloat(delay);
-  const getAnimationStyle = (offset: number) => ({
-    animation: 'shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards',
-    animationDelay: `${baseDelay + offset}s`,
-  });
+const CONTAINER_STYLE: React.CSSProperties = {
+  width: '56px',
+  height: '648px',
+  position: 'relative',
+  transformOrigin: '50% 50%',
+  transform: 'rotate(45deg)',
+};
+
+// Memoized Rectangle component to prevent unnecessary re-renders
+const Rectangle = React.memo(({ delay }: { delay: number }) => {
+  // Memoize animation styles to avoid recreating objects on every render
+  const animationStyles = React.useMemo(() => {
+    const baseDelay = delay;
+    return [
+      {
+        ...GRADIENT_STYLE,
+        animation: 'shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards',
+        animationDelay: `${baseDelay}s`,
+        position: 'absolute' as const,
+        top: '157.5px',
+        left: '0',
+      },
+      {
+        ...GRADIENT_STYLE,
+        animation: 'shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards',
+        animationDelay: `${baseDelay + 0.2}s`,
+        position: 'absolute' as const,
+        top: '268.285px',
+        left: '0',
+      },
+      {
+        ...GRADIENT_STYLE,
+        animation: 'shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards',
+        animationDelay: `${baseDelay + 0.4}s`,
+        position: 'absolute' as const,
+        top: '379.069px',
+        left: '0',
+      },
+      {
+        ...GRADIENT_STYLE,
+        animation: 'shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards',
+        animationDelay: `${baseDelay + 0.6}s`,
+        position: 'absolute' as const,
+        top: '489.854px',
+        left: '0',
+      },
+    ];
+  }, [delay]);
 
   return (
-    <div style={{ width: '56px', height: '648px', position: 'relative', transformOrigin: '50% 50%', transform: 'rotate(45deg)' }}>
-      <div style={{ ...gradientStyle, ...getAnimationStyle(0), position: 'absolute', top: '157.5px', left: '0' }} />
-      <div style={{ ...gradientStyle, ...getAnimationStyle(0.2), position: 'absolute', top: '268.285px', left: '0' }} />
-      <div style={{ ...gradientStyle, ...getAnimationStyle(0.4), position: 'absolute', top: '379.069px', left: '0' }} />
-      <div style={{ ...gradientStyle, ...getAnimationStyle(0.6), position: 'absolute', top: '489.854px', left: '0' }} />
+    <div style={CONTAINER_STYLE}>
+      {animationStyles.map((style, index) => (
+        <div key={index} style={style} />
+      ))}
     </div>
   );
 });
 
 Rectangle.displayName = 'Rectangle';
 
-function RectanglesAligned() {
+// Memoize the rectangles array to prevent recreation on every render
+const RectanglesAligned = React.memo(() => {
+  const rectangles = React.useMemo(() => {
+    return Array.from({ length: 30 }, (_, i) => (
+      <Rectangle key={i} delay={i * 0.5} />
+    ));
+  }, []);
+
   return (
     <div className='flex gap-5'>
-      <Rectangle delay='0' />
-      <Rectangle delay='0.5' />
-      <Rectangle delay='1' />
-      <Rectangle delay='1.5' />
-      <Rectangle delay='2' />
-      <Rectangle delay='2.5' />
-      <Rectangle delay='3' />
-      <Rectangle delay='3.5' />
-      <Rectangle delay='4' />
-      <Rectangle delay='4.5' />
-      <Rectangle delay='5' />
-      <Rectangle delay='5.5' />
-      <Rectangle delay='6' />
-      <Rectangle delay='6.5' />
-      <Rectangle delay='7' />
-      <Rectangle delay='7.5' />
-      <Rectangle delay='8' />
-      <Rectangle delay='8.5' />
-      <Rectangle delay='9' />
-      <Rectangle delay='9.5' />
-      <Rectangle delay='10' />
-      <Rectangle delay='10.5' />
-      <Rectangle delay='11' />
-      <Rectangle delay='11.5' />
-      <Rectangle delay='12' />
-      <Rectangle delay='12.5' />
-      <Rectangle delay='13' />
-      <Rectangle delay='13.5' />
-      <Rectangle delay='14' />
-      <Rectangle delay='14.5' />
+      {rectangles}
     </div>
   );
-}
+});
+
+RectanglesAligned.displayName = 'RectanglesAligned';
