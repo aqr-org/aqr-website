@@ -222,16 +222,6 @@ export default async function Home() {
     ? await getPhoneticSpelling(glossaryTerm.content.name || glossaryTerm.name || "")
     : null;
   
-  // Debug: Log what data we're passing to FeatureCards
-  console.log("[Home] Data summary:", {
-    hasNextEvent: !!nextEvent,
-    hasGlossaryTerm: !!glossaryTerm,
-    hasLatestWebinar: !!latestWebinar,
-    hasAllEvents: allEvents.length > 0,
-    nextEventSlug: nextEvent?.slug,
-    glossaryTermSlug: glossaryTerm?.slug,
-    webinarSlug: latestWebinar?.slug,
-  });
 
   // Helper function to render Storyblok body with optimization for latest_season_calendar
   const renderStoryblokBody = () => {
