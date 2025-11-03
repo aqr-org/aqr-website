@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
           type: 'company' as const,
           excerpt: company.narrative,
           group: 'Companies',
-          url: `/dir/${company.slug || company.id}`
+          url: `/dir/companies/${company.slug || company.id}`
         }));
     }
 

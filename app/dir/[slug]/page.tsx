@@ -2,6 +2,7 @@ import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
 import { draftMode } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { generatePageMetadata } from '@/lib/metadata';
 
 interface PageProps {
@@ -54,15 +55,24 @@ export async function generateMetadata(
 }
 
 export default async function SlugPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const storyblok = await fetchStoryblokData(resolvedParams);
-  const storyBlokStory = storyblok?.data.story;
+  try {
+    const resolvedParams = await params;
+    const storyblok = await fetchStoryblokData(resolvedParams);
+    const storyBlokStory = storyblok?.data.story;
 
-  return (
-    <article className='max-w-210 animate-fade-in'>
-      <StoryblokStory story={storyBlokStory} />
-    </article>
-  );
+    if (!storyBlokStory) {
+      notFound();
+    }
+
+    return (
+      <article className='max-w-210 animate-fade-in'>
+        <StoryblokStory story={storyBlokStory} />
+      </article>
+    );
+  } catch (error) {
+    console.error("Error in SlugPage:", error);
+    notFound();
+  }
 }
 
 async function fetchStoryblokData(params: { slug: string }) {
@@ -72,18 +82,62 @@ async function fetchStoryblokData(params: { slug: string }) {
     const storyblokApi = getStoryblokApi();
     
     const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
-      version: isDraftMode ? 'draft' : 'published' 
+      version: isDraftMode ? 'draft' : 'published',
+      resolve_links: 'url'
     });
     
     return response;
   } 
-  catch (error) {
-    console.error('Storyblok API Error Details:');
-    console.error('- Error type:', typeof error);
-    console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('- Full error object:', JSON.stringify(error, null, 2));
-    console.error('- Slug being requested:', params.slug);
-    throw new Error(`Failed to fetch story: ${params.slug}`);
+  catch (error: any) {
+    // Try to extract meaningful error information
+    let errorMessage = 'Unknown error';
+    let statusCode: number | undefined;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    // Check for HTTP response errors
+    if (error?.response) {
+      statusCode = error.response?.status;
+      const responseData = error.response?.data;
+      
+      if (statusCode === 404) {
+        errorMessage = `Story not found: dir/${params.slug}`;
+        // Log concise 404 message (expected when story doesn't exist)
+        console.log(`Storyblok story not found: dir/${params.slug} (404)`);
+      } else {
+        // Log full details for other errors
+        console.error('Storyblok API Error Details:');
+        console.error('- HTTP Status:', statusCode);
+        console.error('- Response Data:', responseData);
+        console.error('- Requested slug:', params.slug);
+        
+        if (statusCode === 401) {
+          errorMessage = 'Unauthorized - Check Storyblok API token';
+        } else if (statusCode === 403) {
+          errorMessage = 'Forbidden - Check Storyblok permissions';
+        }
+      }
+    } else {
+      // Non-HTTP errors - log full details
+      console.error('Storyblok API Error Details:');
+      console.error('- Error type:', typeof error);
+      console.error('- Error message:', errorMessage);
+      console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
+      console.error('- Slug being requested:', params.slug);
+    }
+    
+    // If it's a 404, throw a more specific error
+    if (statusCode === 404) {
+      throw new Error(errorMessage);
+    }
+    
+    // Re-throw original error to preserve stack trace
+    throw error;
   }
 }
