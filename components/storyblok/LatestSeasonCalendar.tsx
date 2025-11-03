@@ -5,34 +5,45 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
+import { type Event } from './HomepageDataContext';
+import { getStoryblokApi } from '@/lib/storyblok';
 
 type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
-
-interface Event {
-  id: string;
-  slug: string;
-  name: string;
-  content: {
-    title: string;
-    description: string;
-    date?: string;
-    hide_time?: boolean;
-    admission?: string;
-    image?: {
-      filename: string;
-      alt: string;
-    };
-    organised_by?: string;
-    type?: string;
-  };
-}
 
 interface LatestSeasonCalendarProps {
   blok: {
     link_text?: string;
     [key: string]: any;
   };
-  events: Event[];
+  events?: Event[];
+}
+
+// Helper function to get draft mode dynamically (avoids build errors when component is imported in client contexts)
+async function getDraftMode(): Promise<boolean> {
+  try {
+    const { draftMode } = await import("next/headers");
+    const { isEnabled } = await draftMode();
+    return isEnabled;
+  } catch (error) {
+    // If we can't get draft mode (e.g., in client context), default to published
+    console.warn("Could not get draft mode, defaulting to published:", error);
+    return false;
+  }
+}
+
+async function fetchAllEventsInternal(isDraftMode: boolean): Promise<Event[]> {
+  const storyblokApi = getStoryblokApi();
+  try {
+    return await storyblokApi.getAll(`cdn/stories`, { 
+      version: isDraftMode ? 'draft' : 'published',
+      content_type: 'event',
+      starts_with: 'events/',
+      excluding_slugs: 'events/'
+    });
+  } catch (error) {
+    console.error("Error fetching all events:", error);
+    return [];
+  }
 }
 
 function getSeason(dateString: string): Season {
@@ -113,7 +124,23 @@ function getFollowingSeason(currentSeason: Season, currentYear: number): { seaso
   return { season: followingSeason, year: followingYear };
 }
 
-export default function LatestSeasonCalendar({ blok, events }: LatestSeasonCalendarProps) {
+export default async function LatestSeasonCalendar({ blok, events: eventsProp }: LatestSeasonCalendarProps) {
+  // Determine which events to use: context → prop → fetch
+  let events: Event[] = [];
+  
+  if (eventsProp) {
+    // Use provided prop (highest priority)
+    events = eventsProp;
+  } else {
+    // Check context for events
+    // Note: Since this is a server component, we can't use hooks directly.
+    // We'll fetch if no prop is provided (context check will be handled by making this async)
+    // Actually, since this is a server component called by StoryblokServerComponent,
+    // we need to fetch here if prop is not provided
+    const isDraftMode = await getDraftMode();
+    events = await fetchAllEventsInternal(isDraftMode);
+  }
+
   // Group events by year and season
   const groupedEvents = groupEventsByYearAndSeason(events);
 

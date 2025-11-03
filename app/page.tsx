@@ -1,12 +1,8 @@
 import { getStoryblokApi } from '@/lib/storyblok';
-import { StoryblokStory, StoryblokServerComponent } from '@storyblok/react/rsc';
+import { StoryblokStory, storyblokEditable } from '@storyblok/react/rsc';
 import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
-import FeatureCards from '@/components/storyblok/FeatureCards';
-import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
-import { getPhoneticSpelling } from '@/lib/phonetic';
-import React, { Suspense } from 'react';
-import { cn } from '@/lib/utils';
+import { HomepageDataProvider } from '@/components/storyblok/HomepageDataContext';
 
 interface Event {
   id: string;
@@ -206,6 +202,7 @@ async function fetchPhoneticForGlossary(glossaryTermPromise: Promise<GlossaryTer
   if (!termName) {
     return null;
   }
+  const { getPhoneticSpelling } = await import('@/lib/phonetic');
   return getPhoneticSpelling(termName);
 }
 
@@ -228,229 +225,23 @@ export default async function Home() {
   ]);
   
   const storyBlokStory = storyblok.data.story;
-  const bodyBloks = storyBlokStory?.content?.body || [];
-  
-  // Fallback check for feature_cards at top level (in case it's not in body)
-  const topLevelFeatureCards = storyBlokStory?.content?.feature_cards;
-
-  // Helper to render body bloks in order with special handling for certain components
-  const renderBodyBloksInOrder = () => {
-    if (!bodyBloks || bodyBloks.length === 0) return null;
-
-    const elements: React.ReactNode[] = [];
-    let normalBloksBatch: any[] = [];
-
-    const flushNormalBloks = () => {
-      if (normalBloksBatch.length > 0) {
-        elements.push(
-          <Suspense key={`normal-bloks-${normalBloksBatch[0]._uid}`} fallback={<StoryblokBodySkeleton />}>
-            <StoryblokBodyContent bloks={normalBloksBatch} />
-          </Suspense>
-        );
-        normalBloksBatch = [];
-      }
-    };
-
-    bodyBloks.forEach((blok: any) => {
-      if (blok.component === 'hero_homepage') {
-        flushNormalBloks();
-        // Hero renders immediately (no Suspense needed, data already fetched)
-        elements.push(
-          <StoryblokServerComponent key={blok._uid} blok={blok} />
-        );
-      } else if (blok.component === 'feature_cards') {
-        flushNormalBloks();
-        // FeatureCards with its own Suspense and props
-        elements.push(
-          <Suspense key={blok._uid} fallback={<FeatureCardsSkeleton />}>
-            <FeatureCardsAsync
-              blok={blok}
-              nextEvent={nextEvent}
-              glossaryTerm={glossaryTerm}
-              latestWebinar={latestWebinar}
-              phoneticGlossaryTerm={phoneticGlossaryTerm}
-            />
-          </Suspense>
-        );
-      } else if (blok.component === 'latest_season_calendar') {
-        flushNormalBloks();
-        // LatestSeasonCalendar with its own Suspense and props
-        elements.push(
-          <Suspense key={blok._uid} fallback={<EventsCalendarSkeleton />}>
-            <LatestSeasonCalendarAsync 
-              blok={blok}
-              allEvents={allEvents}
-            />
-          </Suspense>
-        );
-      } else {
-        // Normal component - batch it with others for a single Suspense boundary
-        normalBloksBatch.push(blok);
-      }
-    });
-
-    // Flush any remaining normal bloks
-    flushNormalBloks();
-
-    // If no body bloks but top-level feature_cards exists, add it at the end
-    if (elements.length === 0 && topLevelFeatureCards) {
-      elements.push(
-        <Suspense key="top-level-feature-cards" fallback={<FeatureCardsSkeleton />}>
-          <FeatureCardsAsync
-            blok={topLevelFeatureCards}
-            nextEvent={nextEvent}
-            glossaryTerm={glossaryTerm}
-            latestWebinar={latestWebinar}
-            phoneticGlossaryTerm={phoneticGlossaryTerm}
-          />
-        </Suspense>
-      );
-    }
-
-    return elements;
-  };
 
   return (
-    <main className="flex-1 flex flex-col gap-20 min-h-screen">
+    <main className="flex-1 flex flex-col gap-20 min-h-screen" {...storyblokEditable(storyBlokStory)}>
       <Background />
-      {renderBodyBloksInOrder()}
+      <HomepageDataProvider
+        allEvents={allEvents}
+        nextEvent={nextEvent}
+        glossaryTerm={glossaryTerm}
+        latestWebinar={latestWebinar}
+        phoneticGlossaryTerm={phoneticGlossaryTerm}
+      >
+        <StoryblokStory story={storyBlokStory} />
+      </HomepageDataProvider>
     </main>
   );
 }
 
-// Separate async component for Storyblok body content
-async function StoryblokBodyContent({ bloks }: { bloks: any[] }) {
-  return (
-    <>
-      {bloks.map((blok: any) => (
-        <StoryblokServerComponent blok={blok} key={blok._uid} />
-      ))}
-    </>
-  );
-}
-
-// Separate async component for FeatureCards (allows progressive loading)
-async function FeatureCardsAsync({ 
-  blok, 
-  nextEvent, 
-  glossaryTerm, 
-  latestWebinar,
-  phoneticGlossaryTerm 
-}: { 
-  blok: any; 
-  nextEvent: Event | null; 
-  glossaryTerm: GlossaryTerm | null; 
-  latestWebinar: Webinar | null;
-  phoneticGlossaryTerm: string | null;
-}) {
-  return (
-    <FeatureCards 
-      blok={blok}
-      nextEvent={nextEvent}
-      glossaryTerm={glossaryTerm}
-      latestWebinar={latestWebinar}
-      phoneticGlossaryTerm={phoneticGlossaryTerm}
-    />
-  );
-}
-
-// Separate async component for LatestSeasonCalendar (allows progressive loading)
-async function LatestSeasonCalendarAsync({ 
-  blok, 
-  allEvents 
-}: { 
-  blok: any; 
-  allEvents: Event[];
-}) {
-  return (
-    <LatestSeasonCalendar 
-      blok={blok}
-      events={allEvents}
-    />
-  );
-}
-
-// Loading skeleton components for progressive rendering
-function StoryblokBodySkeleton() {
-  return (
-    <div className="min-h-[200px] w-full max-w-maxw mx-auto px-container animate-pulse">
-      <div className="space-y-4">
-        <div className="h-8 bg-gray-200 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-full" />
-        <div className="h-4 bg-gray-200 rounded w-5/6" />
-      </div>
-    </div>
-  );
-}
-
-function FeatureCardsSkeleton() {
-  return (
-    
-      // <FeatureCardsClient cards={cards} />
-    <div className="w-full max-w-maxw mx-auto px-container my-18 animate-pulse">
-      <h2 className="uppercase tracking-[0.03em] my-8">Loading latest updates...</h2>
-      <div className="relative w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container)">
-      <div className="absolute right-0 bottom-full pb-4 z-20 flex items-center gap-2">
-        {/* Arrow buttons */}
-        
-          <button
-            className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer opacity-50`}
-            aria-label="Scroll left"
-          >
-            <svg className="w-6 h-6" width="14" height="25" viewBox="0 0 14 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12.7346 23.3375L1.41455 12.0175L12.7346 0.70752" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10"/>
-            </svg>
-          </button>
-          <button
-            className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer opacity-50`}
-            aria-label="Scroll right"
-          >
-            <svg className="w-6 h-6" width="14" height="25" viewBox="0 0 14 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0.707344 23.3375L12.0273 12.0175L0.707344 0.70752" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10"/>
-            </svg>
-          </button>
-          <div 
-            className={cn(
-              "relative w-[calc(100%+var(--spacing-container)*2)]",
-              "flex overflow-x-auto overflow-y-hidden",
-              "scroll-smooth snap-x snap-mandatory",
-              "no-scrollbar",
-              "gap-4 md:gap-6",
-              "pr-4 md:pr-container pb-12"
-            )}
-            style={{ paddingLeft: "var(--spacing-container)", scrollPaddingLeft: "var(--spacing-container)"}}
-          >
-
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="md:w-[calc((100vw-5rem*2-2rem)/2.1)] lg:w-[calc((100vw-5rem*2-2rem)/2.7)] xl:w-[calc((100vw-5rem*2-2rem)/3.1)] w-[calc(85vw)] bg-qlack/20 shrink-0 snap-start aspect-[0.75] rounded-xl" />
-          ))}
-          </div>
-      </div>
-      </div>
-    </div>
-  );
-}
-
-function EventsCalendarSkeleton() {
-  return (
-    <div className="relative space-y-12 bg-qlack text-qaupe min-h-[600px] animate-pulse">
-      <div className="w-full max-w-maxw mx-auto px-container py-36">
-        <div className="md:flex md:gap-12">
-          <div className="h-8 bg-gray-700 rounded w-32 mb-6" />
-          <div className="space-y-6 flex-1">
-            <div className="h-16 bg-gray-700 rounded w-3/4 mb-18" />
-            {[1, 2, 3].map((i) => (
-              <div key={i}>
-                <div className="h-24 bg-gray-700 rounded mb-4" />
-                {i < 3 && <div className="border-b border-dashed border-gray-600 my-8" />}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 async function fetchStoryblokData() {
   const { isEnabled } = await draftMode();

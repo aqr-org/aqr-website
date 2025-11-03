@@ -7,6 +7,8 @@ interface FlexProps {
     flex_items?: any[];
     on_mobile?: string;
     gap_size: string;
+    vertical_align_items: string;
+    add_outer_padding_x: boolean;
   };
 }
 
@@ -19,14 +21,24 @@ export default function Flex({ blok }: FlexProps) {
   const flexItems = blok.flex_items || [];
   const onMobile = blok.on_mobile || 'stack';
   const gapSize = blok.gap_size || '8';
+  const alignItems = blok.vertical_align_items === 'top' ? 'md:items-start' : blok.vertical_align_items === 'bottom' ? 'md:items-end' : 'md:items-center';
+  const basis = blok.flex_items?.length === 1 ? 'md:*:basis-1/1' 
+              : blok.flex_items?.length === 2 ? 'md:*:basis-1/2' 
+              : blok.flex_items?.length === 3 ? 'md:*:basis-1/3' 
+              : blok.flex_items?.length === 4 ? 'md:*:basis-1/4' 
+              : 'md:*:basis-1/2';
 
   // Get the Tailwind class from the map, default to gap-8 if invalid
   const gapClass = gapSizeMap[gapSize] || 'gap-8';
+  const widthAndPaddingClass = blok.add_outer_padding_x ? 'w-full max-w-maxw px-container py-12 mx-auto' : '';
 
   // Determine flex direction classes based on on_mobile setting
   const flexClasses = cn(
     'flex justify-between items-center',
+    alignItems,
     gapClass,
+    basis,
+    widthAndPaddingClass,
     onMobile === 'stack' ? 'flex-col md:flex-row' : 'flex-row'
   );
 
@@ -36,6 +48,9 @@ export default function Flex({ blok }: FlexProps) {
 
   return (
     <div {...storyblokEditable(blok)} className={flexClasses}>
+      {/* <pre>
+        {JSON.stringify(blok.flex_items[0], null, 2)}
+      </pre> */}
       {flexItems.map((nestedBlok: any) => (
         <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
       ))}
