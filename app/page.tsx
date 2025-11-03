@@ -6,6 +6,7 @@ import FeatureCards from '@/components/storyblok/FeatureCards';
 import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
 import { getPhoneticSpelling } from '@/lib/phonetic';
 import React, { Suspense } from 'react';
+import { cn } from '@/lib/utils';
 
 interface Event {
   id: string;
@@ -227,49 +228,92 @@ export default async function Home() {
   ]);
   
   const storyBlokStory = storyblok.data.story;
+  const bodyBloks = storyBlokStory?.content?.body || [];
   
-  // Extract hero from body if it exists (typically first blok)
-  const heroBlok = storyBlokStory?.content?.body?.find((blok: any) => blok.component === 'hero_homepage');
-  const bodyBloks = storyBlokStory?.content?.body?.filter((blok: any) => blok.component !== 'hero_homepage' && blok.component !== 'latest_season_calendar') || [];
+  // Fallback check for feature_cards at top level (in case it's not in body)
+  const topLevelFeatureCards = storyBlokStory?.content?.feature_cards;
 
-  return (
-    <main className="flex-1 flex flex-col gap-20 min-h-screen">
-      <Background />
-      
-      {/* Hero section - renders immediately with storyblok data already fetched */}
-      {heroBlok && (
-        <StoryblokServerComponent blok={heroBlok} />
-      )}
+  // Helper to render body bloks in order with special handling for certain components
+  const renderBodyBloksInOrder = () => {
+    if (!bodyBloks || bodyBloks.length === 0) return null;
 
-      {/* Storyblok body content - separate Suspense boundary for progressive rendering */}
-      {bodyBloks.length > 0 && (
-        <Suspense fallback={<StoryblokBodySkeleton />}>
-          <StoryblokBodyContent bloks={bodyBloks} />
-        </Suspense>
-      )}
+    const elements: React.ReactNode[] = [];
+    let normalBloksBatch: any[] = [];
 
-      {/* Feature Cards - separate Suspense boundary */}
-      {storyBlokStory?.content?.feature_cards && (
-        <Suspense fallback={<FeatureCardsSkeleton />}>
+    const flushNormalBloks = () => {
+      if (normalBloksBatch.length > 0) {
+        elements.push(
+          <Suspense key={`normal-bloks-${normalBloksBatch[0]._uid}`} fallback={<StoryblokBodySkeleton />}>
+            <StoryblokBodyContent bloks={normalBloksBatch} />
+          </Suspense>
+        );
+        normalBloksBatch = [];
+      }
+    };
+
+    bodyBloks.forEach((blok: any) => {
+      if (blok.component === 'hero_homepage') {
+        flushNormalBloks();
+        // Hero renders immediately (no Suspense needed, data already fetched)
+        elements.push(
+          <StoryblokServerComponent key={blok._uid} blok={blok} />
+        );
+      } else if (blok.component === 'feature_cards') {
+        flushNormalBloks();
+        // FeatureCards with its own Suspense and props
+        elements.push(
+          <Suspense key={blok._uid} fallback={<FeatureCardsSkeleton />}>
+            <FeatureCardsAsync
+              blok={blok}
+              nextEvent={nextEvent}
+              glossaryTerm={glossaryTerm}
+              latestWebinar={latestWebinar}
+              phoneticGlossaryTerm={phoneticGlossaryTerm}
+            />
+          </Suspense>
+        );
+      } else if (blok.component === 'latest_season_calendar') {
+        flushNormalBloks();
+        // LatestSeasonCalendar with its own Suspense and props
+        elements.push(
+          <Suspense key={blok._uid} fallback={<EventsCalendarSkeleton />}>
+            <LatestSeasonCalendarAsync 
+              blok={blok}
+              allEvents={allEvents}
+            />
+          </Suspense>
+        );
+      } else {
+        // Normal component - batch it with others for a single Suspense boundary
+        normalBloksBatch.push(blok);
+      }
+    });
+
+    // Flush any remaining normal bloks
+    flushNormalBloks();
+
+    // If no body bloks but top-level feature_cards exists, add it at the end
+    if (elements.length === 0 && topLevelFeatureCards) {
+      elements.push(
+        <Suspense key="top-level-feature-cards" fallback={<FeatureCardsSkeleton />}>
           <FeatureCardsAsync
-            blok={storyBlokStory.content.feature_cards}
+            blok={topLevelFeatureCards}
             nextEvent={nextEvent}
             glossaryTerm={glossaryTerm}
             latestWebinar={latestWebinar}
             phoneticGlossaryTerm={phoneticGlossaryTerm}
           />
         </Suspense>
-      )}
+      );
+    }
 
-      {/* Latest Season Calendar - separate Suspense boundary (loads last, needs allEvents) */}
-      {storyBlokStory?.content?.body?.find((blok: any) => blok.component === 'latest_season_calendar') && (
-        <Suspense fallback={<EventsCalendarSkeleton />}>
-          <LatestSeasonCalendarAsync 
-            blok={storyBlokStory.content.body.find((blok: any) => blok.component === 'latest_season_calendar')}
-            allEvents={allEvents}
-          />
-        </Suspense>
-      )}
+    return elements;
+  };
+
+  return (
+    <main className="flex-1 flex flex-col gap-20 min-h-screen">
+      <Background />
+      {renderBodyBloksInOrder()}
     </main>
   );
 }
@@ -341,12 +385,47 @@ function StoryblokBodySkeleton() {
 
 function FeatureCardsSkeleton() {
   return (
+    
+      // <FeatureCardsClient cards={cards} />
     <div className="w-full max-w-maxw mx-auto px-container my-18 animate-pulse">
-      <div className="h-8 bg-gray-200 rounded w-48 mb-8" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-[400px] bg-gray-200 rounded-xl" />
-        ))}
+      <h2 className="uppercase tracking-[0.03em] my-8">Loading latest updates...</h2>
+      <div className="relative w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container)">
+      <div className="absolute right-0 bottom-full pb-4 z-20 flex items-center gap-2">
+        {/* Arrow buttons */}
+        
+          <button
+            className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer opacity-50`}
+            aria-label="Scroll left"
+          >
+            <svg className="w-6 h-6" width="14" height="25" viewBox="0 0 14 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12.7346 23.3375L1.41455 12.0175L12.7346 0.70752" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10"/>
+            </svg>
+          </button>
+          <button
+            className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer opacity-50`}
+            aria-label="Scroll right"
+          >
+            <svg className="w-6 h-6" width="14" height="25" viewBox="0 0 14 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0.707344 23.3375L12.0273 12.0175L0.707344 0.70752" stroke="currentColor" strokeWidth="2" strokeMiterlimit="10"/>
+            </svg>
+          </button>
+          <div 
+            className={cn(
+              "relative w-[calc(100%+var(--spacing-container)*2)]",
+              "flex overflow-x-auto overflow-y-hidden",
+              "scroll-smooth snap-x snap-mandatory",
+              "no-scrollbar",
+              "gap-4 md:gap-6",
+              "pr-4 md:pr-container pb-12"
+            )}
+            style={{ paddingLeft: "var(--spacing-container)", scrollPaddingLeft: "var(--spacing-container)"}}
+          >
+
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="md:w-[calc((100vw-5rem*2-2rem)/2.1)] lg:w-[calc((100vw-5rem*2-2rem)/2.7)] xl:w-[calc((100vw-5rem*2-2rem)/3.1)] w-[calc(85vw)] bg-qlack/20 shrink-0 snap-start aspect-[0.75] rounded-xl" />
+          ))}
+          </div>
+      </div>
       </div>
     </div>
   );
