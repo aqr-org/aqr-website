@@ -1,6 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { storyblokEditable, StoryblokServerComponent } from '@storyblok/react/rsc';
+import { Suspense } from 'react';
 import { cn } from '@/lib/utils';
+
+// Fallback for Hero_Homepage that matches its approximate height to prevent layout shift
+function HeroHomepageFallback() {
+  return (
+    <div className="w-full max-w-maxw mx-auto px-container box-border pt-32">
+      {/* Matches approximate height: pt-32 (128px) + SVG (~500-600px) + title (~150px) + optional content (~100px) */}
+      <div className="min-h-[600px] md:min-h-[800px]" aria-hidden="true" />
+    </div>
+  );
+}
+
+function StoryblokComponentWrapper({ blok }: { blok: any }) {
+  // Wrap hero_homepage in Suspense to prevent layout shift
+  if (blok.component === 'hero_homepage') {
+    return (
+      <Suspense fallback={<HeroHomepageFallback />}>
+        <StoryblokServerComponent blok={blok} />
+      </Suspense>
+    );
+  }
+  
+  return <StoryblokServerComponent blok={blok} />;
+}
 
 export default function Page({ blok }: { blok: any }) {
 return (
@@ -11,7 +35,7 @@ return (
            : 'space-y-7.5')
     }>
       {blok.body?.map((nestedBlok: any) => (
-        <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+        <StoryblokComponentWrapper blok={nestedBlok} key={nestedBlok._uid} />
       ))}
     </article>
     {blok.aside && blok.aside.length > 0 && (
@@ -21,7 +45,7 @@ return (
              : '')
       }> 
         {blok.aside.map((nestedBlok: any) => (
-          <StoryblokServerComponent blok={nestedBlok} key={nestedBlok._uid} />
+          <StoryblokComponentWrapper blok={nestedBlok} key={nestedBlok._uid} />
         ))}
       </aside>
     )}

@@ -236,7 +236,7 @@ export default async function Home() {
         latestWebinar={latestWebinar}
         phoneticGlossaryTerm={phoneticGlossaryTerm}
       >
-        <StoryblokStory story={storyBlokStory} />
+          <StoryblokStory story={storyBlokStory} />
       </HomepageDataProvider>
     </main>
   );
