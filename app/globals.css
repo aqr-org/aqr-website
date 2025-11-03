@@ -216,6 +216,13 @@ p a {
   & h5:has(>.h1size), & h5:has(>.h2size), & h5:has(>.h3size), & h5:has(>.h4size), & h5:has(>.h5size), & h5:has(>.tag) {
     @apply my-0;
   } 
+  & h1, & h2, & h3, & h4, & h5 {
+    &:has(>.h1size), &:has(>.h2size), &:has(>.h3size), &:has(>.h4size), &:has(>.h5size), &:has(>.tag) {
+      & + * {
+        @apply mt-0;
+      }
+    }
+  }
   & h1, & .h1size {
     @apply block text-6xl my-7.5 leading-none tracking-[-0.07125rem];
     

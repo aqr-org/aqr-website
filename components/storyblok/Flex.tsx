@@ -21,7 +21,10 @@ export default function Flex({ blok }: FlexProps) {
   const flexItems = blok.flex_items || [];
   const onMobile = blok.on_mobile || 'stack';
   const gapSize = blok.gap_size || '8';
-  const alignItems = blok.vertical_align_items === 'top' ? 'md:items-start' : blok.vertical_align_items === 'bottom' ? 'md:items-end' : 'md:items-center';
+  const alignItems = blok.vertical_align_items === 'top' ? 'md:items-start' 
+                   : blok.vertical_align_items === 'bottom' ? 'md:items-end' 
+                   : blok.vertical_align_items === 'stretch' ? 'md:items-stretch [&>.rich-text>*]:my-2! [&>.rich-text>*>span]:my-0!'
+                   : 'md:items-center';
   const basis = blok.flex_items?.length === 1 ? 'md:*:basis-1/1' 
               : blok.flex_items?.length === 2 ? 'md:*:basis-1/2' 
               : blok.flex_items?.length === 3 ? 'md:*:basis-1/3' 
@@ -34,7 +37,8 @@ export default function Flex({ blok }: FlexProps) {
 
   // Determine flex direction classes based on on_mobile setting
   const flexClasses = cn(
-    'flex justify-between items-center',
+    'relative flex justify-between',
+    blok.vertical_align_items === 'stretch' && '[&>.rich-text]:relative [&>.rich-text]:flex-1 [&>.rich-text]:flex [&>.rich-text]:flex-col [&>.rich-text]:justify-between',
     alignItems,
     gapClass,
     basis,
