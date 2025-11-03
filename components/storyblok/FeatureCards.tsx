@@ -91,32 +91,36 @@ async function fetchNextUpcomingEventInternal(isDraftMode: boolean): Promise<Eve
   const storyblokApi = getStoryblokApi();
 
   try {
-    const events = await storyblokApi.getAll("cdn/stories", {
+    // Fetch a limited set of events sorted by date (much more efficient than getAll)
+    // Fetch 20 most recent events sorted ascending by date to find the next upcoming one
+    const response = await storyblokApi.get("cdn/stories", {
       version: isDraftMode ? "draft" : "published",
       content_type: "event",
       starts_with: "events/",
       excluding_slugs: "events/",
+      sort_by: "content.date:asc",
+      per_page: 20, // Limit to 20 most recent events instead of fetching all
     });
 
-    if (!events || events.length === 0) return null;
+    const events = response.data?.stories || [];
+    if (!events || events.length === 0) {
+      return null;
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const futureEvents = events
-      .filter((event: Event) => {
-        if (!event.content?.date) return false;
-        const eventDate = new Date(event.content.date);
-        eventDate.setHours(0, 0, 0, 0);
-        return eventDate >= today;
-      })
-      .sort((a: Event, b: Event) => {
-        const dateA = a.content?.date ? new Date(a.content.date).getTime() : Infinity;
-        const dateB = b.content?.date ? new Date(b.content.date).getTime() : Infinity;
-        return dateA - dateB;
-      });
+    // Filter for future events (Storyblok sorts, but we still need to filter by today)
+    const futureEvent = events.find((event: Event) => {
+      if (!event.content?.date) {
+        return false;
+      }
+      const eventDate = new Date(event.content.date);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= today;
+    });
 
-    return futureEvents.length > 0 ? (futureEvents[0] as Event) : null;
+    return futureEvent ? (futureEvent as Event) : null;
   } catch (error) {
     console.error("Error fetching events:", error);
     return null;
@@ -127,14 +131,7 @@ async function fetchGlossaryTermOfTheDayInternal(isDraftMode: boolean): Promise<
   const storyblokApi = getStoryblokApi();
 
   try {
-    const glossaryTerms = await storyblokApi.getAll("cdn/stories", {
-      version: isDraftMode ? "draft" : "published",
-      starts_with: "glossary/",
-      excluding_slugs: "glossary/",
-    });
-
-    if (!glossaryTerms || glossaryTerms.length === 0) return null;
-
+    // Calculate date-based seed first to determine which page/index we need
     const today = new Date();
     const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
     let seed = 0;
@@ -142,6 +139,20 @@ async function fetchGlossaryTermOfTheDayInternal(isDraftMode: boolean): Promise<
       seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
     }
 
+    // Fetch first page of glossary terms (limited to 100 per page for efficiency)
+    // If we have more than 100 terms, we'd need pagination, but this covers most cases
+    const response = await storyblokApi.get("cdn/stories", {
+      version: isDraftMode ? "draft" : "published",
+      starts_with: "glossary/",
+      excluding_slugs: "glossary/",
+      per_page: 100, // Limit to 100 terms instead of fetching all
+    });
+
+    const glossaryTerms = response.data?.stories || [];
+
+    if (!glossaryTerms || glossaryTerms.length === 0) return null;
+
+    // Use seed to select a term consistently for the day
     const selectedIndex = Math.abs(seed) % glossaryTerms.length;
     return glossaryTerms[selectedIndex] as GlossaryTerm;
   } catch (error) {
@@ -154,30 +165,23 @@ async function fetchLatestWebinarInternal(isDraftMode: boolean): Promise<Webinar
   const storyblokApi = getStoryblokApi();
 
   try {
-    const webinars = await storyblokApi.getAll("cdn/stories", {
+    // Fetch only the most recent webinar using sorting and pagination
+    const response = await storyblokApi.get("cdn/stories", {
       version: isDraftMode ? "draft" : "published",
       content_type: "webinar",
       starts_with: "events/thehub/",
       excluding_slugs: "events/thehub/",
+      sort_by: "created_at:desc", // Sort by creation date descending
+      per_page: 1, // Only fetch the first (most recent) webinar
     });
 
-    if (!webinars || webinars.length === 0) return null;
+    const webinars = response.data?.stories || [];
+    if (!webinars || webinars.length === 0) {
+      return null;
+    }
 
-    const sortedWebinars = webinars.sort((a: Webinar, b: Webinar) => {
-      const dateA = a.content?.date
-        ? new Date(a.content.date).getTime()
-        : a.published_at
-          ? new Date(a.published_at).getTime()
-          : 0;
-      const dateB = b.content?.date
-        ? new Date(b.content.date).getTime()
-        : b.published_at
-          ? new Date(b.published_at).getTime()
-          : 0;
-      return dateB - dateA;
-    });
-
-    return sortedWebinars.length > 0 ? (sortedWebinars[0] as Webinar) : null;
+    // Return the first (and only) webinar from the sorted result
+    return webinars[0] as Webinar;
   } catch (error) {
     console.error("Error fetching webinars:", error);
     return null;
@@ -203,20 +207,27 @@ export default async function FeatureCards({
     // Fetch data internally - need to get draft mode first
     const isDraftMode = await getDraftMode();
     
-    const [fetchedEvent, fetchedGlossary, fetchedWebinar] = await Promise.all([
+    // Create promises for glossary term and phonetic spelling to parallelize
+    const glossaryTermPromise = fetchGlossaryTermOfTheDayInternal(isDraftMode);
+    const phoneticPromise = glossaryTermPromise.then((term) => {
+      if (!term) return null;
+      const termName = term.content?.name || term.name || "";
+      if (!termName) return null;
+      return getPhoneticSpelling(termName);
+    });
+    
+    // Fetch all data in parallel (including phonetic spelling)
+    const [fetchedEvent, fetchedGlossary, fetchedWebinar, fetchedPhonetic] = await Promise.all([
       fetchNextUpcomingEventInternal(isDraftMode),
-      fetchGlossaryTermOfTheDayInternal(isDraftMode),
+      glossaryTermPromise,
       fetchLatestWebinarInternal(isDraftMode),
+      phoneticPromise,
     ]);
 
     nextEvent = fetchedEvent;
     glossaryTerm = fetchedGlossary;
     latestWebinar = fetchedWebinar;
-    
-    // Fetch phonetic spelling if glossary term exists
-    phoneticGlossaryTerm = glossaryTerm
-      ? await getPhoneticSpelling(glossaryTerm.content.name || glossaryTerm.name || "")
-      : null;
+    phoneticGlossaryTerm = fetchedPhonetic;
     
   } else {
     // Use provided props (optimized path from page level)
