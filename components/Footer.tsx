@@ -31,7 +31,7 @@ export default async function Footer({ footerData }: { footerData: any }) {
         <div className="max-w-maxw mx-auto flex flex-col md:flex-row items-start py-16 font-medium justify-between gap-8 px-container">
           {footerData ? (
             <>
-              <div className="flex gap-16 justify-between w-full md:w-auto">
+              <div className="flex flex-col md:flex-row gap-2 md:gap-16 justify-between w-full md:w-auto [&_a]:border-b border-qreen-dark/30 md:[&_a]:border-b-0 [&_a]:pb-2 md:[&_a]:pb-0">
                 <div className="flex flex-col gap-2 basis-1/3">
                   {footerData.linklist_1.map((link: NavigationLinkData) => (
                     <Link href={normalizeStoryblokUrl(link.link?.cached_url)} key={link.name}>
