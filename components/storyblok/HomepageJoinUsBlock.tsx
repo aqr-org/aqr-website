@@ -20,8 +20,8 @@ export default function HomepageJoinUsBlock({ blok }: HomepageJoinUsBlockProps) 
       <div className='absolute left-1/2 -translate-x-1/2 -top-36'>
         <RectanglesAligned />
       </div>
-      <div className='relative z-10 w-full max-w-maxw mx-auto px-container pt-32 pb-12 md:flex gap-12'>
-        <h2 className='uppercase tracking-[0.03em] basis-1/6'>Join Us</h2>
+      <div className='relative z-10 w-full max-w-maxw mx-auto px-container pt-32 pb-12 md:flex gap-4'>
+        <h2 className='uppercase tracking-[0.03em] basis-36 shrink-0'>Join Us</h2>
         <div>
           <p className='text-4xl md:text-6xl tracking-[-3%] leading-[0.95]'>
             {blok.headline}

@@ -21,8 +21,8 @@ interface Homepage_joinus_benefitsProps {
 export default function Homepage_joinus_benefits({ blok }: Homepage_joinus_benefitsProps) {
   return (
     <div {...storyblokEditable(blok)}>
-      <div className='max-w-maxw mx-auto px-container py-12 md:flex'>
-        <h2 className='uppercase tracking-[0.03em] leading-[0.95] basis-36'>{blok.subhead}</h2>
+      <div className='max-w-maxw mx-auto px-container py-12 md:flex md:gap-4'>
+        <h2 className='uppercase tracking-[0.03em] leading-[0.95] basis-36 shrink-0'>{blok.subhead}</h2>
         <div className='pr-36'>
           <p className='text-4xl md:text-[6.25rem] tracking-[-0.1875rem] leading-[0.95]'>
             <span className='group inline-block relative hover:text-qreen-dark'>
@@ -49,7 +49,7 @@ export default function Homepage_joinus_benefits({ blok }: Homepage_joinus_benef
               <div className='flex items-start gap-4' key={benefitBlok._uid}>
                 <svg width="37" height="37" viewBox="0 0 37 37" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="18.5" cy="18.5" r="18.5" fill="#7BBD40"/>
-                <path d="M8.70806 17.6851L16.2295 25.8934L27.4824 11.8071" stroke="#FCFAF0" stroke-width="2"/>
+                <path d="M8.70806 17.6851L16.2295 25.8934L27.4824 11.8071" stroke="#FCFAF0" strokeWidth="2"/>
                 </svg>
                 <StoryblokServerComponent blok={benefitBlok} />
               </div>

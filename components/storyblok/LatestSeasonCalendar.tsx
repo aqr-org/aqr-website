@@ -197,8 +197,8 @@ export default async function LatestSeasonCalendar({ blok, events: eventsProp }:
         className="absolute inset-0 z-0 w-full h-full object-cover opacity-50" 
       />
       <div className="relative z-10 w-full max-w-maxw mx-auto px-container py-36">
-        <div className="md:flex md:gap-12">
-          <h2 className="uppercase tracking-[0.03em]">Events</h2>
+        <div className="md:flex md:gap-4">
+          <h2 className="uppercase tracking-[0.03em] basis-36 shrink-0">Events</h2>
           <div>
             {seasonsToDisplay.map((seasonData, seasonIndex) => (
               <div key={seasonData.key}>
