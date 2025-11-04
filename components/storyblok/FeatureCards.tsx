@@ -6,6 +6,7 @@ import Image from "next/image";
 import MemberCardBG from "@/components/svgs/MemberCardBG";
 import { getStoryblokApi } from "@/lib/storyblok";
 import { getPhoneticSpelling } from "@/lib/phonetic";
+import { unstable_cache } from "next/cache";
 
 // Helper function to get draft mode dynamically (avoids build errors when component is imported in client contexts)
 async function getDraftMode(): Promise<boolean> {
@@ -128,37 +129,52 @@ async function fetchNextUpcomingEventInternal(isDraftMode: boolean): Promise<Eve
 }
 
 async function fetchGlossaryTermOfTheDayInternal(isDraftMode: boolean): Promise<GlossaryTerm | null> {
-  const storyblokApi = getStoryblokApi();
+  // Calculate date-based seed for cache key
+  const today = new Date();
+  const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const cacheKey = `glossary-term-${dateString}-${isDraftMode ? 'draft' : 'published'}`;
 
-  try {
-    // Calculate date-based seed first to determine which page/index we need
-    const today = new Date();
-    const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-    let seed = 0;
-    for (let i = 0; i < dateString.length; i++) {
-      seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+  // Cache the fetch operation for 24 hours (86400 seconds)
+  // This ensures we only fetch once per day, regardless of how many times the component renders
+  const getCachedTerm = unstable_cache(
+    async () => {
+      const storyblokApi = getStoryblokApi();
+
+      try {
+        // Calculate seed for selecting the term
+        let seed = 0;
+        for (let i = 0; i < dateString.length; i++) {
+          seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+        }
+
+        // Fetch first page of glossary terms (limited to 100 per page for efficiency)
+        const response = await storyblokApi.get("cdn/stories", {
+          version: isDraftMode ? "draft" : "published",
+          starts_with: "glossary/",
+          excluding_slugs: "glossary/",
+          per_page: 100,
+        });
+
+        const glossaryTerms = response.data?.stories || [];
+
+        if (!glossaryTerms || glossaryTerms.length === 0) return null;
+
+        // Use seed to select a term consistently for the day
+        const selectedIndex = Math.abs(seed) % glossaryTerms.length;
+        return glossaryTerms[selectedIndex] as GlossaryTerm;
+      } catch (error) {
+        console.error("Error fetching glossary terms:", error);
+        return null;
+      }
+    },
+    [cacheKey],
+    {
+      revalidate: 86400, // 24 hours in seconds
+      tags: [`glossary-term-${dateString}`],
     }
+  );
 
-    // Fetch first page of glossary terms (limited to 100 per page for efficiency)
-    // If we have more than 100 terms, we'd need pagination, but this covers most cases
-    const response = await storyblokApi.get("cdn/stories", {
-      version: isDraftMode ? "draft" : "published",
-      starts_with: "glossary/",
-      excluding_slugs: "glossary/",
-      per_page: 100, // Limit to 100 terms instead of fetching all
-    });
-
-    const glossaryTerms = response.data?.stories || [];
-
-    if (!glossaryTerms || glossaryTerms.length === 0) return null;
-
-    // Use seed to select a term consistently for the day
-    const selectedIndex = Math.abs(seed) % glossaryTerms.length;
-    return glossaryTerms[selectedIndex] as GlossaryTerm;
-  } catch (error) {
-    console.error("Error fetching glossary terms:", error);
-    return null;
-  }
+  return getCachedTerm();
 }
 
 async function fetchLatestWebinarInternal(isDraftMode: boolean): Promise<Webinar | null> {
@@ -209,11 +225,16 @@ export default async function FeatureCards({
     
     // Create promises for glossary term and phonetic spelling to parallelize
     const glossaryTermPromise = fetchGlossaryTermOfTheDayInternal(isDraftMode);
-    const phoneticPromise = glossaryTermPromise.then((term) => {
+    const phoneticPromise = glossaryTermPromise.then(async (term) => {
       if (!term) return null;
       const termName = term.content?.name || term.name || "";
       if (!termName) return null;
-      return getPhoneticSpelling(termName);
+      try {
+        return await getPhoneticSpelling(termName);
+      } catch (error) {
+        console.error("Error fetching phonetic spelling:", error);
+        return null;
+      }
     });
     
     // Fetch all data in parallel (including phonetic spelling)

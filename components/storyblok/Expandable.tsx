@@ -52,7 +52,7 @@ export default function Expandable(props: ExpandableProps) {
           aria-expanded={isOpen}
           aria-controls={`expandable-content-${uid}`}
         >
-          <span className="font-semibold text-[1.375rem] leading-tight flex-1">{summary}</span>
+          <span className="font-semibold text-[1.375rem] tracking-tight leading-tight flex-1">{summary}</span>
         </CollapsibleTrigger>
         <CollapsibleContent
           id={`expandable-content-${uid}`}

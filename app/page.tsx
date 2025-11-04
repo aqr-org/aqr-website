@@ -3,6 +3,7 @@ import { StoryblokStory, storyblokEditable } from '@storyblok/react/rsc';
 import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import { HomepageDataProvider } from '@/components/storyblok/HomepageDataContext';
+import { unstable_cache } from 'next/cache';
 
 interface Event {
   id: string;
@@ -94,60 +95,70 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
 }
 
 async function fetchGlossaryTermOfTheDay(isDraftMode: boolean): Promise<GlossaryTerm | null> {
-  const storyblokApi = getStoryblokApi();
+  // Calculate date-based seed for cache key
+  const today = new Date();
+  const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const cacheKey = `glossary-term-${dateString}-${isDraftMode ? 'draft' : 'published'}`;
 
-  try {
-    // Calculate date-based seed first to determine which page/index we need
-    const today = new Date();
-    const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-    let seed = 0;
-    for (let i = 0; i < dateString.length; i++) {
-      seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
-    }
+  // Cache the fetch operation for 24 hours (86400 seconds)
+  // This ensures we only fetch once per day, regardless of how many times the component renders
+  const getCachedTerm = unstable_cache(
+    async () => {
+      const storyblokApi = getStoryblokApi();
 
-    // Fetch first page of glossary terms (limited to 100 per page for efficiency)
-    // If we have more than 100 terms, we'd need pagination, but this covers most cases
-    const response = await storyblokApi.get("cdn/stories", {
-      version: isDraftMode ? "draft" : "published",
-      starts_with: "glossary/",
-      excluding_slugs: "glossary/",
-      per_page: 100, // Limit to 100 terms instead of fetching all
-    });
+      try {
+        // Calculate seed for selecting the term
+        let seed = 0;
+        for (let i = 0; i < dateString.length; i++) {
+          seed = ((seed << 5) - seed + dateString.charCodeAt(i)) & 0xffffffff;
+        }
 
-    const glossaryTerms = response.data?.stories || [];
+        // Fetch first page of glossary terms (limited to 100 per page for efficiency)
+        const response = await storyblokApi.get("cdn/stories", {
+          version: isDraftMode ? "draft" : "published",
+          starts_with: "glossary/",
+          excluding_slugs: "glossary/",
+          per_page: 100,
+        });
 
-    console.log("[fetchGlossaryTermOfTheDay] Total glossary terms fetched:", glossaryTerms?.length);
+        const glossaryTerms = response.data?.stories || [];
 
-    if (!glossaryTerms || glossaryTerms.length === 0) {
-      console.log("[fetchGlossaryTermOfTheDay] No glossary terms found");
-      return null;
-    }
+        if (!glossaryTerms || glossaryTerms.length === 0) {
+          return null;
+        }
 
-    // Use seed to select a term consistently for the day
-    const selectedIndex = Math.abs(seed) % glossaryTerms.length;
-    const result = glossaryTerms[selectedIndex] as GlossaryTerm;
-    console.log("[fetchGlossaryTermOfTheDay] Selected term:", result.slug, result.content?.name || result.name);
-    return result;
-  } catch (error) {
-    console.error("Error fetching glossary terms:", error);
-    // Fallback to random selection with limited fetch
-    try {
-      const response = await storyblokApi.get("cdn/stories", {
-        version: isDraftMode ? "draft" : "published",
-        starts_with: "glossary/",
-        excluding_slugs: "glossary/",
-        per_page: 100,
-      });
-      const glossaryTerms = response.data?.stories || [];
-      if (glossaryTerms && glossaryTerms.length > 0) {
-        const randomIndex = Math.floor(Math.random() * glossaryTerms.length);
-        return glossaryTerms[randomIndex] as GlossaryTerm;
+        // Use seed to select a term consistently for the day
+        const selectedIndex = Math.abs(seed) % glossaryTerms.length;
+        return glossaryTerms[selectedIndex] as GlossaryTerm;
+      } catch (error) {
+        console.error("Error fetching glossary terms:", error);
+        // Fallback to random selection with limited fetch
+        try {
+          const response = await storyblokApi.get("cdn/stories", {
+            version: isDraftMode ? "draft" : "published",
+            starts_with: "glossary/",
+            excluding_slugs: "glossary/",
+            per_page: 100,
+          });
+          const glossaryTerms = response.data?.stories || [];
+          if (glossaryTerms && glossaryTerms.length > 0) {
+            const randomIndex = Math.floor(Math.random() * glossaryTerms.length);
+            return glossaryTerms[randomIndex] as GlossaryTerm;
+          }
+        } catch (fallbackError) {
+          console.error("Error in fallback glossary fetch:", fallbackError);
+        }
+        return null;
       }
-    } catch (fallbackError) {
-      console.error("Error in fallback glossary fetch:", fallbackError);
+    },
+    [cacheKey],
+    {
+      revalidate: 86400, // 24 hours in seconds
+      tags: [`glossary-term-${dateString}`],
     }
-    return null;
-  }
+  );
+
+  return getCachedTerm();
 }
 
 async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null> {
