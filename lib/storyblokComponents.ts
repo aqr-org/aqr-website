@@ -19,6 +19,7 @@ import TestimonialCarousel from '@/components/storyblok/TestimonialCarousel';
 import Expandable from '@/components/storyblok/Expandable';
 import Homepage_joinus_benefits from '@/components/storyblok/Homepage_joinus_benefits';
 import Homepage_awards_section from '@/components/storyblok/Homepage_awards_section';
+import PodcastCard from '@/components/storyblok/PodcastCard';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -42,6 +43,7 @@ const components = {
   expandable: Expandable,
   homepage_joinus_benefits: Homepage_joinus_benefits,
   homepage_awards_section: Homepage_awards_section,
+  podcast_card: PodcastCard,
 };
 
 export default components ;

@@ -70,6 +70,18 @@
     transform: scaleY(100%);
   }
 }
+@keyframes shrinkGrowExtreme {
+  0% {
+    transform: scaleY(100%);
+
+  }
+  50% {
+    transform: scaleY(30%);
+  }
+  100% {
+    transform: scaleY(100%);
+  }
+}
 
 @keyframes collapsibleDown {
   from {
@@ -103,6 +115,17 @@
   --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-fade-in: fadeInAnimation 0.5s ease-in-out forwards;
   --animate-shrink-grow: shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-1: shrinkGrowExtreme 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-2: shrinkGrowExtreme 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-3: shrinkGrowExtreme 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-4: shrinkGrowExtreme 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-5: shrinkGrowExtreme 1s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-6: shrinkGrowExtreme 1.1s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-7: shrinkGrowExtreme 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-8: shrinkGrowExtreme 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-9: shrinkGrowExtreme 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-10: shrinkGrowExtreme 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-11: shrinkGrowExtreme 0.65s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-collapsible-down: collapsibleDown 0.2s ease-out forwards;
   --animate-collapsible-up: collapsibleUp 0.2s ease-out forwards;
 }
@@ -126,6 +149,39 @@ html {
 @layer utilities {
   .animate-shrink-grow {
     animation: var(--animate-shrink-grow);
+  }
+  .animate-shrink-grow-1 {
+    animation: var(--animate-shrink-grow-1);
+  }
+  .animate-shrink-grow-2 {
+    animation: var(--animate-shrink-grow-2);
+  }
+  .animate-shrink-grow-3 {
+    animation: var(--animate-shrink-grow-3);
+  }
+  .animate-shrink-grow-4 {
+    animation: var(--animate-shrink-grow-4);
+  }
+  .animate-shrink-grow-5 {
+    animation: var(--animate-shrink-grow-5);
+  }
+  .animate-shrink-grow-6 {
+    animation: var(--animate-shrink-grow-6);
+  }
+  .animate-shrink-grow-7 {
+    animation: var(--animate-shrink-grow-7);
+  }
+  .animate-shrink-grow-8 {
+    animation: var(--animate-shrink-grow-8);
+  }
+  .animate-shrink-grow-9 {
+    animation: var(--animate-shrink-grow-9);
+  }
+  .animate-shrink-grow-10 {
+    animation: var(--animate-shrink-grow-10);
+  }
+  .animate-shrink-grow-11 {
+    animation: var(--animate-shrink-grow-11);
   }
   .animate-collapsible-down {
     animation: var(--animate-collapsible-down);
