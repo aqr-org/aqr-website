@@ -21,10 +21,10 @@ interface Homepage_joinus_benefitsProps {
 export default function Homepage_joinus_benefits({ blok }: Homepage_joinus_benefitsProps) {
   return (
     <div {...storyblokEditable(blok)}>
-      <div className='max-w-maxw mx-auto px-container py-12 md:flex md:gap-4'>
+      <div className='max-w-maxw mx-auto px-container py-12 lg:flex md:gap-4'>
         <h2 className='uppercase tracking-[0.03em] leading-[0.95] basis-36 shrink-0 mb-4'>{blok.subhead}</h2>
-        <div className='md:pr-36'>
-          <p className='text-4xl md:text-[6.25rem] tracking-[-0.1875rem] leading-[0.95]'>
+        <div className='lg:pr-36'>
+          <p className='text-5xl hyphens-auto md:hyphens-manual md:text-6xl lg:text-[6.25rem] tracking-[-0.1875rem] leading-[0.95]'>
             <Link href={normalizeStoryblokUrl(blok.link.cached_url)} className='group inline-block relative hover:text-qreen-dark no-underline!'>
               Join AQR, 
               <svg 

@@ -25,9 +25,9 @@ interface Homepage_awards_sectionProps {
 export default function Homepage_awards_section({ blok }: Homepage_awards_sectionProps) {
   return (
     <div {...storyblokEditable(blok)} className="bg-[url('/bg_blurred_circles.svg')] bg-cover bg-center">
-      <div className='max-w-maxw mx-auto px-container py-24 md:flex md:gap-4'>
-        <h2 className='uppercase tracking-[0.03em] leading-[0.95] basis-36 shrink-0'>{blok.subtitle}</h2>
-        <div className='md:pr-36'>
+      <div className='max-w-maxw mx-auto px-container py-24 lg:flex lg:gap-4'>
+        <h2 className='uppercase tracking-[0.03em] leading-[0.95] basis-36 shrink-0 mb-4'>{blok.subtitle}</h2>
+        <div className='lg:pr-36'>
           <div>
             <p className='text-4xl md:text-[3.75rem] tracking-[-0.08rem] leading-[0.95]'>{blok.title}</p>
             <div className='flex flex-col md:flex-row gap-12 my-12'>
