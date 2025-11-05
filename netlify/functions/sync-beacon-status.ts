@@ -18,15 +18,6 @@ interface Company {
   beacon_membership_status?: string | null;
 }
 
-interface SyncLog {
-  entity_type: 'member' | 'company';
-  member_id?: string | null;
-  company_id?: string | null;
-  old_status: string | null;
-  new_status: string;
-  beacon_membership_id: string;
-}
-
 /**
  * Fetches a membership entity from BeaconCRM API with retry logic for rate limits
  */
@@ -90,8 +81,17 @@ async function fetchBeaconMembership(membershipId: string, retries = 2): Promise
 
 /**
  * Syncs a single member's membership status
+ * Returns update details object if an update was made, null otherwise
  */
-async function syncMemberStatus(member: Member): Promise<SyncLog | null> {
+async function syncMemberStatus(member: Member): Promise<{
+  entity_type: 'member';
+  member_id: string;
+  company_id: null;
+  member_email: string;
+  old_status: string | null;
+  new_status: string;
+  beacon_membership_id: string;
+} | null> {
   const membershipEntity = await fetchBeaconMembership(member.beacon_membership);
 
   if (!membershipEntity) {
@@ -126,23 +126,36 @@ async function syncMemberStatus(member: Member): Promise<SyncLog | null> {
     return null;
   }
 
-  console.log(`Updated member ${member.id} (${member.email}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
-
-  // Return log entry
-  return {
-    entity_type: 'member',
+  const updateDetail = {
+    entity_type: 'member' as const,
     member_id: member.id,
     company_id: null,
+    member_email: member.email,
     old_status: normalizedCurrentStatus,
     new_status: normalizedBeaconStatus || '',
     beacon_membership_id: member.beacon_membership,
   };
+
+  // Log detailed update information (matching what was in beacon_sync_logs table)
+  console.log(`[STATUS_UPDATE] ${JSON.stringify(updateDetail)}`);
+  console.log(`Updated member ${member.id} (${member.email}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
+  
+  return updateDetail;
 }
 
 /**
  * Syncs a single company's membership status
+ * Returns update details object if an update was made, null otherwise
  */
-async function syncCompanyStatus(company: Company): Promise<SyncLog | null> {
+async function syncCompanyStatus(company: Company): Promise<{
+  entity_type: 'company';
+  member_id: null;
+  company_id: string;
+  company_name: string;
+  old_status: string | null;
+  new_status: string;
+  beacon_membership_id: string;
+} | null> {
   const membershipEntity = await fetchBeaconMembership(company.beacon_membership_id);
 
   if (!membershipEntity) {
@@ -177,76 +190,21 @@ async function syncCompanyStatus(company: Company): Promise<SyncLog | null> {
     return null;
   }
 
-  console.log(`Updated company ${company.id} (${company.name}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
-
-  // Return log entry
-  return {
-    entity_type: 'company',
+  const updateDetail = {
+    entity_type: 'company' as const,
     member_id: null,
     company_id: company.id,
+    company_name: company.name,
     old_status: normalizedCurrentStatus,
     new_status: normalizedBeaconStatus || '',
     beacon_membership_id: company.beacon_membership_id,
   };
-}
 
-/**
- * Logs sync operations to beacon_sync_logs table
- */
-async function logSyncOperations(logs: SyncLog[]): Promise<void> {
-  if (logs.length === 0) {
-    return;
-  }
-
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('beacon_sync_logs')
-    .insert(logs);
-
-  if (error) {
-    // Don't fail the sync if logging fails - table might not exist yet
-    if (error.code === 'PGRST205') {
-      console.warn('beacon_sync_logs table not found. Please run the migrations: supabase/migrations/create_beacon_sync_logs.sql and supabase/migrations/update_beacon_sync_logs_for_companies.sql');
-    } else {
-      console.error('Failed to insert sync logs:', error);
-    }
-  } else {
-    const memberLogs = logs.filter(log => log.entity_type === 'member').length;
-    const companyLogs = logs.filter(log => log.entity_type === 'company').length;
-    console.log(`Logged ${logs.length} status update(s) (${memberLogs} members, ${companyLogs} companies)`);
-  }
-}
-
-/**
- * Cleans up logs older than 7 days
- */
-async function cleanupOldLogs(): Promise<void> {
-  const supabase = createClient();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  // First get count of records to delete
-  const { count: countBefore } = await supabase
-    .from('beacon_sync_logs')
-    .select('*', { count: 'exact', head: true })
-    .lt('created_at', sevenDaysAgo.toISOString());
-
-  // Delete old logs
-  const { error } = await supabase
-    .from('beacon_sync_logs')
-    .delete()
-    .lt('created_at', sevenDaysAgo.toISOString());
-
-  if (error) {
-    // Don't fail if table doesn't exist yet
-    if (error.code === 'PGRST205') {
-      console.warn('beacon_sync_logs table not found. Skipping cleanup.');
-    } else {
-      console.error('Failed to cleanup old logs:', error);
-    }
-  } else {
-    console.log(`Cleaned up ${countBefore || 0} log entries older than 7 days`);
-  }
+  // Log detailed update information (matching what was in beacon_sync_logs table)
+  console.log(`[STATUS_UPDATE] ${JSON.stringify(updateDetail)}`);
+  console.log(`Updated company ${company.id} (${company.name}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
+  
+  return updateDetail;
 }
 
 /**
@@ -257,7 +215,7 @@ async function syncBeaconStatuses(
   event?: any,
   context?: any
 ): Promise<{ statusCode: number; body: string }> {
-  console.log('Starting Beacon membership status sync...');
+  console.log('=== Starting Beacon membership status sync ===');
   const startTime = Date.now();
 
   try {
@@ -299,6 +257,7 @@ async function syncBeaconStatuses(
 
     if (totalEntities === 0) {
       console.log('No members or companies with beacon_membership found');
+      console.log('=== Function ran successfully: No entities to sync ===');
       return {
         statusCode: 200,
         body: JSON.stringify({ message: 'No entities to sync', synced: 0, updated: 0 }),
@@ -311,12 +270,22 @@ async function syncBeaconStatuses(
     // Limit processing to stay within 30s Netlify function timeout
     const maxProcessingTime = 25000; // 25 seconds, leave 5s buffer
     const startProcessingTime = Date.now();
-    const syncLogs: SyncLog[] = [];
     let updatedMemberCount = 0;
     let updatedCompanyCount = 0;
     let errorCount = 0;
     let processedMemberCount = 0;
     let processedCompanyCount = 0;
+    // Track all updates for detailed logging
+    const updateDetails: Array<{
+      entity_type: 'member' | 'company';
+      member_id?: string | null;
+      company_id?: string | null;
+      member_email?: string;
+      company_name?: string;
+      old_status: string | null;
+      new_status: string;
+      beacon_membership_id: string;
+    }> = [];
 
     // Process in smaller batches with rate limiting protection
     const batchSize = 3; // Reduced to avoid 429 rate limits
@@ -393,11 +362,11 @@ async function syncBeaconStatuses(
       const batch = membersToProcess.slice(i, i + batchSize);
       for (const member of batch) {
         try {
-          const log = await syncMemberStatus(member);
+          const updateDetail = await syncMemberStatus(member);
           processedMemberCount++;
-          if (log) {
-            syncLogs.push(log);
+          if (updateDetail) {
             updatedMemberCount++;
+            updateDetails.push(updateDetail);
           }
         } catch (error) {
           processedMemberCount++;
@@ -427,11 +396,11 @@ async function syncBeaconStatuses(
       const batch = companiesToProcess.slice(i, i + batchSize);
       for (const company of batch) {
         try {
-          const log = await syncCompanyStatus(company);
+          const updateDetail = await syncCompanyStatus(company);
           processedCompanyCount++;
-          if (log) {
-            syncLogs.push(log);
+          if (updateDetail) {
             updatedCompanyCount++;
+            updateDetails.push(updateDetail);
           }
         } catch (error) {
           processedCompanyCount++;
@@ -448,16 +417,27 @@ async function syncBeaconStatuses(
       }
     }
 
+    const duration = Date.now() - startTime;
     const processedCount = processedMemberCount + processedCompanyCount;
     const updatedCount = updatedMemberCount + updatedCompanyCount;
-
-    // Log all updates
-    await logSyncOperations(syncLogs);
-
-    // Cleanup old logs
-    await cleanupOldLogs();
-
-    const duration = Date.now() - startTime;
+    
+    // Explicit logging for Netlify dashboard
+    if (updatedCount === 0) {
+      console.log(`=== Function ran successfully: No changes to Supabase required ===`);
+      console.log(`Processed ${processedCount} entities (${processedMemberCount} members, ${processedCompanyCount} companies)`);
+      console.log(`All statuses are up to date. Duration: ${duration}ms`);
+    } else {
+      console.log(`=== Function ran successfully: Made ${updatedCount} change(s) to Supabase ===`);
+      console.log(`Updated ${updatedMemberCount} member(s) and ${updatedCompanyCount} company(ies)`);
+      console.log(`Processed ${processedCount} entities total. Duration: ${duration}ms`);
+      
+      // Log all updates in a structured format (matching beacon_sync_logs table structure)
+      console.log(`=== All Status Updates (${updateDetails.length} total) ===`);
+      updateDetails.forEach((update, index) => {
+        console.log(`[UPDATE ${index + 1}/${updateDetails.length}] ${JSON.stringify(update)}`);
+      });
+    }
+    
     const summary = {
       message: processedCount < (membersToProcess.length + companiesToProcess.length) ? 'Sync partially completed (timeout protection)' : 'Sync completed',
       rotation: {
@@ -480,19 +460,21 @@ async function syncBeaconStatuses(
         companies: updatedCompanyCount,
         total: updatedCount,
       },
-      synced: syncLogs.length,
       errors: errorCount,
       durationMs: duration,
     };
 
-    console.log(`Sync completed: ${JSON.stringify(summary)}`);
+    console.log(`Sync summary: ${JSON.stringify(summary, null, 2)}`);
+    console.log('=== Beacon sync completed ===');
 
     return {
       statusCode: 200,
       body: JSON.stringify(summary),
     };
   } catch (error) {
-    console.error('Unexpected error during sync:', error);
+    console.error('=== Unexpected error during sync ===');
+    console.error('Error details:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
     return {
       statusCode: 500,
       body: JSON.stringify({ 
@@ -506,8 +488,14 @@ async function syncBeaconStatuses(
 // Export the scheduled function handler
 // Runs daily at midnight UTC
 export const handler = schedule('@daily', async (event, context) => {
+  console.log('=== Netlify scheduled function triggered ===');
+  console.log('Event:', JSON.stringify(event, null, 2));
+  
   try {
     const result = await syncBeaconStatuses(event, context);
+    
+    console.log('=== Handler completed successfully ===');
+    console.log(`Status: ${result.statusCode}`);
     
     // schedule() wrapper handles both formats - return HandlerResponse
     // For manual HTTP invocations, Netlify will show a warning but still return the body
@@ -516,7 +504,10 @@ export const handler = schedule('@daily', async (event, context) => {
       body: result.body,
     };
   } catch (error) {
-    console.error('Handler error:', error);
+    console.error('=== Handler error ===');
+    console.error('Error:', error);
+    console.error('Stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     const errorBody = JSON.stringify({
       error: 'Function execution failed',
       details: error instanceof Error ? error.message : String(error),
