@@ -12,10 +12,95 @@ interface RichTextProps {
   }
 }
 
+/**
+ * Cleans MS Word artifacts from Storyblok rich text content
+ * - Removes excessive non-breaking spaces (if >30% of spaces are NBSP, replace all)
+ * - Removes other invisible/hidden Word characters
+ * - Preserves all intentional formatting (h1, h2, bold, italic, etc.)
+ */
+function cleanStoryblokContent(content: any): any {
+  if (!content) return content;
+
+  // If content is a string, parse it first
+  if (typeof content === 'string') {
+    try {
+      content = JSON.parse(content);
+    } catch {
+      // If it's not JSON, return as-is
+      return content;
+    }
+  }
+
+  // Recursively process the content structure
+  if (Array.isArray(content)) {
+    return content.map(cleanStoryblokContent);
+  }
+
+  if (typeof content === 'object' && content !== null) {
+    const cleaned: any = { ...content };
+
+    // If this is a text node, clean the text
+    if (content.type === 'text' && typeof content.text === 'string') {
+      cleaned.text = cleanTextContent(content.text);
+    }
+
+    // Recursively clean nested content
+    if (content.content) {
+      cleaned.content = cleanStoryblokContent(content.content);
+    }
+
+    return cleaned;
+  }
+
+  return content;
+}
+
+/**
+ * Cleans text content from MS Word artifacts
+ */
+function cleanTextContent(text: string): string {
+  if (!text) return text;
+
+  // Count non-breaking spaces (NBSP - \u00A0) and regular spaces
+  const nbspCount = (text.match(/\u00A0/g) || []).length;
+  const regularSpaceCount = (text.match(/ /g) || []).length;
+  const totalSpaces = nbspCount + regularSpaceCount;
+
+  // If more than 30% of spaces are non-breaking, replace all NBSP with regular spaces
+  // This indicates content was pasted from MS Word
+  const nbspRatio = totalSpaces > 0 ? nbspCount / totalSpaces : 0;
+  let cleaned = text;
+
+  if (nbspRatio > 0.3) {
+    // Replace all non-breaking spaces with regular spaces
+    cleaned = cleaned.replace(/\u00A0/g, ' ');
+  }
+
+  // Remove other common MS Word invisible characters
+  // Zero-width space (U+200B)
+  cleaned = cleaned.replace(/\u200B/g, '');
+  // Zero-width non-breaking space (U+FEFF)
+  cleaned = cleaned.replace(/\uFEFF/g, '');
+  // Zero-width joiner (U+200D)
+  cleaned = cleaned.replace(/\u200D/g, '');
+  // Zero-width non-joiner (U+200C)
+  cleaned = cleaned.replace(/\u200C/g, '');
+  // Soft hyphen (U+00AD) - only remove if it's not being used intentionally
+  // We'll keep soft hyphens as they might be intentional
+
+  // Remove MS Word smart quotes if they're excessive (but this is less critical)
+  // We'll keep them as they might be intentional formatting
+
+  return cleaned;
+}
+
 export default function RichText({ blok }: RichTextProps) {
+  // Clean the content before rendering
+  const cleanedContent = cleanStoryblokContent(blok.content);
+
   return (
     <div {...storyblokEditable(blok)} className="rich-text prose">
-      {render(blok.content, {
+      {render(cleanedContent, {
         blokResolvers: {
           youtube: (props: any) => <Youtube blok={props} />,
           audio: (props: any) => <Audio blok={props} />,
