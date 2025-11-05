@@ -81,8 +81,10 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
+      
+      // Redirect superadmin to superadmin panel, regular users to protected page
+      const redirectPath = superadminCheck.skipBeaconCheck ? "/superadmin" : "/protected";
+      router.push(redirectPath);
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message + '. Have you created an account already? If not, click the "Sign up" link below the Login button.' : "An error occurred");
     } finally {

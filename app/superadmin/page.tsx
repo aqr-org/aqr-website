@@ -11,11 +11,17 @@ export default async function SuperadminPage() {
 
   const userEmail = data.claims.email;
   const superadminEmail = process.env.SUPERADMIN_EMAIL;
+  const superadminEmail2 = process.env.SUPERADMIN_EMAIL2;
   const normalizedUserEmail = userEmail?.trim().toLowerCase();
   const normalizedSuperadminEmail = superadminEmail?.trim().toLowerCase();
+  const normalizedSuperadminEmail2 = superadminEmail2?.trim().toLowerCase();
 
   // Verify user is superadmin (server-side only check)
-  if (!superadminEmail || normalizedUserEmail !== normalizedSuperadminEmail) {
+  const isSuperadmin = 
+    (superadminEmail && normalizedUserEmail === normalizedSuperadminEmail) ||
+    (superadminEmail2 && normalizedUserEmail === normalizedSuperadminEmail2);
+  
+  if (!isSuperadmin) {
     // Not a superadmin, redirect to protected page
     redirect("/protected");
   }

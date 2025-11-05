@@ -17,9 +17,12 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
     const superadminEmail = process.env.SUPERADMIN_EMAIL?.trim().toLowerCase();
+    const superadminEmail2 = process.env.SUPERADMIN_EMAIL2?.trim().toLowerCase();
     
-    // Check if email matches superadmin without exposing which email it is
-    const skipBeaconCheck = superadminEmail && normalizedEmail === superadminEmail;
+    // Check if email matches either superadmin without exposing which email it is
+    const skipBeaconCheck = 
+      (superadminEmail && normalizedEmail === superadminEmail) ||
+      (superadminEmail2 && normalizedEmail === superadminEmail2);
     
     return Response.json({ skipBeaconCheck });
   } catch (error) {
