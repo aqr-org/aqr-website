@@ -11,6 +11,7 @@ import { UserRound } from "lucide-react";
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -38,6 +39,37 @@ export function AuthButton() {
 
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
+
+  // Check if user is superadmin when user email is available
+  useEffect(() => {
+    const checkSuperadmin = async () => {
+      if (!user?.email) {
+        setIsSuperadmin(false);
+        return;
+      }
+
+      try {
+        const normalizedEmail = user.email.trim().toLowerCase();
+        const response = await fetch('/api/check-superadmin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setIsSuperadmin(data.skipBeaconCheck || false);
+        } else {
+          setIsSuperadmin(false);
+        }
+      } catch (error) {
+        console.error('Error checking superadmin status:', error);
+        setIsSuperadmin(false);
+      }
+    };
+
+    checkSuperadmin();
+  }, [user?.email]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -110,13 +142,23 @@ export function AuthButton() {
           <p className="mb-2 whitespace-nowrap">
             Hello, {user.email}!
           </p>
-          <Link
-            href="/protected"
-            className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
-            role="menuitem"
-          >
-            Membership Settings
-          </Link>
+          {isSuperadmin ? (
+            <Link
+              href="/superadmin"
+              className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+              role="menuitem"
+            >
+              Superadmin Panel
+            </Link>
+          ) : (
+            <Link
+              href="/protected"
+              className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+              role="menuitem"
+            >
+              Membership Settings
+            </Link>
+          )}
           <div className="text-qreen">
             <LogoutMenuItem />
           </div>
