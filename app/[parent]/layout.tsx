@@ -24,7 +24,7 @@ export default async function SlugPageLayout({
   if (parent === 'careers' || parent === 'resources' || parent === 'podcasts' ) {
     sidebarPath = 'site-settings/resources-sidebar';
   }
-  else if (parent === 'about') {
+  else if (parent === 'about' || parent === 'heritage') {
     sidebarPath = 'site-settings/about-sidebar';
   }
   else if (parent === 'awards') {

@@ -1,6 +1,5 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory, storyblokEditable } from '@storyblok/react/rsc';
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import { HomepageDataProvider } from '@/components/storyblok/HomepageDataContext';
 import { unstable_cache } from 'next/cache';
@@ -239,7 +238,6 @@ export default async function Home() {
 
   return (
     <main className="flex-1 flex flex-col gap-20 min-h-screen" {...storyblokEditable(storyBlokStory)}>
-      <Background />
       <HomepageDataProvider
         allEvents={allEvents}
         nextEvent={nextEvent}

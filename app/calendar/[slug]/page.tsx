@@ -1,7 +1,6 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
@@ -63,7 +62,6 @@ export default async function SlugPage({ params }: PageProps) {
 
     return (
       <>
-        <Background />
         { storyBlokStory && (
           <StoryblokStory story={storyBlokStory} />
         )}

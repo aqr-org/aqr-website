@@ -1,7 +1,6 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { Metadata, ResolvingMetadata } from 'next'
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import { notFound, redirect } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
@@ -75,7 +74,7 @@ export default async function SlugPage({ params }: PageProps) {
   }
 
   return (
-    <div className='max-w-210 has-[aside]:max-w-full animate-fade-in'>
+    <div className='max-w-175 has-[aside]:max-w-full animate-fade-in'>
       {storyBlokStory && <StoryblokStory story={storyBlokStory} />}
     </div>
   );

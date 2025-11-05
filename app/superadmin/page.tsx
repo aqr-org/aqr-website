@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SuperadminPanel from "@/components/superadmin/SuperadminPanel";
-import Background from "@/components/Background";
 
 export default async function SuperadminPage() {
   const supabase = await createClient();
@@ -28,7 +27,6 @@ export default async function SuperadminPage() {
 
   return (
     <main className="flex-1 w-full max-w-240 mx-auto flex flex-col gap-12">
-      <Background/>
       <h1 className="text-3xl">Superuser Admin Panel</h1>
       <SuperadminPanel />
     </main>

@@ -10,6 +10,7 @@ import { draftMode } from 'next/headers';
 import DraftModeAlert from '@/components/storyblok/DraftModeAlert';
 import DraftModeActivate from '@/components/storyblok/DraftModeActivate';
 import BackgroundGraphics from "@/components/BackgroundGraphics";
+import Background from "@/components/Background";
 import { BackgroundColorProvider } from "@/components/BackgroundProvider";
 import { getStoryblokApi } from '@/lib/storyblok';
 import { NavigationLinkData } from '@/lib/types/navigation';
@@ -125,6 +126,7 @@ export default async function RootLayout({
           </Suspense>
           <DraftModeWrapper />
           <BackgroundColorProvider>
+            <Background />
             <BackgroundGraphics />
             {children}
           </BackgroundColorProvider>

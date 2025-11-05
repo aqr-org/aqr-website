@@ -1,6 +1,5 @@
 import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
-import Background from '@/components/Background';
 import { draftMode } from 'next/headers';
 import EventPreview from '@/components/EventPreview';
 import React from 'react';
@@ -117,7 +116,6 @@ export default async function CalendarPage() {
   
   return (
     <div className="max-w-210">
-      <Background />
       {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
         <StoryblokStory story={storyBlokStory} />
       }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useBackgroundColor, useBackgroundCss } from '@/components/BackgroundProvider';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 export default function HomePage({ color, css }: Props) {
   const setBg = useBackgroundColor();
   const setCss = useBackgroundCss();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (color) setBg(color);
@@ -92,6 +94,79 @@ export default function HomePage({ color, css }: Props) {
       window.removeEventListener('resize', onResize);
     };
   }, []);
+
+  // Scroll tracking with smooth easing
+  useEffect(() => {
+    let scrollY = 0;
+    let currentScrollDelta = 0;
+    let rafActive = false;
+    let maxScrollHeight = 0;
+    
+    // Easing factor (0-1, lower = smoother, higher = more responsive)
+    const easingFactor = 0.1;
+    
+    function updateMaxScrollHeight() {
+      // Calculate maximum scrollable height
+      const documentHeight = document.documentElement.scrollHeight;
+      const windowHeight = window.innerHeight;
+      maxScrollHeight = Math.max(0, documentHeight - windowHeight);
+    }
+    
+    function onScroll() {
+      // Get current scroll position
+      scrollY = window.scrollY || document.documentElement.scrollTop;
+      
+      if (!rafActive) {
+        rafActive = true;
+        requestAnimationFrame(updateScrollDelta);
+      }
+    }
+    
+    function onResize() {
+      updateMaxScrollHeight();
+      // Trigger scroll update to recalculate delta
+      onScroll();
+    }
+    
+    function updateScrollDelta() {
+      // Update max scroll height in case content changed
+      updateMaxScrollHeight();
+      
+      // Calculate target scroll delta (0 to 1 range, top to bottom)
+      const targetScrollDelta = maxScrollHeight > 0 
+        ? Math.max(0, Math.min(1, scrollY / maxScrollHeight))
+        : 0;
+      
+      // Apply easing to current value
+      currentScrollDelta += (targetScrollDelta - currentScrollDelta) * easingFactor;
+      
+      // Set CSS variable
+      document.documentElement.style.setProperty('--scrollYDelta', currentScrollDelta.toString());
+      
+      // Continue animation if there's still movement
+      const deltaThreshold = 0.0001; // Adjust for sensitivity
+      if (Math.abs(targetScrollDelta - currentScrollDelta) > deltaThreshold) {
+        requestAnimationFrame(updateScrollDelta);
+      } else {
+        rafActive = false;
+      }
+    }
+    
+    // Initialize max scroll height
+    updateMaxScrollHeight();
+    
+    // Start with initial scroll position
+    onScroll();
+    
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    
+    // Cleanup function
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [pathname]); // Re-run on route change to reset scroll tracking
 
   return null;
 }

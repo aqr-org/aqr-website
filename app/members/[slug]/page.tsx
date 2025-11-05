@@ -6,7 +6,6 @@ import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
-import Background from '@/components/Background';
 
 async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   try {
@@ -105,10 +104,9 @@ export default async function ComnpaniesPage({
   if (storyblokStory) {
     // Render Storyblok story
     return (
-      <main>
-        <Background />
+      <div className='max-w-175 has-[aside]:max-w-full animate-fade-in' >
         <StoryblokStory story={storyblokStory} />
-      </main>
+      </div>
     );
   }
 
