@@ -282,11 +282,11 @@ export default async function FeatureCards({
         </div>
       ),
       content: (
-        <div className="w-full space-y-12">
-          <p className="group-hover:text-qellow transition-all duration-300">
+        <div className="w-full space-y-6 md:space-y-12">
+          <p className="group-hover:text-qellow transition-all duration-300 max-[370px]:text-sm text-base">
             {formatEventDate(nextEvent.content.date, nextEvent.content.hide_time)}
           </p>
-          <h4 className="text-3xl xl:text-4xl tracking-[-0.03em] group-hover:opacity-0 transition-all duration-300 line-clamp-4">{nextEvent.content.title}</h4>
+          <h4 className="max-[370px]:text-xl text-3xl xl:text-4xl tracking-[-0.03em] group-hover:opacity-0 transition-all duration-300 line-clamp-4">{nextEvent.content.title}</h4>
         </div>
       ),
     });
@@ -336,7 +336,7 @@ export default async function FeatureCards({
       buttonHoverColor: "group-hover:text-qlack",
       content: (
         <div className="w-full @container">
-          <h4 className="text-2xl md:text-[2.375rem] tracking-[-0.07125rem] leading-none text-qaupe group-hover:text-qlack transition-all duration-300">
+          <h4 className="max-[370px]:text-xl text-2xl md:text-[2.375rem] tracking-[-0.07125rem] leading-none text-qaupe group-hover:text-qlack transition-all duration-300">
             {glossaryTerm.content.name || glossaryTerm.name}
           </h4>
           <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-base md:text-[1.375rem] leading-[1.2] mt-2 mb-8">{phoneticTerm}</p>
@@ -370,13 +370,14 @@ export default async function FeatureCards({
     buttonColor: "text-qaupe",
     buttonHoverColor: "group-hover:text-qaupe",
     content: (
-      <div className="@container w-full h-full text-center space-y-2 text-qaupe @[300px]:text-[1.375rem] leading-[0.8] flex flex-col items-center justify-center">
+      <div className="@container w-full h-full text-center space-y-2 text-qaupe text-sm @[300px]:text-[1.375rem] leading-[0.8] flex flex-col items-center justify-center">
         <p>You want to <span className='text-qlack'>develop.</span></p> 
         <p>You want to <span className='text-qlack'>be recognised.</span></p>  
         <p>You feel <span className='text-qlack'>inspired.</span></p>
+        <p>You want to <span className='text-qlack'>connect.</span></p>
         
-        <p className="text-2xl @[300px]:text-[2.375rem] tracking-[-0.07125rem] my-12">So let's <span className="inline-block relative">
-            connect.
+        <p className="text-3xl @[300px]:text-[2.375rem] tracking-[-0.07125rem] my-6 md:my-12">So <span className="inline-block relative">
+            join us.
             <svg className="absolute top-full left-0 w-full h-auto" width="139" height="7" viewBox="0 0 139 7" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1.14438 1.12189C43.5164 -1.11302 86.1644 0.227837 128.481 3.0628L136.953 3.65018C137.629 3.69571 138.142 4.28381 138.093 4.95899C138.047 5.64805 137.434 6.16604 136.745 6.09584L128.3 5.36874C114.603 4.16438 99.7652 3.26408 86.0062 2.71366C63.4756 1.78534 40.7499 1.63881 18.2258 2.54722C12.5848 2.8048 6.92089 3.10945 1.32185 3.5719C-0.201771 3.68599 -0.594118 1.33936 1.14078 1.12516L1.14438 1.12189Z" fill="#FCFAF0"/>
             </svg>
