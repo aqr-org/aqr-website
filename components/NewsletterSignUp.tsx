@@ -61,7 +61,7 @@ export function NewsletterSignUp() {
         <div className="md:flex">
           <h2 className="md:basis-[160px] uppercase tracking-[0.04em]">Newsletter</h2>
           <p className="text-6xl tracking-[-0.03em] max-w-250">
-            <span className="text-qellow">Sign up</span> and stay informed with all the latest in qual.
+            <span className="text-qellow">Sign up</span> to stay informed and inspired.
           </p>
         </div>
         
