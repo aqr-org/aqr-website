@@ -218,9 +218,9 @@ export default function TestimonialCarouselClient({
         {testimonials.map((testimonial, index) => {
           // Calculate testimonial widths for responsive peeking
           // Each testimonial fills almost the whole width minus 1/3 of next (divide by 1.33)
-          const testimonialWidthClass = "md:w-[calc((100vw-5rem*2-1.5rem)/1.33)] lg:w-[calc((100vw-5rem*2-1.5rem)/1.33)] xl:w-[calc((100vw-5rem*2-1.5rem)/1.33)]";
+          const testimonialWidthClass = "md:w-[calc((100%-5rem*2-1.5rem)/1.33)] lg:w-[calc((100%-5rem*2-1.5rem)/1.33)] xl:w-[calc((100%-5rem*2-1.5rem)/1.33)]";
           
-          const mobileWidthClass = "w-[calc(85vw)]";
+          const mobileWidthClass = "w-[85%]";
 
           return (
             <div

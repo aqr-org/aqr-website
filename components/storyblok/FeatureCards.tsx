@@ -437,7 +437,7 @@ export default async function FeatureCards({
   if (cards.length === 0) return null;
 
   return (
-    <div {...storyblokEditable(blok)} className="w-full max-w-maxw mx-auto px-container overflow-hidden my-18" style={{
+    <div {...storyblokEditable(blok)} className="w-full max-w-maxw mx-auto px-container my-18" style={{
       maskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
       WebkitMaskImage: "linear-gradient(to right, transparent 0, black 4rem, black calc(100% - 4rem), transparent 100%)",
     }}>

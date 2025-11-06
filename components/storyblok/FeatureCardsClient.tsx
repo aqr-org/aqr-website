@@ -208,9 +208,9 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
       >
         {cards.map((card, index) => {
           // Calculate card widths for responsive peeking
-          const cardWidthClass = "md:w-[calc((100vw-5rem*2-2rem)/2.1)] lg:w-[calc((100vw-5rem*2-2rem)/2.7)] xl:w-[calc((100vw-5rem*2-2rem)/3.1)]";
+          const cardWidthClass = "md:w-[calc((100%-5rem*2-2rem)/2.1)] lg:w-[calc((100%-5rem*2-2rem)/2.7)] xl:w-[calc((100%-5rem*2-2rem)/3.1)]";
           
-          const mobileWidthClass = "w-[calc(85vw)]"
+          const mobileWidthClass = "w-[85%]"
 
           return (
             <div
