@@ -13,6 +13,7 @@ interface RichTextProps {
     max_width: number;
     add_outer_padding_x: boolean;
     special_class: string;
+    margins: string;
   }
 }
 
@@ -101,6 +102,21 @@ function cleanTextContent(text: string): string {
 export default function RichText({ blok }: RichTextProps) {
   // Clean the content before rendering
   const cleanedContent = cleanStoryblokContent(blok.content);
+  // Process margins: add 'rem' to each value, or default to '0rem 0rem 0rem 0rem' if invalid
+  // If add_outer_padding_x is true, set second and fourth parts (right and left) to 'auto'
+  let marginValue = blok.add_outer_padding_x ? '0rem auto 0rem auto' : '0rem 0rem 0rem 0rem';
+  if (blok.margins) {
+    const marginParts = blok.margins.trim().split(/\s+/);
+    if (marginParts.length === 4 && marginParts.every(part => !isNaN(Number(part)) && part !== '')) {
+      marginValue = marginParts.map((part, index) => {
+        // If add_outer_padding_x is true, set second (right) and fourth (left) to 'auto'
+        if (blok.add_outer_padding_x && (index === 1 || index === 3)) {
+          return 'auto';
+        }
+        return `${part}rem`;
+      }).join(' ');
+    }
+  }
 
   return (
     <div 
@@ -111,7 +127,10 @@ export default function RichText({ blok }: RichTextProps) {
         blok.special_class && blok.special_class
       )}
       style={{ 
-        maxWidth: blok.max_width ? `${blok.max_width}px` : '100%',
+        maxWidth: blok.max_width ? `${blok.max_width}px` 
+                : blok.add_outer_padding_x ? 'var(--container-maxw)' 
+                : '100%',
+        margin: marginValue,
       }}
     >
       {render(cleanedContent, {

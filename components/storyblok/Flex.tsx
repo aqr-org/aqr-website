@@ -51,11 +51,18 @@ export default function Flex({ blok }: FlexProps) {
     '[&_figure]:my-0'
   );
   // Process margins: add 'rem' to each value, or default to '0rem 0rem 0rem 0rem' if invalid
-  let marginValue = '0rem 0rem 0rem 0rem';
+  // If add_outer_padding_x is true, set second and fourth parts (right and left) to 'auto'
+  let marginValue = blok.add_outer_padding_x ? '0rem auto 0rem auto' : '0rem 0rem 0rem 0rem';
   if (blok.margins) {
     const marginParts = blok.margins.trim().split(/\s+/);
     if (marginParts.length === 4 && marginParts.every(part => !isNaN(Number(part)) && part !== '')) {
-      marginValue = marginParts.map(part => `${part}rem`).join(' ');
+      marginValue = marginParts.map((part, index) => {
+        // If add_outer_padding_x is true, set second (right) and fourth (left) to 'auto'
+        if (blok.add_outer_padding_x && (index === 1 || index === 3)) {
+          return 'auto';
+        }
+        return `${part}rem`;
+      }).join(' ');
     }
   }
 
