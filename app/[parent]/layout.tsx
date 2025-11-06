@@ -45,8 +45,8 @@ export default async function SlugPageLayout({
 
   return (
     <div className="flex-1 w-full max-w-maxw mx-auto px-container min-h-screen">
-      <div className="md:flex md:pt-4">
-        <aside className="pb-8 md:pb-0 md:basis-1/4 md:pr-8 md:box-border">
+      <div className="flex flex-col-reverse md:flex-row md:pt-4">
+        <aside className="py-8 md:py-0 md:basis-1/4 md:pr-8 md:box-border">
           <RenderSidebar sidebar_items={sidebar_items} />
         </aside>
         <div className="group md:basis-3/4">
