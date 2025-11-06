@@ -295,6 +295,15 @@ p a {
   & > *:first-child > .tag {
     @apply mt-0;
   }
+  & > *:last-child, 
+  & > *:last-child > .h1size, 
+  & > *:last-child > .h2size, 
+  & > *:last-child > .h3size, 
+  & > *:last-child > .h4size, 
+  & > *:last-child > .h5size, 
+  & > *:last-child > .tag {
+    @apply mb-0;
+  }
   & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.h4size), & h1:has(>.h5size), & h1:has(>.tag),
   & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.h4size), & h2:has(>.h5size), & h2:has(>.tag),
   & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.h4size), & h3:has(>.h5size), & h3:has(>.tag),
@@ -374,7 +383,11 @@ p a {
     }
   }
   & hr {
-    @apply my-12 h-0 border-t-2 border-qitrus border-dashed;
+    @apply my-6 h-1 border-0;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%2311160c' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+    background-repeat: repeat-x;
+    background-size: 8px 1px;
   }
   & a {
     @apply underline;

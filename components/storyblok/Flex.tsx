@@ -8,6 +8,8 @@ interface FlexProps {
     on_mobile?: string;
     gap_size: string;
     vertical_align_items: string;
+    horizontal_align_items: string;
+    evenly_space_items: boolean;
     add_outer_padding_x: boolean;
   };
 }
@@ -37,13 +39,15 @@ export default function Flex({ blok }: FlexProps) {
 
   // Determine flex direction classes based on on_mobile setting
   const flexClasses = cn(
-    'relative flex justify-between',
+    'relative flex',
     blok.vertical_align_items === 'stretch' && '[&>.rich-text]:relative [&>.rich-text]:flex-1 [&>.rich-text]:flex [&>.rich-text]:flex-col [&>.rich-text]:justify-between',
     alignItems,
     gapClass,
-    basis,
+    blok.evenly_space_items && basis,
     widthAndPaddingClass,
-    onMobile === 'stack' ? 'flex-col md:flex-row' : 'flex-row'
+    onMobile === 'stack' ? 'flex-col md:flex-row' : 'flex-row',
+    blok.evenly_space_items ? 'shrink-1 grow-0' : 'shrink grow',
+    '[&_figure]:my-0'
   );
 
   if (flexItems.length === 0) {

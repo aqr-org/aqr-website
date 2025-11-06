@@ -9,6 +9,7 @@ interface ImageProps {
       alt: string;
     };
     width: number;
+    width_mobile: number;
     aspect_ratio: string;
     align: string;
     special_class: string;
@@ -53,6 +54,19 @@ export default function Image({ blok }: ImageProps) {
     100: 'md:w-full',
   };
 
+  const widthClassesMobile: Record<number, string> = {
+    10: 'w-[10%]',
+    20: 'w-[20%]',
+    30: 'w-[30%]',
+    40: 'w-[40%]',
+    50: 'w-[50%]',
+    60: 'w-[60%]',
+    70: 'w-[70%]',
+    80: 'w-[80%]',
+    90: 'w-[90%]',
+    100: 'w-full',
+  };
+
   // Text alignment classes
   const textAlignClass = 
     blok.align === 'center' ? 'text-center' 
@@ -71,11 +85,14 @@ export default function Image({ blok }: ImageProps) {
   return (
     <div 
       {...storyblokEditable(blok)} 
-      className={cn('w-full bg-qaupe', textAlignClass)}
+      className={cn(
+        'bg-qaupe', 
+        textAlignClass
+      )}
     >
       <figure
         className={cn(
-          'w-full my-7.5', // Always full width on mobile
+          widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
           widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
           marginClass,
           blendModeClass
