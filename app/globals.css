@@ -245,6 +245,14 @@ p a {
   @apply underline;
 }
 
+hr {
+  @apply my-6 h-1 border-0;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%2311160c' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 8px 1px;
+}
+
 /* Form Global Defaults */
 .form {
   & label {
@@ -381,13 +389,6 @@ p a {
     &.small {
       @apply text-base;
     }
-  }
-  & hr {
-    @apply my-6 h-1 border-0;
-    background-color: transparent;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%2311160c' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
-    background-repeat: repeat-x;
-    background-size: 8px 1px;
   }
   & a {
     @apply underline;
