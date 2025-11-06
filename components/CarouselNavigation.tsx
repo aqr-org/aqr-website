@@ -12,7 +12,7 @@ export default function CarouselNavigation({
   canScrollRight,
 }: CarouselNavigationProps) {
   return (
-    <div className="absolute right-0 bottom-full pb-4 z-20 flex items-center gap-2">
+    <div className="hidden md:flex absolute right-0 bottom-full pb-4 z-20 items-center gap-2">
       <button
         onClick={onScrollLeft}
         className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer ${canScrollLeft ? 'opacity-100' : 'opacity-50'}`}

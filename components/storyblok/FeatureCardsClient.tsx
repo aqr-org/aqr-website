@@ -197,7 +197,7 @@ export default function FeatureCardsClient({ cards }: FeatureCardsClientProps) {
           "no-scrollbar", // Use existing utility
           // Gap between cards
           "gap-4 md:gap-6",
-          "pr-4 md:pr-container pb-12"
+          "pr-[calc(var(--spacing-container)*2)] pb-12"
         )}
         style={{
           paddingLeft: "var(--spacing-container)",

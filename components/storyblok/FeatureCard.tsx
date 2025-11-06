@@ -33,7 +33,7 @@ export default function FeatureCard({
     <Link href={linkHref}>
       <div
         className={cn(
-          "group relative aspect-[0.75] rounded-xl overflow-hidden shadow-lg",
+          "group relative aspect-[0.66] md:aspect-[0.75] rounded-xl overflow-hidden shadow-lg",
           className
         )}
       >
