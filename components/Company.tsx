@@ -157,10 +157,10 @@ export default function Company(props: CompanyProps) {
       "
     >
         <section>
-          <div className="flex items-center gap-6 mb-8">
+          <div className="flex flex-col md:flex-row items-center md:gap-6 mb-8 p-4 md:px-7.5 border border-qlack bg-white rounded-lg">
             {data.logo && data.logo.data && data.logo.data.publicUrl 
               ?
-              <figure className="relative h-18 bg-qaupe flex items-center"> 
+              <figure className="relative h-24 max-w-40 flex items-center"> 
                 <img 
                   key={`${data.logo.data?.publicUrl || ''}`}
                   // src={`${data.logo.data?.publicUrl || ''}?t=${Date.now()}`}
@@ -168,7 +168,7 @@ export default function Company(props: CompanyProps) {
                   src={tranformedLogoUrl || ''}
                   sizes="(max-width:768px) 100vw, 225px"
                   alt={data.name + ' logo'}
-                  className="max-h-18 max-w-30 mix-blend-multiply"
+                  className="w-full h-full object-contain object-left"
                 />
               </figure>
               :
