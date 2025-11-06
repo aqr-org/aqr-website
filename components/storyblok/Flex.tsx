@@ -11,6 +11,7 @@ interface FlexProps {
     horizontal_align_items: string;
     evenly_space_items: boolean;
     add_outer_padding_x: boolean;
+    margins: string;
   };
 }
 
@@ -35,7 +36,7 @@ export default function Flex({ blok }: FlexProps) {
 
   // Get the Tailwind class from the map, default to gap-8 if invalid
   const gapClass = gapSizeMap[gapSize] || 'gap-8';
-  const widthAndPaddingClass = blok.add_outer_padding_x ? 'w-full max-w-maxw px-container py-12 mx-auto' : '';
+  const widthAndPaddingClass = blok.add_outer_padding_x ? 'w-full max-w-maxw px-container mx-auto' : '';
 
   // Determine flex direction classes based on on_mobile setting
   const flexClasses = cn(
@@ -49,13 +50,27 @@ export default function Flex({ blok }: FlexProps) {
     blok.evenly_space_items ? 'shrink-1 grow-0' : 'shrink grow',
     '[&_figure]:my-0'
   );
+  // Process margins: add 'rem' to each value, or default to '0rem 0rem 0rem 0rem' if invalid
+  let marginValue = '0rem 0rem 0rem 0rem';
+  if (blok.margins) {
+    const marginParts = blok.margins.trim().split(/\s+/);
+    if (marginParts.length === 4 && marginParts.every(part => !isNaN(Number(part)) && part !== '')) {
+      marginValue = marginParts.map(part => `${part}rem`).join(' ');
+    }
+  }
 
   if (flexItems.length === 0) {
     return null;
   }
 
   return (
-    <div {...storyblokEditable(blok)} className={flexClasses}>
+    <div 
+      {...storyblokEditable(blok)} 
+      className={flexClasses}
+      style={{
+        margin: marginValue,
+      }}
+    >
       {/* <pre>
         {JSON.stringify(blok.flex_items[0], null, 2)}
       </pre> */}

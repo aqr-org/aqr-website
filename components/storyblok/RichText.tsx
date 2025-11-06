@@ -11,7 +11,8 @@ interface RichTextProps {
   blok: {
     content: string;
     max_width: number;
-    cap_lines: number;
+    add_outer_padding_x: boolean;
+    special_class: string;
   }
 }
 
@@ -101,19 +102,14 @@ export default function RichText({ blok }: RichTextProps) {
   // Clean the content before rendering
   const cleanedContent = cleanStoryblokContent(blok.content);
 
-  // Use explicit conditional classes so Tailwind can detect them
-  const capLinesClass = blok.cap_lines ? {
-    1: '[&>p]:line-clamp-1',
-    2: '[&>p]:line-clamp-2',
-    3: '[&>p]:line-clamp-3',
-    4: '[&>p]:line-clamp-4',
-    5: '[&>p]:line-clamp-5',
-  }[blok.cap_lines as 1 | 2 | 3 | 4 | 5] : '';
-
   return (
     <div 
       {...storyblokEditable(blok)} 
-      className={cn("rich-text prose", capLinesClass)}
+      className={cn(
+        "rich-text prose", 
+        blok.add_outer_padding_x ? 'px-container max-w-maxw mx-auto' : '',
+        blok.special_class && blok.special_class
+      )}
       style={{ 
         maxWidth: blok.max_width ? `${blok.max_width}px` : '100%',
       }}
