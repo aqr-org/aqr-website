@@ -74,7 +74,7 @@ export default async function SlugPage({ params }: PageProps) {
   }
 
   return (
-    <div className='max-w-175 has-[aside]:max-w-full animate-fade-in'>
+    <div className='max-w-176 has-[aside]:max-w-full animate-fade-in'>
       {storyBlokStory && <StoryblokStory story={storyBlokStory} />}
     </div>
   );

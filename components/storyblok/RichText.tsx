@@ -9,6 +9,7 @@ import Flex from './Flex';
 interface RichTextProps {
   blok: {
     content: string;
+    max_width: number;
   }
 }
 
@@ -99,7 +100,11 @@ export default function RichText({ blok }: RichTextProps) {
   const cleanedContent = cleanStoryblokContent(blok.content);
 
   return (
-    <div {...storyblokEditable(blok)} className="rich-text prose">
+    <div 
+      {...storyblokEditable(blok)} 
+      className="rich-text prose"
+      style={{ maxWidth: blok.max_width ? `${blok.max_width}px` : '100%' }}
+    >
       {render(cleanedContent, {
         blokResolvers: {
           youtube: (props: any) => <Youtube blok={props} />,

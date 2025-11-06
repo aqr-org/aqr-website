@@ -11,7 +11,8 @@ export default function Picture( props: {
   noCrop?: boolean,
   priority?: boolean,
   nofade?: boolean,
-  placeholder?: string
+  placeholder?: string,
+  style?: React.CSSProperties
 } ) {
 
 
@@ -38,6 +39,7 @@ export default function Picture( props: {
       return(
         <picture 
           className={props.className}
+          style={props.style}
         >
           <source 
             media="(min-width: 768px)" 
@@ -95,6 +97,7 @@ export default function Picture( props: {
     return(
       <picture 
         className={props.className}
+        style={props.style}
       >
         <source 
           media="(min-width: 768px)" 

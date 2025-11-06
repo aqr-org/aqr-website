@@ -65,7 +65,7 @@ export default async function SlugPage({ params }: PageProps) {
     }
 
     return (
-      <article className='max-w-164 animate-fade-in'>
+      <article className='max-w-176 animate-fade-in'>
         <StoryblokStory story={storyBlokStory} />
       </article>
     );

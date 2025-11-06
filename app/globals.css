@@ -327,20 +327,20 @@ hr {
     }
   }
   & h1, & .h1size {
-    @apply block text-6xl my-7.5 leading-none tracking-[-0.07125rem];
+    @apply block text-6xl md:text-[6.25rem] my-7.5 leading-none tracking-[-0.07125rem];
     
     @media (max-width: 768px) {
       @apply text-5xl hyphens-auto;
     }
   }
   & h2, & .h2size {
-    @apply block text-4xl my-7.5 leading-none tracking-[-0.07125rem];
+    @apply block text-4xl md:text-[3.75rem] my-7.5 leading-none tracking-[-0.07125rem];
     @media (max-width: 768px) {
       @apply hyphens-auto;
     }
   }
   & h3, & .h3size {
-    @apply block text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.035rem];
+    @apply block text-3xl md:text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.035rem];
   }
   & h4, & .h4size {
     @apply block text-[1.5rem] my-7.5 leading-tight tracking-[-0.02rem];

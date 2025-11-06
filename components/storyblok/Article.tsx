@@ -30,7 +30,7 @@ export default function Article({ blok }: ArticleProps) {
   
   return (
     <div {...storyblokEditable(blok)} className='flex gap-8'>
-      <div className='max-w-164 basis-3/4'>
+      <div className='max-w-176 basis-3/4'>
         <div className='flex justify-between items-center mb-4'>
           <p className='text-sm text-qreen-dark'>
             {blok.date && new Date(blok.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}

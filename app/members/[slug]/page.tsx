@@ -104,7 +104,7 @@ export default async function ComnpaniesPage({
   if (storyblokStory) {
     // Render Storyblok story
     return (
-      <div className='max-w-175 has-[aside]:max-w-full animate-fade-in' >
+      <div className='max-w-176 has-[aside]:max-w-full animate-fade-in' >
         <StoryblokStory story={storyblokStory} />
       </div>
     );

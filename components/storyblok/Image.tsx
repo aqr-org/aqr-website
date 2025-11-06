@@ -10,6 +10,8 @@ interface ImageProps {
     };
     width: number;
     width_mobile: number;
+    max_width: number;
+    min_width: number;
     aspect_ratio: string;
     align: string;
     special_class: string;
@@ -67,6 +69,19 @@ export default function Image({ blok }: ImageProps) {
     100: 'w-full',
   };
 
+  const basisClasses: Record<number, string> = {
+    10: 'md:basis-[10%]',
+    20: 'md:basis-[20%]',
+    30: 'md:basis-[30%]',
+    40: 'md:basis-[40%]',
+    50: 'md:basis-[50%]',
+    60: 'md:basis-[60%]',
+    70: 'md:basis-[70%]',
+    80: 'md:basis-[80%]',
+    90: 'md:basis-[90%]',
+    100: 'md:basis-full',
+  };
+
   // Text alignment classes
   const textAlignClass = 
     blok.align === 'center' ? 'text-center' 
@@ -86,19 +101,23 @@ export default function Image({ blok }: ImageProps) {
     <div 
       {...storyblokEditable(blok)} 
       className={cn(
-        'bg-qaupe', 
-        textAlignClass
+        blok.special_class === 'multiply' && 'bg-qaupe', 
+        basisClasses[clampedWidth as keyof typeof basisClasses] || 'md:basis-full',
+        'shrink-0',
+        widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
+        widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
       )}
-    >
+      >
       <figure
         className={cn(
-          widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
-          widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
+          textAlignClass,
           marginClass,
-          blendModeClass
+          blendModeClass,
+          'w-full'
         )}
         style={{
-          maxWidth: dimensions.width ? `${dimensions.width}px` : undefined,
+          maxWidth: blok.max_width ? `${blok.max_width}px` : '100%',
+          minWidth: blok.min_width ? `${blok.min_width}px` : '100%',
         }}
       >
         <Picture 
@@ -107,7 +126,12 @@ export default function Image({ blok }: ImageProps) {
           aspectRatioDesktop={blok.aspect_ratio.toString() || '1.77778'}
           aspectRatioMobile={blok.aspect_ratio.toString() || '1.77778'}
           sizes={`(max-width: 768px) 90vw, 70vw`}
-          className={`w-full h-auto aspect-[${blok.aspect_ratio}]`}
+          className={cn(
+            `w-full h-auto`,
+            textAlignClass,
+            '[&>img]:inline-block'
+          )}
+          style={{ aspectRatio: blok.aspect_ratio ? blok.aspect_ratio : '1.77778' }}
         />
         </figure> 
     </div>
