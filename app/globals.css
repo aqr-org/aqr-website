@@ -362,7 +362,15 @@ hr {
     @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-2.5;
   }
   & .indent_left {
-    @apply relative left-[1.88rem] w-[calc(100%-1.88rem)];
+    @apply relative block left-[1.88rem] w-[calc(100%-1.88rem)];
+  }
+  & a span.link_arrow {
+    @apply relative inline-flex items-center gap-1;
+    
+    &:after {
+      content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 18' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-arrow-up-right w-6 h-6 inline-block' aria-hidden='true'%3E%3Cpath d='M7 7h10v10'%3E%3C/path%3E%3Cpath d='M7 17 17 7'%3E%3C/path%3E%3C/svg%3E");
+      @apply inline-block h-full w-auto;
+    }
   }
   & :has(>.tag)+p {
     @apply mt-0;

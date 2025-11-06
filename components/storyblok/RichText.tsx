@@ -5,11 +5,13 @@ import Youtube from './Youtube';
 import Audio from './Audio';
 import Image from './Image';
 import Flex from './Flex';
+import { cn } from '@/lib/utils';
 
 interface RichTextProps {
   blok: {
     content: string;
     max_width: number;
+    cap_lines: number;
   }
 }
 
@@ -99,11 +101,22 @@ export default function RichText({ blok }: RichTextProps) {
   // Clean the content before rendering
   const cleanedContent = cleanStoryblokContent(blok.content);
 
+  // Use explicit conditional classes so Tailwind can detect them
+  const capLinesClass = blok.cap_lines ? {
+    1: '[&>p]:line-clamp-1',
+    2: '[&>p]:line-clamp-2',
+    3: '[&>p]:line-clamp-3',
+    4: '[&>p]:line-clamp-4',
+    5: '[&>p]:line-clamp-5',
+  }[blok.cap_lines as 1 | 2 | 3 | 4 | 5] : '';
+
   return (
     <div 
       {...storyblokEditable(blok)} 
-      className="rich-text prose"
-      style={{ maxWidth: blok.max_width ? `${blok.max_width}px` : '100%' }}
+      className={cn("rich-text prose", capLinesClass)}
+      style={{ 
+        maxWidth: blok.max_width ? `${blok.max_width}px` : '100%',
+      }}
     >
       {render(cleanedContent, {
         blokResolvers: {
