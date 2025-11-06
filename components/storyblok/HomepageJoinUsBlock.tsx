@@ -17,7 +17,7 @@ interface HomepageJoinUsBlockProps {
 export default function HomepageJoinUsBlock({ blok }: HomepageJoinUsBlockProps) {
   return (
     <div {...storyblokEditable(blok)} className='relative overflow-hidden w-full min-h-[320px] flex flex-col justify-center mb-24'>
-      <div className='absolute left-1/2 -translate-x-1/2 -top-36'>
+      <div className='absolute left-1/2 -translate-x-[44%] -top-36' >
         <RectanglesAligned />
       </div>
       <div className='relative z-10 w-full max-w-maxw mx-auto px-container pt-32 pb-12 md:flex gap-4'>
@@ -37,7 +37,7 @@ export default function HomepageJoinUsBlock({ blok }: HomepageJoinUsBlockProps) 
 
 // Static styles that don't change - moved outside component
 const GRADIENT_STYLE: React.CSSProperties = {
-  background: 'linear-gradient(to top, #F5F5F5 0%, #EAA0B1 100%)',
+  background: 'linear-gradient(to top, #fcfaf0 0%, #EAA0B1 100%)',
   width: '56px',
   height: '315px',
 };
@@ -111,7 +111,7 @@ const RectanglesAligned = React.memo(() => {
   }, []);
 
   return (
-    <div className='flex gap-5'>
+    <div className='flex gap-5.5'>
       {rectangles}
     </div>
   );
