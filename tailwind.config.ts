@@ -8,19 +8,6 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  safelist: [
-    // Ensure line-clamp utilities are always available
-    'line-clamp-1',
-    'line-clamp-2',
-    'line-clamp-3',
-    'line-clamp-4',
-    'line-clamp-5',
-    '[&>p]:line-clamp-1',
-    '[&>p]:line-clamp-2',
-    '[&>p]:line-clamp-3',
-    '[&>p]:line-clamp-4',
-    '[&>p]:line-clamp-5',
-  ],
   theme: {
     extend: {
       colors: {
