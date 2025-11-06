@@ -340,7 +340,7 @@ hr {
       @apply text-5xl hyphens-auto;
     }
   }
-  & h2 & .h3size {
+  & h2, & .h3size {
     @apply block text-4xl md:text-[2.375rem] my-7.5 leading-none tracking-[-0.07125rem];
     @media (max-width: 768px) {
       @apply hyphens-auto;
