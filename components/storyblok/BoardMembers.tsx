@@ -139,7 +139,7 @@ export default function BoardMembers({ blok }: BoardMembersProps) {
 
   return (
     <div {...storyblokEditable(blok)} className="w-full md:w-[66vw]">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
         {boardMembers.map((boardMember) => (
           <Link
             key={boardMember.id}
