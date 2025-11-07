@@ -27,19 +27,22 @@ export default function Image({ blok }: ImageProps) {
     height: blok.asset.filename ? blok.asset.filename?.split('/')[5].split('x')[1] : 0,
   }
   const aspectRatio = Number(dimensions.width) / Number(dimensions.height);
+  const roundedStyles = blok.aspect_ratio === 'circle' ? 'rounded-full overflow-hidden' : 'rounded overflow-hidden';
 
   if (blok.aspect_ratio === 'original') {
     blok.aspect_ratio = aspectRatio.toString();
   }
+  if (blok.aspect_ratio === 'circle') {
+    blok.aspect_ratio = '1';
+  }
 
+  
   if (!imageUrl) {
     return null;
   }
-
+  
   // Round width to nearest 10% step (10, 20, 30, ..., 100)
-  const roundedWidth = blok.width 
-    ? Math.round(blok.width / 10) * 10 
-    : 100;
+  const roundedWidth = blok.width ? Math.round(blok.width / 10) * 10 : 100;
   const clampedWidth = Math.min(Math.max(roundedWidth, 10), 100);
 
   // Map width percentage to Tailwind class (only for md and above)
@@ -106,6 +109,7 @@ export default function Image({ blok }: ImageProps) {
         'shrink-0',
         widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
         widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
+        roundedStyles
       )}
       >
       <figure
