@@ -138,23 +138,23 @@ export default function BoardMembers({ blok }: BoardMembersProps) {
   }
 
   return (
-    <div {...storyblokEditable(blok)} className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+    <div {...storyblokEditable(blok)} className="w-full md:w-[66vw]">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px">
         {boardMembers.map((boardMember) => (
           <Link
             key={boardMember.id}
             href={`/members/${boardMember.slug}`}
-            className="group/board-member flex flex-col transition-opacity"
+            className="group/board-member flex flex-col transition-opacity outline outline-qlack"
           >
-            <div className="border border-b-none w-full">
+            <div className="w-full">
               {boardMember.image ? (
-                <figure className="relative bg-qellow aspect-square min-w-[200px] w-full h-auto overflow-hidden mx-auto">
+                <figure className="relative bg-qellow aspect-square w-full h-auto overflow-hidden mx-auto outline outline-qlack">
                   <Image 
                     src={boardMember.image} 
                     alt={boardMember.member_name} 
                     fill
                     className="object-cover group-hover/board-member:opacity-80 transition-opacity"
-                    sizes="aspect-square w-full h-auto"
+                    sizes="aspect-square w-full h-full object-cover"
                   />
                 </figure>
               ) : (
@@ -165,7 +165,7 @@ export default function BoardMembers({ blok }: BoardMembersProps) {
                 </div>
               )}
             </div>
-            <div className="space-y-3 border px-3 py-2 group-hover/board-member:bg-qellow transition-all duration-300">
+            <div className="space-y-3 px-3 py-2 group-hover/board-member:bg-qellow transition-all duration-300">
               <div>
                 <h3 className="text-lg">
                   {boardMember.member_name}
