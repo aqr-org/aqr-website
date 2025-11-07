@@ -138,6 +138,11 @@ html {
   /* font-size: clamp(10px, 1.11vw, 160px); */
   /* scroll-behavior: smooth; */
 }
+@media (max-width: 1295px) {
+  :root {
+    --spacing-container: 2rem;
+  }
+}
 @media (max-width: 768px) {
   /* html {
     font-size: clamp(10px, 4.1vw, 160px);

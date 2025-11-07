@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { NavigationLinkData } from "@/lib/types/navigation";
 import { AuthButton } from "../auth-button";
 import NavigationDropdownItem from "./NavigationDropdownItem";
+import NavigationLink from "./NavigationLink";
 import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 
 interface MobileNavigationProps {
@@ -72,14 +73,14 @@ export default function MobileNavigation({
                 </ul>
             </>
           ) : (
-            <Link 
+            <NavigationLink 
               href={normalizeStoryblokUrl(link.link?.cached_url)}
               ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
               className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
               role="menuitem"
             >
               {link.name}
-            </Link>
+            </NavigationLink>
           )}
         </li>
       ))}

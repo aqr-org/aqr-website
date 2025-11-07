@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { NavigationLinkData } from "@/lib/types/navigation";
+import NavigationLink from "./NavigationLink";
 import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
+import { ArrowRight } from "lucide-react";
 
 interface NavigationDropdownItemProps {
   item: NavigationLinkData;
@@ -24,14 +26,14 @@ export default function NavigationDropdownItem({
     // Mobile styling
     const indentClass = level > 0 ? `pl-${4 + (level * 4)}` : 'pl-4';
     const textSizeClass = level > 0 ? 'text-base' : 'text-lg';
-    const textColorClass = level > 0 ? 'text-qreen-dark' : 'text-qreen-dark';
+    const textColorClass = level > 1 ? 'text-qreen-dark' : 'text-qlack';
     
     return (
       <li key={itemIndex} role="none">
         {hasAnyDropdown ? (
           <div className="relative">
             {level !== 0 && (
-              <div className={`${textSizeClass} ${textColorClass} font-medium py-1 pt-4`}>
+              <div className={`${textSizeClass} ${textColorClass} font-semibold py-1 pt-4 -ml-4`}>
                 {item.name}
               </div>
             )}
@@ -83,13 +85,13 @@ export default function NavigationDropdownItem({
             </div>
           </div>
         ) : (
-          <Link 
+          <NavigationLink 
             href={normalizeStoryblokUrl(item.link?.cached_url)}
             className={`block py-2 text-qreen ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
             role="menuitem"
           >
             {item.name}
-          </Link>
+          </NavigationLink>
         )}
       </li>
     );
@@ -109,9 +111,11 @@ export default function NavigationDropdownItem({
           <div className="relative group/nested">
             {level !== 0 && (
               <div className={`${textSizeClass} ${textWeightClass} text-qlack ${textBorderClass} font-medium pb-2 cursor-default`}>
-                {item.link?.cached_url ? <Link href={normalizeStoryblokUrl(item.link?.cached_url)} className="hover:text-qreen-dark">
-                  {item.name}
-                </Link> :
+                {item.link?.cached_url ? 
+                  <NavigationLink href={normalizeStoryblokUrl(item.link?.cached_url)} className="hover:text-qreen-dark">
+                    {item.name}
+                  </NavigationLink> 
+                :
                   <>
                     {item.name}
                   </>
@@ -166,7 +170,7 @@ export default function NavigationDropdownItem({
             </div>
           </div>
         ) : (
-          <Link 
+          <NavigationLink 
             href={normalizeStoryblokUrl(item.link?.cached_url)}
             className={`
               ${textWeightClass} ${textSizeClass} ${textColorClass} ${textBorderClass} 
@@ -174,11 +178,16 @@ export default function NavigationDropdownItem({
               hover:bg-qellow 
               rounded 
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+              relative
+              group/link
             `}
             role="menuitem"
           >
-            {item.name}
-          </Link>
+            <span className="relative group-data-[current-page=true]/link:text-qlack group-data-[current-page=true]/link:font-medium flex items-center gap-1">
+              <ArrowRight className="w-3 h-3 hidden group-data-[current-page=true]/link:block group-hover/link:block" />
+              {item.name}
+            </span>
+          </NavigationLink>
         )}
       </li>
     );

@@ -128,7 +128,14 @@ export default async function CalendarPage() {
           
           return (
             <section key={key}>
-              <h2 className={cn("text-6xl tracking-tight mt-24 mb-18", index === 0 ? "mt-0" : "")}>{displayName}</h2>
+              <h2 
+                className={cn(
+                  "text-5xl md:text-6xl tracking-tight mt-24 mb-18", 
+                  index === 0 ? "md:mt-0" : ""
+                )}
+              >
+                {displayName}
+              </h2>
               <div className="space-y-6">
                 {seasonEvents.map((event, index) => (
                   <React.Fragment key={event.id}>

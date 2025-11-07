@@ -61,11 +61,11 @@ export default async function SlugPage({ params }: PageProps) {
     const storyBlokStory = storyblok.data.story;
 
     return (
-      <>
+      <div className="max-w-210">
         { storyBlokStory && (
           <StoryblokStory story={storyBlokStory} />
         )}
-      </>
+      </div>
     );
   } catch (error) {
     console.error("Error in SlugPage:", error);

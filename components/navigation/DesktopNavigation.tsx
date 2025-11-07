@@ -4,8 +4,10 @@ import Link from "next/link";
 import { ChevronDown, Menu } from "lucide-react";
 import { NavigationLinkData } from "@/lib/types/navigation";
 import NavigationDropdownItem from "./NavigationDropdownItem";
+import NavigationLink from "./NavigationLink";
 import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 import { useState, useEffect } from "react";
+import {cn} from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -75,13 +77,13 @@ export default function DesktopNavigation({
       
       return (
         <DropdownMenuItem key={key} asChild>
-          <Link
+          <NavigationLink
             href={normalizeStoryblokUrl(item.link?.cached_url)}
             className="w-full hover:bg-qellow focus:bg-qellow"
             onClick={() => setMobileMenuOpen(false)}
           >
             {item.name}
-          </Link>
+          </NavigationLink>
         </DropdownMenuItem>
       );
     });
@@ -112,12 +114,15 @@ export default function DesktopNavigation({
                   ref={(el) => {
                     if (el && submenuRefs.current) submenuRefs.current.set(index, el);
                   }}
-                  onClick={() => toggleSubmenu(index)}
+                  // onClick={() => toggleSubmenu(index)}
                   onKeyDown={(e) => handleSubmenuKeyDown(e, index)}
                   aria-expanded={expandedSubmenus.has(index)}
                   aria-haspopup="true"
                   aria-controls={`desktop-submenu-${index}`}
-                  className={`group py-2 px-4 flex items-center gap-[4px] rounded-lg focus:bg-qlack/10 focus:outline-none ${expandedSubmenus.has(index) ? 'text-qreen-dark' : ''}`}
+                  className={cn(
+                    `group  px-4 flex items-center gap-[4px] rounded-lg focus:bg-qlack/10 focus:outline-none`, 
+                    expandedSubmenus.has(index) ? 'text-qreen-dark' : ''
+                  )}
                   role="menuitem"
                 >
                   <ChevronDown 
@@ -126,13 +131,17 @@ export default function DesktopNavigation({
                     }`} 
                     aria-hidden="true"
                   />
-                  <span className=" hover:text-qreen-dark">
+                  <span 
+                    className={cn(
+                      " hover:text-qreen-dark",
+                      'py-2 border-b-2 border-transparent group-[&:has(+ul_[data-current-page])]:border-qlack group-[&:has(+ul_[data-current-page])]:rounded-none'
+                  )}>
                     {link.name}
                   </span>
                 </button>
                 <ul
                   id={`desktop-submenu-${index}`}
-                  className={`absolute top-full -left-4 min-w-full h-auto flex-col gap-12 p-8 rounded-lg bg-qaupe shadow-md border border-qlack/20 transition-all duration-200 ${
+                  className={`absolute top-[calc(100%-2px)] -left-4 min-w-full h-auto flex-col gap-12 p-8 rounded-lg bg-qaupe shadow-md border border-qlack/20 transition-all duration-200 ${
                     expandedSubmenus.has(index) 
                       ? 'flex opacity-100 visible' 
                       : 'hidden opacity-0 invisible'
@@ -149,14 +158,14 @@ export default function DesktopNavigation({
                 </ul>
               </>
             ) : (
-              <Link 
+              <NavigationLink 
                 href={normalizeStoryblokUrl(link.link?.cached_url)}
                 ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
                 className="py-2 px-4 flex items-center gap-[2px] hover:bg-qreen hover:text-qaupe rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
                 role="menuitem"
               >
                 {link.name}
-              </Link>
+              </NavigationLink>
             )}
           </li>
         ))}
@@ -199,13 +208,13 @@ export default function DesktopNavigation({
                 }
                 return (
                   <DropdownMenuItem key={index} asChild>
-                    <Link
+                    <NavigationLink
                       href={normalizeStoryblokUrl(link.link?.cached_url)}
                       className="hover:bg-qellow focus:bg-qellow"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       {link.name}
-                    </Link>
+                    </NavigationLink>
                   </DropdownMenuItem>
                 );
               })}
