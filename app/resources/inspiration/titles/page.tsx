@@ -114,7 +114,10 @@ export default async function DirPage() {
               })
               .map((monthYear, index) => (
                 <React.Fragment key={monthYear}>
-                  <h2 id={monthYear.replace(/\s+/g, '-').toLowerCase()} className={`text-2xl col-span-2 group-data-[liststyle=filters]:hidden md:mb-4 ${index === 0 ? 'mt-0 md:mt-0' : 'md:mt-12'}`}>
+                  <h2 
+                    id={monthYear.replace(/\s+/g, '-').toLowerCase()} 
+                    className={`text-4xl md:text-[3.75rem] tracking-[-0.1125rem] col-span-2 group-data-[liststyle=filters]:hidden md:mb-4 ${index === 0 ? 'mt-0 md:mt-0' : 'md:mt-12'}`}
+                  >
                     {monthYear}
                     <svg className="h-1 w-full mt-6" width="100%" height="100%">
                       <rect 
@@ -130,6 +133,9 @@ export default async function DirPage() {
                     slug: string;
                     id: string;
                     name: string;
+                    content: {
+                      author: string;
+                    };
                   }) => {
 
                     const finalSlug = article.slug;
@@ -138,8 +144,10 @@ export default async function DirPage() {
                       <Link 
                         key={article.id} 
                         href={`/resources/inspiration/${finalSlug}`} 
+                        className="group/article flex justify-between"
                       >
-                        <h3 className="text-lg">{article.name}</h3>
+                        <h3 className="text-lg group-hover/article:text-qreen-dark transition-all duration-300">{article.name}</h3>
+                        <p className="text-base text-qreen-dark">{article.content.author}</p>
                       </Link>
                     );
                   })}

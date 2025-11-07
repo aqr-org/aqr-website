@@ -148,7 +148,7 @@ export default async function DirPage() {
                       
                     </div>
                   ) : (
-                    <div className="group/article flex flex-col gap-6 h-full justify-between pb-2 border-b border-dashed border-qlack/20 hover:border-qreen-dark/20 transition-all duration-300">
+                    <div className="group/article flex flex-col gap-6 h-full justify-between pb-2 border-b border-qlack hover:border-qreen-dark transition-all duration-300">
                       <div className="flex flex-col items-start gap-6">
                         <div className="relative w-15 h-15 rounded-full overflow-hidden shrink-0">
                         {article.authorImage && (
@@ -168,7 +168,7 @@ export default async function DirPage() {
                           {articleTitle}
                         </h3>
                       </div>
-                      <div className="flex flex-col items-end gap-6">
+                      <div className="flex flex-col items-end">
                         {articleIntro && (
                           <p className="text-base pl-8 line-clamp-3 mb-4 group-hover/article:text-qreen-dark transition-all duration-300">
                             {articleIntro}
