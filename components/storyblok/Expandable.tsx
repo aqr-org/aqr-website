@@ -41,13 +41,15 @@ export default function Expandable(props: ExpandableProps) {
 
   return (
     <div {...(props.blok ? storyblokEditable(blok as any) : {})} className="w-full">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className='relative'>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className='relative group/faq'>
         <CollapsibleTrigger
           className={cn(
-            "w-full flex items-center justify-between gap-4 text-left",
+            "w-full flex items-center justify-between gap-4 text-left pr-2",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-qreen",
             "transition-all duration-200",
-            "group relative"
+            "group relative",
+            "cursor-pointer",
+            "hover:text-qreen-dark transition-all duration-300",
           )}
           aria-expanded={isOpen}
           aria-controls={`expandable-content-${uid}`}
@@ -56,7 +58,7 @@ export default function Expandable(props: ExpandableProps) {
         </CollapsibleTrigger>
         <CollapsibleContent
           id={`expandable-content-${uid}`}
-          className="mt-4"
+          className="mt-4 pr-6"
         >
           {hasRichText && (
             <div className="rich-text prose">
@@ -72,8 +74,20 @@ export default function Expandable(props: ExpandableProps) {
             </div>
           )}
         </CollapsibleContent>
-        <div className='w-[calc(100%-1rem)] flex items-center absolute left-0 top-[calc(100%+.5rem)] border-b border-qlack '>
-          <span className='absolute left-full pl-1'>{isOpen ? '-' : '+'}</span>
+        <div 
+          className='w-[calc(100%-2rem)] md:w-[calc(100%-1rem)] flex items-center absolute left-0 top-[calc(100%+.5rem)] border-b border-dashed border-qreen cursor-pointer'
+          onClick={() => setIsOpen(!isOpen)}
+          role="button"
+          aria-label={isOpen ? 'Collapse' : 'Expand'}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsOpen(!isOpen);
+            }
+          }}
+        >
+          <span className='absolute left-full ml-1 w-8 h-8 md:w-5 md:h-5 rounded-full bg-qaupe border border-qreen text-qreen font-semibold flex items-center justify-center group-hover/faq:bg-qreen group-hover/faq:text-qaupe transition-all duration-300'>{isOpen ? '-' : '+'}</span>
         </div>
       </Collapsible>
     </div>
