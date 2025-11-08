@@ -20,6 +20,11 @@ const gapSizeMap: Record<string, string> = {
   '1': 'gap-1', '2': 'gap-2', '3': 'gap-3', '4': 'gap-4', '5': 'gap-5', '6': 'gap-6', '7': 'gap-7', '8': 'gap-8', '9': 'gap-9', '10': 'gap-10', '11': 'gap-11', '12': 'gap-12', '13': 'gap-13', '14': 'gap-14', '15': 'gap-15', '16': 'gap-16', '17': 'gap-17', '18': 'gap-18', '19': 'gap-19', '20': 'gap-20', '21': 'gap-21', '22': 'gap-22', '23': 'gap-23', '24': 'gap-24',
 };
 
+// Map gap_size values to rem values (Tailwind spacing scale: 1 = 0.25rem, 2 = 0.5rem, etc.)
+const gapSizeRemMap: Record<string, string> = {
+  '1': '0.25rem', '2': '0.5rem', '3': '0.75rem', '4': '1rem', '5': '1.25rem', '6': '1.5rem', '7': '1.75rem', '8': '2rem', '9': '2.25rem', '10': '2.5rem', '11': '2.75rem', '12': '3rem', '13': '3.25rem', '14': '3.5rem', '15': '3.75rem', '16': '4rem', '17': '4.25rem', '18': '4.5rem', '19': '4.75rem', '20': '5rem', '21': '5.25rem', '22': '5.5rem', '23': '5.75rem', '24': '6rem',
+};
+
 export default function Flex({ blok }: FlexProps) {
   const flexItems = blok.flex_items || [];
   const onMobile = blok.on_mobile || 'stack';
@@ -28,11 +33,33 @@ export default function Flex({ blok }: FlexProps) {
                    : blok.vertical_align_items === 'bottom' ? 'md:items-end' 
                    : blok.vertical_align_items === 'stretch' ? 'md:items-stretch [&>.rich-text>*]:my-2! [&>.rich-text>*>span]:my-0!'
                    : 'md:items-center';
-  const basis = blok.flex_items?.length === 1 ? 'md:*:basis-1/1' 
-              : blok.flex_items?.length === 2 ? 'md:*:basis-1/2' 
-              : blok.flex_items?.length === 3 ? 'md:*:basis-1/3' 
-              : blok.flex_items?.length === 4 ? 'md:*:basis-1/4' 
-              : 'md:*:basis-1/2';
+  
+  // Calculate basis accounting for gaps
+  // Formula: calc((100% - (n-1) * gap) / n) where n is the number of items
+  const itemCount = blok.flex_items?.length || 0;
+  const gapRem = gapSizeRemMap[gapSize] || '2rem';
+  let basis = '';
+  let basisStyle: React.CSSProperties = {};
+  
+  if (blok.evenly_space_items && itemCount > 0) {
+    if (itemCount === 1) {
+      basis = 'md:*:basis-full';
+    } else {
+      // Calculate basis with gap: (100% - (n-1) * gap) / n
+      const gapCount = itemCount - 1;
+      basisStyle = {
+        ['--basis-calc' as string]: `calc((100% - ${gapCount} * ${gapRem}) / ${itemCount})`,
+      };
+      basis = 'md:*:basis-[var(--basis-calc)]';
+    }
+  } else {
+    // Fallback to original basis calculation when not evenly spacing
+    basis = itemCount === 1 ? 'md:*:basis-1/1' 
+          : itemCount === 2 ? 'md:*:basis-1/2' 
+          : itemCount === 3 ? 'md:*:basis-1/3' 
+          : itemCount === 4 ? 'md:*:basis-1/4' 
+          : 'md:*:basis-1/2';
+  }
 
   // Get the Tailwind class from the map, default to gap-8 if invalid
   const gapClass = gapSizeMap[gapSize] || 'gap-8';
@@ -76,6 +103,7 @@ export default function Flex({ blok }: FlexProps) {
       className={flexClasses}
       style={{
         margin: marginValue,
+        ...basisStyle,
       }}
     >
       {/* <pre>
