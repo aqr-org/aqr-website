@@ -87,9 +87,9 @@ export default function Image({ blok }: ImageProps) {
 
   // Text alignment classes
   const textAlignClass = 
-    blok.align === 'center' ? 'text-center' 
-    : blok.align === 'right' ? 'text-right'
-    : 'text-left';
+    blok.align === 'center' ? 'mx-auto' 
+    : blok.align === 'right' ? 'ml-auto mr-0'
+    : 'ml-0 mr-auto';
 
   // Margin classes for alignment (only for md and above)
   const marginClass = 
@@ -109,12 +109,13 @@ export default function Image({ blok }: ImageProps) {
         'shrink-0',
         widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
         widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
+        textAlignClass,
         roundedStyles
       )}
       >
       <figure
         className={cn(
-          textAlignClass,
+          
           marginClass,
           blendModeClass,
           'w-full'
