@@ -353,10 +353,10 @@ hr {
     @apply block text-6xl md:text-[6.25rem] leading-none tracking-[-0.07125rem];
   }
   & h1, & .h2size {
-    @apply block text-6xl md:text-[3.75rem] leading-none tracking-[-0.07125rem];
+    @apply block text-4xl md:text-[3.75rem] leading-none tracking-[-0.07125rem];
   }
   & h2, & .h3size {
-    @apply block text-4xl md:text-[2.375rem] leading-none tracking-[-0.07125rem];
+    @apply block text-3xl md:text-[2.375rem] leading-none tracking-[-0.07125rem];
   }
   & h3, & .h4size {
     @apply block text-3xl md:text-[2.375rem] leading-[1.15] tracking-[-0.035rem];
@@ -371,7 +371,7 @@ hr {
   /* Mobile responsive adjustments for headings */
   @media (max-width: 768px) {
     & .h1size, & h1, & .h2size {
-      @apply text-5xl hyphens-auto;
+      @apply hyphens-auto;
     }
     & h2, & .h3size {
       @apply hyphens-auto;
