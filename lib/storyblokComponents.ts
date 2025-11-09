@@ -19,6 +19,8 @@ import TestimonialCarousel from '@/components/storyblok/TestimonialCarousel';
 import Expandable from '@/components/storyblok/Expandable';
 import Homepage_joinus_benefits from '@/components/storyblok/Homepage_joinus_benefits';
 import Homepage_awards_section from '@/components/storyblok/Homepage_awards_section';
+import Homepage_awards_section_shortlist_item2 from '@/components/storyblok/Homepage_awards_section_shortlist_item2';
+import Homepage_awards_section_shortlist_item_wrapper from '@/components/storyblok/Homepage_awards_section_shortlist_item_wrapper';
 import PodcastCard from '@/components/storyblok/PodcastCard';
 
 const components = {
@@ -43,6 +45,8 @@ const components = {
   expandable: Expandable,
   homepage_joinus_benefits: Homepage_joinus_benefits,
   homepage_awards_section: Homepage_awards_section,
+  homepage_awards_section_shortlist_item2: Homepage_awards_section_shortlist_item2,
+  homepage_awards_section_shortlist_item: Homepage_awards_section_shortlist_item_wrapper,
   podcast_card: PodcastCard,
 };
 

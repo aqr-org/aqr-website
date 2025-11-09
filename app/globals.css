@@ -58,6 +58,14 @@
   }
 }
 
+@keyframes fadeOutAnimation {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
 @keyframes shrinkGrow {
   0% {
     transform: scaleY(100%);
@@ -106,6 +114,7 @@
 }
 
   --animate-appear-text: appearText 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  --animate-appear-text-fast: appearText 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   --animate-animated-circle: animatedCircle 15s linear infinite forwards;
   --animate-animated-circle-slow: animatedCircle 30s linear infinite forwards;
   --animate-animated-circle-backwards: animatedCircle 15s linear infinite reverse;
@@ -114,6 +123,7 @@
   --animate-scale-pulse-slow: scalePulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-scale-pulse-slower: scalePulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-fade-in: fadeInAnimation 0.5s ease-in-out forwards;
+  --animate-fade-out: fadeOutAnimation 0.5s ease-in-out forwards;
   --animate-shrink-grow: shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-shrink-grow-1: shrinkGrowExtreme 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-shrink-grow-2: shrinkGrowExtreme 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
@@ -150,6 +160,12 @@ html {
   :root {
     --spacing-container: 1.5rem;
   }
+}
+body {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="24" viewBox="0 0 1 24"><line x1="1" y1="0" x2="1" y2="24" stroke="rgba(0,0,0,0.05)" strokeWidth="1" stroke-dasharray="8,8"/></svg>');
+  background-repeat: repeat;
+  background-size: calc((var(--container-maxw) - 2 * var(--spacing-container)) / 8) 24px;
+  background-position: 50% 50%;
 }
 @layer utilities {
   .animate-shrink-grow {
@@ -255,6 +271,7 @@ hr {
   background-color: transparent;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 4' preserveAspectRatio='none'%3E%3Cline x1='0' y1='2' x2='4' y2='2' stroke='%2311160c' stroke-width='2' stroke-dasharray='4 4'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
+  background-position: center;
   background-size: 8px 1px;
 }
 
@@ -299,81 +316,80 @@ hr {
 }
 
 .prose {
-  & > *:first-child, 
-  & > *:first-child > .h1size, 
-  & > *:first-child > .h2size, 
-  & > *:first-child > .h3size, 
-  & > *:first-child > .h4size, 
-  & > *:first-child > .h5size, 
+  @apply space-y-7.5;
+  
+  /* Reset margins for first/last children */
+  & > *:first-child,
+  & > *:first-child > .h1size,
+  & > *:first-child > .h2size,
+  & > *:first-child > .h3size,
+  & > *:first-child > .h4size,
+  & > *:first-child > .h5size,
   & > *:first-child > .tag {
     @apply mt-0;
   }
-  & > *:last-child, 
-  & > *:last-child > .h1size, 
-  & > *:last-child > .h2size, 
-  & > *:last-child > .h3size, 
-  & > *:last-child > .h4size, 
-  & > *:last-child > .h5size, 
+  & > *:last-child,
+  & > *:last-child > .h1size,
+  & > *:last-child > .h2size,
+  & > *:last-child > .h3size,
+  & > *:last-child > .h4size,
+  & > *:last-child > .h5size,
   & > *:last-child > .tag {
     @apply mb-0;
   }
-  & h1:has(>.h1size), & h1:has(>.h2size), & h1:has(>.h3size), & h1:has(>.h4size), & h1:has(>.h5size), & h1:has(>.tag),
-  & h2:has(>.h1size), & h2:has(>.h2size), & h2:has(>.h3size), & h2:has(>.h4size), & h2:has(>.h5size), & h2:has(>.tag),
-  & h3:has(>.h1size), & h3:has(>.h2size), & h3:has(>.h3size), & h3:has(>.h4size), & h3:has(>.h5size), & h3:has(>.tag),
-  & h4:has(>.h1size), & h4:has(>.h2size), & h4:has(>.h3size), & h4:has(>.h4size), & h4:has(>.h5size), & h4:has(>.tag),
-  & h5:has(>.h1size), & h5:has(>.h2size), & h5:has(>.h3size), & h5:has(>.h4size), & h5:has(>.h5size), & h5:has(>.tag) {
-    @apply my-0;
-  } 
-  & h1, & h2, & h3, & h4, & h5 {
-    &:has(>.h1size), &:has(>.h2size), &:has(>.h3size), &:has(>.h4size), &:has(>.h5size), &:has(>.tag) {
+  
+  /* Headings with size classes inside */
+  /* & h1, & h2, & h3, & h4, & h5 {
+    &:has(>.h1size, >.h2size, >.h3size, >.h4size, >.h5size, >.tag) {
+      @apply my-0;
       & + * {
         @apply mt-0;
       }
     }
-  }
+  } */
+  
+  /* Heading styles */
   & .h1size {
-    @apply block text-6xl md:text-[6.25rem] my-7.5 leading-none tracking-[-0.07125rem];
-    
-    @media (max-width: 768px) {
-      @apply text-5xl hyphens-auto;
-    }
+    @apply block text-6xl md:text-[6.25rem] leading-none tracking-[-0.07125rem];
   }
   & h1, & .h2size {
-    @apply block text-6xl md:text-[3.75rem] my-7.5 leading-none tracking-[-0.07125rem];
-    
-    @media (max-width: 768px) {
-      @apply text-5xl hyphens-auto;
-    }
+    @apply block text-6xl md:text-[3.75rem] leading-none tracking-[-0.07125rem];
   }
   & h2, & .h3size {
-    @apply block text-4xl md:text-[2.375rem] my-7.5 leading-none tracking-[-0.07125rem];
-    @media (max-width: 768px) {
-      @apply hyphens-auto;
-    }
+    @apply block text-4xl md:text-[2.375rem] leading-none tracking-[-0.07125rem];
   }
   & h3, & .h4size {
-    @apply block text-3xl md:text-[2.375rem] my-7.5 leading-[1.15] tracking-[-0.035rem];
+    @apply block text-3xl md:text-[2.375rem] leading-[1.15] tracking-[-0.035rem];
   }
   & h4, & .h5size {
-    @apply block text-[1.875rem] my-7.5 leading-tight tracking-[-0.02rem];
+    @apply block text-[1.875rem] leading-tight tracking-[-0.02rem];
   }
   & h5 {
     @apply block text-[1.5rem] my-6 leading-tight tracking-[-0.02rem];
   }
+  
+  /* Mobile responsive adjustments for headings */
+  @media (max-width: 768px) {
+    & .h1size, & h1, & .h2size {
+      @apply text-5xl hyphens-auto;
+    }
+    & h2, & .h3size {
+      @apply hyphens-auto;
+    }
+  }
+  
+  /* Text elements */
   & .intro {
-    @apply block text-[1.5rem] my-7.5 leading-tight tracking-[-0.02rem] text-qreen;
+    @apply block text-[1.5rem] leading-tight tracking-[-0.02rem] text-qreen;
   }
   & .tag {
     @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-2.5;
-  }
-  & .indent_left {
-    @apply relative block left-[1.88rem] w-[calc(100%-1.88rem)];
   }
   & :has(>.tag)+p {
     @apply mt-0;
   }
   & p {
-    @apply text-lg my-7.5 leading-[1.4];
+    @apply text-lg leading-[1.4];
   }
   & .small, & p .small {
     @apply text-base my-[0.975rem];
@@ -381,17 +397,18 @@ hr {
   & .xsmall, & p .xsmall {
     @apply text-sm my-3;
   }
+  
+  /* Layout utilities */
+  & .indent_left {
+    @apply relative block left-[1.88rem] w-[calc(100%-1.88rem)];
+  }
+  
+  /* Block elements */
   & blockquote {
-    @apply my-7.5;
-    @apply text-lg text-qreen-dark italic;
-    @apply leading-[1.4];
-    @apply border-l border-qreen-dark/20 pl-4;
+    @apply text-lg text-qreen-dark italic leading-[1.4] border-l border-qreen-dark/20 pl-4;
   }
   & ul {
-    @apply my-7.5 list-disc ml-4;
-  }
-  & ol {
-    @apply my-7.5;
+    @apply list-disc ml-4;
   }
   & li {
     @apply my-3 text-lg;
@@ -402,55 +419,55 @@ hr {
       @apply text-base;
     }
   }
+  
+  /* Links */
   & a {
     @apply underline;
   }
   & a span.link_arrow {
-    @apply relative inline-flex items-center gap-1;
-    @apply hover:text-qreen-dark;
-    
+    @apply relative inline-flex items-center gap-1 hover:text-qreen-dark text-[1.125em];
     &:after {
       content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 18' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'%3E%3Cpath d='M7 7h10v10'%3E%3C/path%3E%3Cpath d='M7 17 17 7'%3E%3C/path%3E%3C/svg%3E");
       @apply inline-block h-full w-auto;
     }
   }
+  
+  /* Tables */
   & table {
-    @apply my-7.5 w-full;
-  }
-  & table th, & table td {
-    @apply p-4;
-    & p {
-      @apply my-0;
+    @apply w-full;
+    & th, & td {
+      @apply p-4;
+      & p {
+        @apply my-0;
+      }
+    }
+    & th {
+      @apply text-qlack text-left font-medium;
+    }
+    & tr:has(th) {
+      @apply border-b-2 border-dashed border-qreen-dark;
+    }
+    & td {
+      @apply bg-qaupe;
+    }
+    & tr:nth-child(odd) td {
+      @apply bg-qreen/10 text-qreen-dark;
     }
   }
-  & table th {
-    @apply  text-qlack text-left font-medium;
-  }
-  & table tr:has(th) {
-    @apply border-b-2 border-dashed border-qreen-dark;
-  }
-  & table td {
-    @apply bg-qaupe;
-  }
-  & table tr:nth-child(odd) td {
-    @apply bg-qreen/10 text-qreen-dark;
-  }
 }
-.summary {
-  @apply pb-12 border-b border-qreen;
-  & p {
-    @apply line-clamp-3;
-  }
+
+.prose.narrowSpacingBetweenItems {
+  @apply space-y-4;
 }
 
 .prose.prose_article {
   & h2 {
-    @apply block text-2xl font-normal my-7.5 leading-none tracking-[-0.07125rem];
+    @apply block text-2xl font-normal leading-none tracking-[-0.07125rem];
   }
   & h3, & .h3size {
-    @apply block text-xl font-normal my-7.5 leading-none tracking-[-0.035rem];
+    @apply block text-xl font-normal leading-none tracking-[-0.035rem];
   }
   & h4, & .h4size {
-    @apply block text-[1.5rem] font-normal my-7.5 leading-none tracking-[-0.07125rem];
+    @apply block text-[1.5rem] font-normal leading-none tracking-[-0.07125rem];
   }
 }

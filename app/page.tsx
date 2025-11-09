@@ -237,7 +237,7 @@ export default async function Home() {
   const storyBlokStory = storyblok.data.story;
 
   return (
-    <main className="flex-1 flex flex-col gap-20 min-h-screen" {...storyblokEditable(storyBlokStory)}>
+    <div className="flex-1 flex flex-col gap-20 min-h-screen" {...storyblokEditable(storyBlokStory)}>
       <HomepageDataProvider
         allEvents={allEvents}
         nextEvent={nextEvent}
@@ -250,7 +250,7 @@ export default async function Home() {
           <StoryblokStory story={storyBlokStory} />
         </div>
       </HomepageDataProvider>
-    </main>
+    </div>
   );
 }
 

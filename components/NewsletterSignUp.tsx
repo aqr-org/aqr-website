@@ -3,15 +3,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Logo from "@/components/Logo";
 import { UserRound } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export function NewsletterSignUp() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [agreedToEmails, setAgreedToEmails] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,14 +56,14 @@ export function NewsletterSignUp() {
   };
 
   return (
-    <div className="bg-qlack text-qaupe mt-24">
+    <div className="bg-qlack text-qaupe mt-24 w-full">
       <div className="max-w-maxw mx-auto px-container py-16 space-y-8">
         <div className="w-20 h-auto md:ml-[160px]">
           <Logo variant="white" />
         </div>
         <div className="md:flex">
-          <h2 className="md:basis-[160px] uppercase tracking-[0.04em]">Newsletter</h2>
-          <p className="text-6xl tracking-[-0.03em] max-w-250">
+          <h2 className="md:basis-[160px] uppercase tracking-[0.04em]">Mailing List</h2>
+          <p className="text-5xl md:text-6xl tracking-[-0.03em] max-w-250">
             <span className="text-qellow">Sign up</span> to stay informed and inspired.
           </p>
         </div>
@@ -97,24 +100,62 @@ export function NewsletterSignUp() {
             </div>
           </div> */}
           
-          <div className="mt-12 flex flex-col md:flex-row items-center gap-4">
-            <Input
-              id="email"
-              type="email"
-              placeholder="your.email@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-qaupe! text-qreen-dark placeholder:text-qreen-dark/50"
-              disabled={isLoading}
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || !email.trim()}
-              className="text-qellow border-qellow h-[calc(100%-4px)] hover:bg-qellow hover:text-qlack hover:border-qellow cursor-pointer flex w-full md:w-auto md:inline-flex"
-            >
-            <UserRound className="w-4 h-4" /> {isLoading ? "Subscribing..." : "Subscribe"}
-            </Button>
+          <div className="mt-12 flex flex-col md:flex-row items-start gap-4">
+            <div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-qaupe! text-qreen-dark placeholder:text-qreen-dark/50"
+                disabled={isLoading}
+              />
+              <label htmlFor="subscribe" className="flex items-center gap-2 cursor-pointer mt-4">
+                <Checkbox 
+                  id="subscribe" 
+                  checked={agreedToEmails}
+                  onCheckedChange={(checked) => setAgreedToEmails(checked === true)}
+                />
+                <span className="text-qaupe/80 text-sm">I agree to receive emails from AQR.</span>
+              </label>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className={cn(
+                    "inline-block",
+                    (isLoading || !email.trim() || !agreedToEmails) ? "cursor-not-allowed" : "cursor-pointer"
+                  )}>
+                    <Button
+                      type="submit"
+                      disabled={isLoading || !email.trim() || !agreedToEmails}
+                      className={cn(
+                        "text-qellow border-qellow h-[calc(100%-4px)] hover:bg-qellow hover:text-qlack hover:border-qellow flex w-full md:w-auto md:inline-flex",
+                      )}
+                    >
+                      <UserRound className="w-4 h-4" /> {isLoading ? "Sending..." : "Send"}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                { !agreedToEmails && !email.trim() && (
+                  <TooltipContent>
+                    <p>Please enter your email address and consent to receiving emails from us first!</p>
+                  </TooltipContent>
+                )}
+                {!agreedToEmails && email.trim() && (
+                  <TooltipContent>
+                    <p>Please agree to receive emails first</p>
+                  </TooltipContent>
+                )}
+                { agreedToEmails && !email.trim() && (
+                  <TooltipContent>
+                    <p>Please enter your email first</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
 

@@ -99,9 +99,45 @@ function cleanTextContent(text: string): string {
   return cleaned;
 }
 
-export default function RichText({ blok }: RichTextProps) {
+// Memoize blok resolvers to prevent recreation on every render
+const blokResolvers = {
+  youtube: (props: any) => <Youtube blok={props} />,
+  audio: (props: any) => <Audio blok={props} />,
+  image: (props: any) => <Image blok={props} />,
+  flex: (props: any) => <Flex blok={props} />,
+};
+
+// Memoize node resolvers to prevent recreation on every render
+const nodeResolvers = {
+  table: (children: React.ReactNode) => {
+    // Check if children already include tbody
+    const childrenArray = React.Children.toArray(children);
+    const hasTbody = childrenArray.some(
+      (child: any) => 
+        child?.type === 'tbody' || 
+        (typeof child === 'object' && child?.props?.tag === 'tbody')
+    );
+    
+    // If no tbody exists, wrap all direct tr elements in tbody
+    if (!hasTbody) {
+      return (
+        <table>
+          <tbody>
+            {children}
+          </tbody>
+        </table>
+      );
+    }
+    
+    return <table>{children}</table>;
+  },
+};
+
+function RichText({ blok }: RichTextProps) {
   // Clean the content before rendering
+  // Since this is a server component, it only renders once on the server
   const cleanedContent = cleanStoryblokContent(blok.content);
+  
   // Process margins: add 'rem' to each value, or default to '0rem 0rem 0rem 0rem' if invalid
   // If add_outer_padding_x is true, set second and fourth parts (right and left) to 'auto'
   let marginValue = blok.add_outer_padding_x ? '0rem auto 0rem auto' : '0rem 0rem 0rem 0rem';
@@ -124,7 +160,9 @@ export default function RichText({ blok }: RichTextProps) {
       className={cn(
         "rich-text prose", 
         blok.add_outer_padding_x ? 'px-container max-w-maxw mx-auto' : '',
-        blok.special_class && blok.special_class
+        blok.special_class?.includes('narrowSpacingBetweenItems') && 'narrowSpacingBetweenItems',
+        blok.special_class?.includes('summary') && 'pb-8 border-b border-qreen [&>p]:line-clamp-3',
+        blok.special_class?.includes('bottom-border') && 'pb-12 border-b border-qreen'
       )}
       style={{ 
         maxWidth: blok.max_width ? `${blok.max_width}px` 
@@ -134,37 +172,12 @@ export default function RichText({ blok }: RichTextProps) {
       }}
     >
       {render(cleanedContent, {
-        blokResolvers: {
-          youtube: (props: any) => <Youtube blok={props} />,
-          audio: (props: any) => <Audio blok={props} />,
-          image: (props: any) => <Image blok={props} />,
-          flex: (props: any) => <Flex blok={props} />,
-        },
-        nodeResolvers: {
-          table: (children: React.ReactNode) => {
-            // Check if children already include tbody
-            const childrenArray = React.Children.toArray(children);
-            const hasTbody = childrenArray.some(
-              (child: any) => 
-                child?.type === 'tbody' || 
-                (typeof child === 'object' && child?.props?.tag === 'tbody')
-            );
-            
-            // If no tbody exists, wrap all direct tr elements in tbody
-            if (!hasTbody) {
-              return (
-                <table>
-                  <tbody>
-                    {children}
-                  </tbody>
-                </table>
-              );
-            }
-            
-            return <table>{children}</table>;
-          },
-        },
+        blokResolvers,
+        nodeResolvers,
       })}
     </div>
   )
 }
+
+// Server components don't need React.memo - they only render on the server
+export default RichText;

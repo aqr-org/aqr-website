@@ -16,14 +16,14 @@ interface HeroHomepageProps {
 
 export default function Hero_Homepage({ blok }: HeroHomepageProps) {
 return (
-	<div {...storyblokEditable(blok)} className="w-full max-w-maxw mx-auto px-container box-border pt-32">
-    <div className='absolute inset-0 -z-10'>
+	<div {...storyblokEditable(blok)} className="w-full max-w-maxw mx-auto px-container box-border pt-16 md:pt-32">
+    <div className='absolute inset-0 -z-10 w-full h-full overflow-hidden'>
       <svg 
         id="bg_svg" 
         width="1440" height="950" viewBox="0 0 1440 950" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className='overflow-visible w-full h-auto max-w-maxw mx-auto relative'
+        className='overflow-visible w-auto h-2/3 top-[120px] md:top-0 md:w-full md:h-auto max-w-maxw mx-auto relative'
       >
         <path 
           style={{

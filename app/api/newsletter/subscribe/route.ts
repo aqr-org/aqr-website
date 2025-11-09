@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!process.env.MAILCHIMP_API_KEY || !process.env.MAILCHIMP_AUDIENCE_ID || !process.env.MAILCHIMP_API_SERVER) {
       console.error('Mailchimp environment variables not configured');
       return NextResponse.json(
-        { error: 'Newsletter service is not configured. Please try again later.' },
+        { error: 'Mailing list service is not configured. Please try again later.' },
         { status: 500 }
       );
     }
@@ -51,14 +51,14 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json(
-        { message: 'Successfully subscribed to newsletter!' },
+        { message: 'Successfully subscribed to mailing list!' },
         { status: 200 }
       );
     } catch (error: any) {
       // Handle Mailchimp-specific errors
       if (error.status === 400 && error.response?.body?.title === 'Member Exists') {
         return NextResponse.json(
-          { error: 'This email is already subscribed to our newsletter.' },
+          { error: 'This email is already subscribed to our mailing list.' },
           { status: 400 }
         );
       }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('Newsletter subscription error:', error);
+    console.error('Mailing list subscription error:', error);
     return NextResponse.json(
       { error: 'An unexpected error occurred. Please try again later.' },
       { status: 500 }

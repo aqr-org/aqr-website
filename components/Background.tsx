@@ -103,7 +103,7 @@ export default function HomePage({ color, css }: Props) {
     let maxScrollHeight = 0;
     
     // Easing factor (0-1, lower = smoother, higher = more responsive)
-    const easingFactor = 0.1;
+    const easingFactor = 0.9;
     
     function updateMaxScrollHeight() {
       // Calculate maximum scrollable height

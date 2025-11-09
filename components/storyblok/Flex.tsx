@@ -12,6 +12,7 @@ interface FlexProps {
     evenly_space_items: boolean;
     add_outer_padding_x: boolean;
     margins: string;
+    inner_spacing: string;
   };
 }
 
@@ -31,7 +32,7 @@ export default function Flex({ blok }: FlexProps) {
   const gapSize = blok.gap_size || '8';
   const alignItems = blok.vertical_align_items === 'top' ? 'md:items-start' 
                    : blok.vertical_align_items === 'bottom' ? 'md:items-end' 
-                   : blok.vertical_align_items === 'stretch' ? 'md:items-stretch [&>.rich-text>*]:my-2! [&>.rich-text>*>span]:my-0!'
+                   : blok.vertical_align_items === 'stretch' ? 'md:items-stretch'
                    : 'md:items-center';
   
   // Calculate basis accounting for gaps
