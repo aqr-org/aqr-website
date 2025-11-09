@@ -317,6 +317,10 @@ hr {
 
 .prose {
   @apply space-y-7.5;
+
+  & + .prose {
+    @apply mt-7.5;
+  }
   
   /* Reset margins for first/last children */
   & > *:first-child,

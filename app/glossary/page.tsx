@@ -83,9 +83,7 @@ export default async function DirPage() {
           <LoadingAnimation text="Loading glossary..." />
         </div>
       }>
-        <nav aria-label="Directory navigation" className="group-data-[liststyle=filters]:hidden sticky top-0 py-4 -mt-4 bg-qaupe z-10">
-          <AlphabetNav entries={groupedTerms} />
-        </nav>
+        <AlphabetNav entries={groupedTerms} ariaLabel="Glossary navigation" />
         <div className="md:grid md:grid-cols-2 md:gap-y-0 md:gap-x-40" >
           <div className="text-2xl border-b col-span-2 group-data-[liststyle=filters]:block hidden">
             Filter Results:

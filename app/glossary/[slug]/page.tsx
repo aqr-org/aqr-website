@@ -37,7 +37,7 @@ export default async function GlossaryPage({ params }: GlossaryPageProps) {
   const content = storyblok.data.story;
 
   return (
-    <main className='max-w-[41rem]' {...storyblokEditable(content)}> 
+    <main className='max-w-164' {...storyblokEditable(content)}> 
       <StoryblokStory story={content} />
     </main>
   );

@@ -30,15 +30,21 @@ export default function Glossary_Entry({ blok }: Glossary_EntryProps) {
         {render(content.description)}
       </div>
       {content.synonyms && content.synonyms.content.length > 0 &&
-        <div className='prose'>
-          <h2>Synonyms</h2>
-          {render(content.synonyms)}
+        <div className='prose p-6 bg-qlack text-qaupe rounded-lg relative overflow-hidden'>
+          <img src="/glossary_card_bg.svg" alt="Glossary Background" className="absolute z-0 inset-0 w-full h-full object-cover" />
+          <div className="relative z-10">
+            <h2 className="text-2xl mb-4">Synonyms</h2>
+            {render(content.synonyms)}
+          </div>
         </div>
       }
       {content.related && content.related.content.length > 0 &&
-        <div className='prose'>
-          <h2>Related</h2>
-          {render(content.related)}
+        <div className='prose p-6 bg-qlack text-qaupe rounded-lg relative overflow-hidden'>
+          <img src="/glossary_card_bg.svg" alt="Glossary Background" className="absolute z-0 inset-0 w-full h-full object-cover" />
+          <div className="relative z-10">
+            <h2 className="text-2xl mb-4">Related</h2>
+            {render(content.related)}
+          </div>
         </div>
       }
     </div>
