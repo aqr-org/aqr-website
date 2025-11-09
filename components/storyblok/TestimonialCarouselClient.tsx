@@ -171,7 +171,7 @@ export default function TestimonialCarouselClient({
   if (testimonials.length === 0) return null;
 
   return (
-    <div className="w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container) py-18">
+    <div className="w-[calc(100%+var(--spacing-container))] -ml-(--spacing-container) py-6 md:py-18">
       {/* Animated background shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className={cn(

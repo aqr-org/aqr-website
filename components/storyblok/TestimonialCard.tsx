@@ -34,9 +34,9 @@ export default function TestimonialCard({
       
       {/* Text content on right */}
       <div className="flex-1 flex flex-col gap-2 overflow-visible">
-        <p className="text-3xl text-qreen-dark max-w-160 relative overflow-visible">
+        <p className="text-2xl md:text-3xl leading-tight text-qreen-dark max-w-160 relative overflow-visible pr-4">
           {quote}
-          <svg className="absolute bottom-[120%] right-0 md:right-auto md:left-0" width="40" height="36" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute bottom-[120%] right-4 md:right-auto md:left-0" width="40" height="36" viewBox="0 0 40 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g opacity="0.3">
             <path d="M22.5641 18.5143H40V36H22.5641V18.5143Z" fill="#3C772B"/>
             <path d="M32.3077 0H38.9744L32.3077 18.5143H22.5641L32.3077 0Z" fill="#3C772B"/>
