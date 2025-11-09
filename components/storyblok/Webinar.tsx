@@ -50,7 +50,7 @@ export default function Webinar({ blok }: WebinarProps) {
   const videoId = sanitizedYoutubeId();
   
   return (
-    <div {...storyblokEditable(blok)}>
+    <div {...storyblokEditable(blok)} className="space-y-12">
       {blok.youtube_id && blok.youtube_id.length > 0 &&
         <div className="w-full h-auto aspect-video">
           <iframe 
@@ -65,11 +65,11 @@ export default function Webinar({ blok }: WebinarProps) {
           ></iframe>
         </div>
       }
-      <div className="max-w-[41rem] prose">
+      <div className="max-w-164 prose">
         <h1 className='h3size'>
           {blok.title}
         </h1>
-        <h2 className="h4size text-qreen-dark">
+        <h2 className="intro text-qreen-dark">
           {blok.description}
         </h2>
         <div className='prose'>
