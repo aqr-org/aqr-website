@@ -6,13 +6,18 @@ import { createClient } from "@/lib/supabase/client";
 import { LogoutMenuItem } from "./logout-button";
 import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
-import { BookOpen, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
+import { NavigationLinkData } from "@/lib/types/navigation";
+import NavigationLink from "./navigation/NavigationLink";
+import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
+import { cn } from "@/lib/utils";
 
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperadmin, setIsSuperadmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [sidebarItems, setSidebarItems] = useState<NavigationLinkData[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -70,6 +75,24 @@ export function AuthButton() {
 
     checkSuperadmin();
   }, [user?.email]);
+
+  // Fetch members-only sidebar items
+  useEffect(() => {
+    const fetchSidebarItems = async () => {
+      try {
+        // Fetch will respect Cache-Control headers from the API
+        const response = await fetch('/api/members-only-sidebar');
+        if (response.ok) {
+          const data = await response.json();
+          setSidebarItems(data.nav_items || []);
+        }
+      } catch (error) {
+        console.error('Error fetching members-only-sidebar:', error);
+      }
+    };
+
+    fetchSidebarItems();
+  }, []);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -135,13 +158,10 @@ export function AuthButton() {
         <UserRound className="w-6 h-6" />
       </button>
       <div
-        className={`block md:${isOpen ? 'block' : 'hidden'} md:absolute md:top-full md:right-0 w-auto min-w-56 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2 md:mt-0`}
+        className={`block md:${isOpen ? 'block' : 'hidden'} md:absolute md:top-full md:right-0 w-auto min-w-64 bg-qaupe p-4 rounded-lg space-y-2 border-2 border-qreen z-50 mt-2 md:mt-0`}
         role="menu"
         aria-orientation="vertical"
       >
-          <p className="mb-2 whitespace-nowrap flex items-center gap-1">
-            <UserRound className="w-4 h-4" /> {user.email}!
-          </p>
           {isSuperadmin ? (
             <Link
               href="/superadmin"
@@ -159,14 +179,67 @@ export function AuthButton() {
               Membership Settings
             </Link>
           )}
-          <Link
-            href="/members-only-content"
-            className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
-            role="menuitem"
-          >
-            Exclusive content
-          </Link>
-          <div className="text-qreen">
+          {sidebarItems.map((item: NavigationLinkData, index: number) => (
+            <div key={item.name + index} className={cn(index === 0 ? "mt-0" : "mt-2")}>
+              {item.component === "navigation_cta" ? (
+                <Button variant="default" className="text-qreen-dark border-qreen-dark">
+                  <NavigationLink href={normalizeStoryblokUrl(item.link?.cached_url)} className="flex items-center gap-2 text-base">
+                    {item.icon === 'suitcase' && (
+                      <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="4.38623" width="14" height="10.9474" rx="2" stroke="#3C772B" strokeWidth="2"/>
+                        <path d="M10.5788 4.38618V2.85986C10.5788 2.30758 10.1311 1.85986 9.57879 1.85986H6.4209C5.86861 1.85986 5.4209 2.30758 5.4209 2.85986V4.38618" stroke="#3C772B" strokeWidth="2"/>
+                      </svg>
+                    )}
+                    {item.icon === 'user' && (
+                      <UserRound />
+                    )}
+                    {item.name}
+                  </NavigationLink>
+                </Button>
+              ) : item.link?.cached_url !== "" ? (
+                <NavigationLink 
+                  href={normalizeStoryblokUrl(item.link?.cached_url)}
+                  className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+                  role="menuitem"
+                >
+                  {item.name}
+                </NavigationLink>
+              ) : (
+                <div className="flex-col text-qlack font-semibold items-center gap-1 block px-1">
+                  {item.name}
+                </div>
+              )}
+              {item.dropdown_menu &&
+                <ul className="pl-4 space-y-1 mt-1">
+                  {item.dropdown_menu.map((dropdownItem: NavigationLinkData, dropdownIndex: number) => (
+                    <li key={dropdownItem.name + dropdownIndex}>
+                      <NavigationLink 
+                        href={normalizeStoryblokUrl(dropdownItem.link?.cached_url)}
+                        className={cn(
+                          "group/sidebarlink",
+                          "flex gap-1 items-start",
+                          "text-sm font-medium",
+                          "text-qreen data-[current-page=true]:text-qreen-dark/60",
+                          "hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+                        )}
+                        role="menuitem"
+                      >
+                        <svg aria-hidden="true" className="group-data-[current-page=true]/sidebarlink:hidden downrightArrow h-[1em] relative top-[0.2em]" width="10" height="9" viewBox="0 0 10 9" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.2 5.6932H1V0.359863M6.86667 8.35986L9 5.6932L6.86667 3.02653" stroke="#7BBD40" strokeWidth="1.5"/></svg>
+                        <span className="group-hover/sidebarlink:translate-x-1 transition-transform duration-300">
+                          {dropdownItem.name}
+                        </span>
+                      </NavigationLink>
+                    </li>
+                  ))}
+                </ul>
+              }
+            </div>
+          ))}
+          
+          <div className="text-qreen mt-4 pt-2 border-t border-qlack/50 border-dashed font-semibold">
+            <p className="text-xs text-qlack/50 mb-2 whitespace-nowrap flex items-center gap-1 font-normal">
+              <UserRound className="w-3 h-3" /> {user.email}!
+            </p>
             <LogoutMenuItem />
           </div>
         </div>

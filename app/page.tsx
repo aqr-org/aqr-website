@@ -170,7 +170,7 @@ async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null>
       content_type: "webinar",
       starts_with: "events/thehub/",
       excluding_slugs: "events/thehub/",
-      sort_by: "created_at:desc", // Sort by creation date descending
+      sort_by: "content.date:desc", // Sort by content date descending
       per_page: 1, // Only fetch the first (most recent) webinar
     });
 
