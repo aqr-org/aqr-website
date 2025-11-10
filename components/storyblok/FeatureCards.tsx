@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { storyblokEditable } from "@storyblok/react/rsc";
 import FeatureCardsClient from "./FeatureCardsClient";
-import React from "react";
 import Image from "next/image";
 import MemberCardBG from "@/components/svgs/MemberCardBG";
 import { getStoryblokApi } from "@/lib/storyblok";
@@ -187,7 +186,7 @@ async function fetchLatestWebinarInternal(isDraftMode: boolean): Promise<Webinar
       content_type: "webinar",
       starts_with: "events/thehub/",
       excluding_slugs: "events/thehub/",
-      sort_by: "created_at:desc", // Sort by creation date descending
+      sort_by: "content.date:desc", // Sort by creation date descending
       per_page: 1, // Only fetch the first (most recent) webinar
     });
 
