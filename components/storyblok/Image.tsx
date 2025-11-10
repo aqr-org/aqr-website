@@ -73,16 +73,16 @@ export default function Image({ blok }: ImageProps) {
   };
 
   const basisClasses: Record<number, string> = {
-    10: 'md:basis-[10%]',
-    20: 'md:basis-[20%]',
-    30: 'md:basis-[30%]',
-    40: 'md:basis-[40%]',
-    50: 'md:basis-[50%]',
-    60: 'md:basis-[60%]',
-    70: 'md:basis-[70%]',
-    80: 'md:basis-[80%]',
-    90: 'md:basis-[90%]',
-    100: 'md:basis-full',
+    10: '[.sb-flex-block>&]:md:basis-[10%]',
+    20: '[.sb-flex-block>&]:md:basis-[20%]',
+    30: '[.sb-flex-block>&]:md:basis-[30%]',
+    40: '[.sb-flex-block>&]:md:basis-[40%]',
+    50: '[.sb-flex-block>&]:md:basis-[50%]',
+    60: '[.sb-flex-block>&]:md:basis-[60%]',
+    70: '[.sb-flex-block>&]:md:basis-[70%]',
+    80: '[.sb-flex-block>&]:md:basis-[80%]',
+    90: '[.sb-flex-block>&]:md:basis-[90%]',
+    100: '[.sb-flex-block>&]:md:basis-full',
   };
 
   // Text alignment classes
@@ -105,7 +105,7 @@ export default function Image({ blok }: ImageProps) {
       {...storyblokEditable(blok)} 
       className={cn(
         blok.special_class === 'multiply' && 'bg-qaupe', 
-        basisClasses[clampedWidth as keyof typeof basisClasses] || 'md:basis-full',
+        basisClasses[clampedWidth as keyof typeof basisClasses] || '[.sb-flex-block>&]:md:basis-full',
         'shrink-0',
         widthClassesMobile[blok.width_mobile as keyof typeof widthClassesMobile] || 'w-full',
         widthClasses[clampedWidth as keyof typeof widthClasses] || 'md:w-full',
@@ -115,7 +115,6 @@ export default function Image({ blok }: ImageProps) {
       >
       <figure
         className={cn(
-          
           marginClass,
           blendModeClass,
           'w-full'
@@ -132,11 +131,19 @@ export default function Image({ blok }: ImageProps) {
           aspectRatioMobile={blok.aspect_ratio.toString() || '1.77778'}
           sizes={`(max-width: 768px) 90vw, 70vw`}
           className={cn(
-            `w-full h-auto`,
+            `inline-block w-full h-auto`,
+            '[&>img]:inline-block',
             textAlignClass,
-            '[&>img]:inline-block'
           )}
-          style={{ aspectRatio: blok.aspect_ratio ? blok.aspect_ratio : '1.77778' }}
+          style={{ 
+            aspectRatio: blok.aspect_ratio ? blok.aspect_ratio : '1.77778',
+            minWidth: blok.min_width ? `${blok.min_width}px` : '0%',
+            maxWidth: blok.max_width ? `${blok.max_width}px` : '100%', 
+          }}
+          imgStyle={{
+            minWidth: blok.min_width ? `${blok.min_width}px` : '0%',
+            maxWidth: blok.max_width ? `${blok.max_width}px` : '100%',
+          }}
         />
         </figure> 
     </div>

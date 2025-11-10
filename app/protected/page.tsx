@@ -70,12 +70,7 @@ export default async function ProtectedPage() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
-        <Background
-          css={`
-            body { background-image: linear-gradient(to bottom, rgba(0,0,0,0) 10vw, rgba(0,50,0,0.2) 100vw); }
-          `}
-        />
-        <h1 className="text-3xl">Welcome, {membersInfo.data?.[0]?.firstname || "member"}!</h1>
+        <h1 className="text-3xl">Welcome, {userBeaconData?.firstname || "member"}!</h1>
         {/* <section className="flex gap-4">
           <div>
             <pre>

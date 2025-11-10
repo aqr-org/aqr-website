@@ -43,7 +43,7 @@ export default function ProtectedTabs({
       >
         {!isOnlyDirectoryMember && 
           <Tab
-            className="border border-qlack border-b-0 font-[400] bg-qaupe bg-gradient-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            className="border border-qlack border-b-0 bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
             selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
           >
             Edit your personal info
@@ -51,7 +51,7 @@ export default function ProtectedTabs({
         }
         {hasDirectoryMembership && 
           <Tab
-            className="border border-qlack border-b-0 font-[400] bg-qaupe bg-gradient-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            className="border border-qlack border-b-0 bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
             selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
           >
             Edit your organisation info

@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { LogoutButton, LogoutMenuItem } from "./logout-button";
+import { LogoutMenuItem } from "./logout-button";
 import { useEffect, useState, useRef } from "react";
 import type { User } from "@supabase/supabase-js";
-import { UserRound } from "lucide-react";
+import { BookOpen, UserRound } from "lucide-react";
 
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
@@ -139,8 +139,8 @@ export function AuthButton() {
         role="menu"
         aria-orientation="vertical"
       >
-          <p className="mb-2 whitespace-nowrap">
-            Hello, {user.email}!
+          <p className="mb-2 whitespace-nowrap flex items-center gap-1">
+            <UserRound className="w-4 h-4" /> {user.email}!
           </p>
           {isSuperadmin ? (
             <Link
@@ -159,6 +159,13 @@ export function AuthButton() {
               Membership Settings
             </Link>
           )}
+          <Link
+            href="/members-only-content"
+            className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+            role="menuitem"
+          >
+            Exclusive content
+          </Link>
           <div className="text-qreen">
             <LogoutMenuItem />
           </div>

@@ -38,6 +38,10 @@ export default async function SlugPageLayout({
     sidebarPath = 'site-settings/whatson-sidebar';
     title = 'What\'s On';
   }
+  else if (parent === 'members-only-content') {
+    sidebarPath = 'site-settings/members-only-sidebar';
+    title = 'Members exclusive content';
+  }
   else {
     sidebarPath = 'site-settings/directory-sidebar';
     title = 'Directory';

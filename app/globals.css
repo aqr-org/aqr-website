@@ -357,16 +357,16 @@ hr {
     @apply block text-6xl md:text-[6.25rem] leading-none tracking-[-0.07125rem];
   }
   & h1, & .h2size {
-    @apply block text-4xl md:text-[3.75rem] leading-none tracking-[-0.07125rem];
+    @apply block text-4xl md:text-[3.75rem] leading-[1.1] tracking-[-0.07125rem];
   }
   & h2, & .h3size {
-    @apply block text-3xl md:text-[2.375rem] leading-none tracking-[-0.07125rem];
+    @apply block text-3xl md:text-[2.375rem] leading-[1.1] tracking-[-0.07125rem];
   }
   & h3, & .h4size {
-    @apply block text-3xl md:text-[2.375rem] leading-[1.15] tracking-[-0.035rem];
+    @apply block text-2xl md:text-[1.875rem] leading-[1.15] tracking-[-0.035rem];
   }
   & h4, & .h5size {
-    @apply block text-[1.875rem] leading-tight tracking-[-0.02rem];
+    @apply block text-[1.666rem] leading-tight tracking-[-0.02rem];
   }
   & h5 {
     @apply block text-[1.5rem] my-6 leading-tight tracking-[-0.02rem];
@@ -387,7 +387,7 @@ hr {
     @apply block text-[1.5rem] leading-tight tracking-[-0.02rem] text-qreen;
   }
   & .tag {
-    @apply block text-[1rem] uppercase leading-normal tracking-[0.04rem] mb-2.5;
+    @apply block text-[1rem] uppercase leading-tight tracking-[0.04rem] mb-2.5;
   }
   & :has(>.tag)+p {
     @apply mt-0;
@@ -396,10 +396,10 @@ hr {
     @apply text-lg leading-[1.4];
   }
   & .small, & p .small {
-    @apply text-base my-[0.975rem];
+    @apply text-base my-[0.975rem] leading-tight block;
   }
   & .xsmall, & p .xsmall {
-    @apply text-sm my-3;
+    @apply text-sm my-3 leading-[1.4] block;
   }
   
   /* Layout utilities */
@@ -409,7 +409,7 @@ hr {
   
   /* Block elements */
   & blockquote {
-    @apply text-lg text-qreen-dark italic leading-[1.4] border-l border-qreen-dark/20 pl-4;
+    @apply text-lg text-qreen-dark italic leading-[1.4] pl-4;
   }
   & ul {
     @apply list-disc ml-4;

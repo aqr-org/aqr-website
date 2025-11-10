@@ -14,7 +14,8 @@ interface PictureProps {
   priority?: boolean,
   nofade?: boolean,
   placeholder?: string,
-  style?: React.CSSProperties
+  style?: React.CSSProperties,
+  imgStyle?: React.CSSProperties
 }
 
 // Helper functions to generate srcSet strings (memoized at module level)
@@ -61,6 +62,7 @@ function Picture(props: PictureProps) {
           <img
             src={props.src} 
             alt={props.alt} 
+            style={props.imgStyle}
           />
         </picture>
       )
@@ -79,11 +81,13 @@ function Picture(props: PictureProps) {
             media="(min-width: 768px)" 
             srcSet={desktopSrcSet}
             sizes={props.sizes ? props.sizes : '100vw'}
+            style={props.imgStyle}
           />
           <source 
             media="(max-width: 767px)" 
             srcSet={mobileSrcSet}
             sizes={props.sizes ? props.sizes : '100vw'}
+            style={props.imgStyle}
           />
           <img
             src={`${props.src}/m/20x0/filters:format(webp):blur(5)`} 
@@ -92,6 +96,7 @@ function Picture(props: PictureProps) {
             height={props.height || 1080 * Math.ceil(aspectRatio)}
             sizes={props.sizes ? props.sizes : '100vw'}
             loading={props.priority ? 'eager' : 'lazy'}
+            style={props.imgStyle}
           />
         </picture>
       )
@@ -104,6 +109,7 @@ function Picture(props: PictureProps) {
         <img
           src={props.src} 
           alt={props.alt} 
+          style={props.imgStyle}
         />
       </picture>
     )
@@ -123,11 +129,13 @@ function Picture(props: PictureProps) {
           media="(min-width: 768px)" 
           srcSet={desktopSrcSet}
           sizes={props.sizes ? props.sizes : '100vw'}
+          style={props.imgStyle}
         />
         <source 
           media="(max-width: 767px)" 
           srcSet={mobileSrcSet}
           sizes={props.sizes ? props.sizes : '100vw'}
+          style={props.imgStyle}
         />
         <img
           src={`${props.src}/m/20x0/smart/filters:format(webp):blur(5)`} 
@@ -136,6 +144,7 @@ function Picture(props: PictureProps) {
           height={props.height || 1080 * Math.ceil(aspectRatioDesktop)}
           sizes={props.sizes ? props.sizes : '100vw'}
           loading={props.priority ? 'eager' : 'lazy'}
+          style={props.imgStyle}
         />
       </picture>
     )

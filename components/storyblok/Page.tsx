@@ -38,10 +38,10 @@ function StoryblokComponentWrapper({ blok }: { blok: any }) {
 
 export default function Page({ blok }: { blok: any }) {
 return (
-	<main {...storyblokEditable(blok)} className={cn(blok.aside && blok.aside.length > 0 ? 'md:flex gap-8' : '')}>
+	<main {...storyblokEditable(blok)} className={cn(blok.aside && blok.aside.length > 0 ? 'lg:flex gap-8' : '')}>
     <article className={
         cn(blok.aside && blok.aside.length > 0 
-           ? 'md:basis-3/4 md:shrink max-w-210' 
+           ? 'lg:basis-8/12 lg:shrink max-w-210' 
            : 'space-y-7.5')
     }>
       {blok.body?.map((nestedBlok: any) => (
@@ -50,9 +50,13 @@ return (
     </article>
     {blok.aside && blok.aside.length > 0 && (
       <aside className={
-          cn(blok.aside && blok.aside.length > 0 
-             ? 'md:basis-1/4 md:grow max-w-[24rem]' 
-             : '')
+          cn(
+            blok.aside && blok.aside.length > 0 
+             ? 'lg:basis-4/12 lg:grow lg:max-w-[24rem]' 
+             : '',
+             'mt-12 pt-12 lg:mt-0 ',
+             'p-6 bg-qlack/5 rounded-lg'
+          )
       }> 
         {blok.aside.map((nestedBlok: any) => (
           <StoryblokComponentWrapper blok={nestedBlok} key={nestedBlok._uid} />

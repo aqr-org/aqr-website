@@ -68,8 +68,9 @@ export default function Flex({ blok }: FlexProps) {
 
   // Determine flex direction classes based on on_mobile setting
   const flexClasses = cn(
+    'sb-flex-block',
     'relative flex',
-    blok.vertical_align_items === 'stretch' && '[&>.rich-text]:relative [&>.rich-text]:flex-1 [&>.rich-text]:flex [&>.rich-text]:flex-col [&>.rich-text]:justify-between',
+    blok.vertical_align_items === 'stretch' && '[&>.rich-text]:relative [&>.rich-text]:flex [&>.rich-text]:flex-col [&>.rich-text]:justify-between',
     alignItems,
     gapClass,
     blok.evenly_space_items && basis,
@@ -92,6 +93,9 @@ export default function Flex({ blok }: FlexProps) {
         return `${part}rem`;
       }).join(' ');
     }
+  }
+  if (!blok.margins && !blok.add_outer_padding_x) {
+    marginValue = 'revert-layer';
   }
 
   if (flexItems.length === 0) {

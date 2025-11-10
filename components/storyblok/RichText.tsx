@@ -5,6 +5,7 @@ import Youtube from './Youtube';
 import Audio from './Audio';
 import Image from './Image';
 import Flex from './Flex';
+import Button from './Button';
 import { cn } from '@/lib/utils';
 
 interface RichTextProps {
@@ -105,6 +106,7 @@ const blokResolvers = {
   audio: (props: any) => <Audio blok={props} />,
   image: (props: any) => <Image blok={props} />,
   flex: (props: any) => <Flex blok={props} />,
+  button: (props: any) => <Button blok={props} />,
 };
 
 // Memoize node resolvers to prevent recreation on every render
