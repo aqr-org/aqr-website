@@ -408,7 +408,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       <label htmlFor="companyName" className="group relative">
         <p>Company Name</p>
         {!isSuperAdmin && (
-          <h2 className="text-4xl text-qreen-dark">{formValues.companyName}</h2>
+          <h2 className="text-lg md:text-4xl text-qreen-dark max-w-full text-ellipsis">{formValues.companyName}</h2>
         )}
         <input
           type="text"
@@ -704,7 +704,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
           {wasUpdated && (
             <span className="text-green-600"><Check size="32" /></span>
           )}
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className="bg-qreen border-qreen text-qaupe">
             {isLoading ? (companyData?.id ? "Updating..." : "Creating...") : (companyData?.id ? "Update company data" : "Create company")}
           </Button>
         </div>

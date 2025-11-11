@@ -70,7 +70,7 @@ export default async function ProtectedPage() {
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
-        <h1 className="text-3xl">Welcome, {userBeaconData?.firstname || "member"}!</h1>
+        <h1 className="text-lg md:text-3xl">Welcome, {userBeaconData?.firstname || "member"}!</h1>
         {/* <section className="flex gap-4">
           <div>
             <pre>

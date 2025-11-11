@@ -379,7 +379,7 @@ export default function MemberFormFields({
       <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
           <p className="text-qlack/30!">First Name {firstNameRequired ? '*' : ''}</p>
-          {!isSuperAdmin && <h2 className="text-lg md:text-3xl">{formValues.firstname}</h2>}
+          {!isSuperAdmin && <h2 className="text-lg md:text-3xl max-w-full text-ellipsis">{formValues.firstname}</h2>}
           <input
             type="text"
             hidden={!isSuperAdmin}
@@ -395,7 +395,7 @@ export default function MemberFormFields({
 
         <label htmlFor="lastname">
           <p className="text-qlack/30!">Last Name {lastNameRequired ? '*' : ''}</p>
-          {!isSuperAdmin && <h2 className="text-3xl">{formValues.lastname}</h2>}
+          {!isSuperAdmin && <h2 className="text-lg md:text-3xl max-w-full text-ellipsis">{formValues.lastname}</h2>}
           <input
             type="text"
             hidden={!isSuperAdmin}
@@ -527,7 +527,7 @@ export default function MemberFormFields({
           <p>Bio / Notes</p>
         </label>
         <MenuBar editor={editor} />
-        <div className="border border-qitrus p-8 rounded-b-md bg-qitrus/20">
+        <div className="border border-qreen p-8 rounded-b-md bg-qaupe">
           <EditorContent editor={editor} />
         </div>
         <p className="text-xs text-gray-500 mt-1">
@@ -617,7 +617,7 @@ export default function MemberFormFields({
               onChange={handleFileSelect}
               className="
                 block w-full text-sm text-gray-500 bg-transparent 
-                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-700 file:text-blue-50 file:cursor-pointer hover:file:bg-blue-600
+                file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-2 file:text-sm file:font-semibold file:bg-qaupe file:text-qlack file:cursor-pointer hover:file:bg-blue-600
               "
             />
             <Upload className="w-4 h-4 text-gray-400" />
@@ -691,14 +691,14 @@ export default function MemberFormFields({
       )}
       
       <div className="flex justify-end">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 w-full md:w-auto">
           {wasSuccessful && !isLoading && successIcon && (
             <span className="text-green-600">{successIcon}</span>
           )}
           <Button 
             type="submit" 
             disabled={isLoading || wasSuccessful}
-            className="px-6 py-2"
+            className="px-6 py-2 bg-qreen border-qreen text-qaupe w-full md:w-auto"
           >
             {submitButtonText}
           </Button>

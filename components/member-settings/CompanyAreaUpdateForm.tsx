@@ -259,7 +259,7 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
             <Button 
               type="submit" 
               disabled={isLoading || !companyId || isOverLimit}
-              className="ml-4"
+              className="ml-4 bg-qreen border-qreen text-qaupe"
             >
               {!companyId 
                 ? "Create company first" 

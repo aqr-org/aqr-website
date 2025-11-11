@@ -393,7 +393,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
             {wasUpdated && (
               <span className="text-green-600"><Check size="32" /></span>
             )}
-            <Button type="submit" disabled={isLoading || !companyId}>
+            <Button type="submit" disabled={isLoading || !companyId} className="bg-qreen border-qreen text-qaupe">
               {!companyId ? "Create company first" : (isLoading ? "Updating..." : "Update Contact Information")}
             </Button>
           </div>
