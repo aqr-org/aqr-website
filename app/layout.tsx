@@ -119,7 +119,7 @@ export default async function RootLayout({
   return (
     <StoryblokProvider>
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased w-full overflow-x-hidden`}>
+      <body className={`${geistSans.className} antialiased`}>
           {/* Navigation streams in progressively */}
           <Suspense fallback={<div className="min-h-[120px]" />}>
             <NavigationAsync />

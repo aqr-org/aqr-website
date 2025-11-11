@@ -71,18 +71,18 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
       {...(storyblokEditable(blok))}
       className={cn(
         "relative shrink-0 snap-start",
-        "basis-[80%] md:basis-[90%]",
+        "basis-[85%] md:basis-[85%]",
       )}
       data-timeline-milestone
     >
       <div 
         className={cn(
-          "relative h-full py-12 pl-12 md:pl-[200px] flex items-end"
+          "relative h-full pt-28 md:pt-12 pb-6 md:pb-12 pl-6 md:pl-[200px] flex md:items-end"
         )}
       >
         {/* SVG Background */}
         <svg
-          className="absolute top-auto bottom-0 inset-0 w-[500px] h-auto aspect-[1.05] overflow-visible"
+          className="absolute top-auto bottom-0 inset-0 w-[400px] md:w-[500px] h-auto aspect-[1.05] overflow-visible"
           width="472"
           height="448"
           viewBox="0 0 472 448"
@@ -189,15 +189,15 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
 
         {/* Content */}
         <div className={cn(
-          "relative z-10 flex flex-col gap-4 pb-24 md:pb-[150px]"
+          "relative z-10 flex flex-col gap-4 pb-12 md:pb-[150px]"
         )}>
           {blok.year && (
-            <h3 className="text-3xl md:text-[2.375rem] text-qlack tracking-tight">
+            <h3 className="text-2xl md:text-[2.375rem] text-qlack tracking-tight">
               {blok.year}
             </h3>
           )}
           {blok.description && (
-            <div className="rich-text prose pl-6 text-balance">
+            <div className="rich-text md:pl-6 text-balance [&_li,&_p]:text-sm md:[&_li,&_p]:text-base [&_li,&_p]:mb-2">
               {render(blok.description, {
                 blokResolvers: {},
                 nodeResolvers: {},

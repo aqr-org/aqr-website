@@ -32,7 +32,7 @@ export default function Timeline({ blok }: TimelineProps) {
     <div
       {...storyblokEditable(blok)}
       className={cn(
-        "w-[calc(100%+var(--spacing-container))] md:w-[calc(100vw*0.7+var(--spacing-container))] xl:w-[calc(var(--container-maxw)*0.666+var(--spacing-container))] overflow-visible relative my-12"
+        "w-full md:w-[calc(100vw*0.7+var(--spacing-container))] xl:w-[calc(var(--container-maxw)*0.666+var(--spacing-container))] overflow-hidden relative my-12"
       )}
     >
       <TimelineClient milestones={milestones} />

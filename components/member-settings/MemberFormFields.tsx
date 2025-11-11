@@ -379,7 +379,7 @@ export default function MemberFormFields({
       <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
           <p className="text-qlack/30!">First Name {firstNameRequired ? '*' : ''}</p>
-          {!isSuperAdmin && <h2 className="text-3xl">{formValues.firstname}</h2>}
+          {!isSuperAdmin && <h2 className="text-lg md:text-3xl">{formValues.firstname}</h2>}
           <input
             type="text"
             hidden={!isSuperAdmin}
