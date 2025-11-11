@@ -2,6 +2,7 @@ import { storyblokEditable } from "@storyblok/react/rsc";
 import { render } from "storyblok-rich-text-react-renderer";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowUpRight } from "lucide-react";
 
 interface ArticleProps {
   blok: {
@@ -29,8 +30,8 @@ export default function Article({ blok }: ArticleProps) {
   const onlyArticleIsThisArticle = blok.authorArticles && blok.authorArticles.length === 1 && blok.authorArticles[0].slug === blok.slug;
   
   return (
-    <div {...storyblokEditable(blok)} className='flex gap-8'>
-      <div className='max-w-176 basis-3/4'>
+    <div {...storyblokEditable(blok)} className='block space-y-12 lg:flex gap-16'>
+      <div className='max-w-maxwMain basis-3/4'>
         <div className='flex justify-between items-center mb-4'>
           <p className='text-sm text-qreen-dark'>
             {blok.date && new Date(blok.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -51,57 +52,61 @@ export default function Article({ blok }: ArticleProps) {
           {render(blok.content)}
         </div>
       </div>
-      <div className='basis-1/4 grow'>
-        
+      {/* Author aside */}
+      <aside className='basis-1/4 shrink-0 grow bg-qlack/5 self-start rounded-sm overflow-hidden'>
         {blok.authorName && blok.authorLink && (
-          <div className='space-y-5'>  
+          <div className='md:flex lg:block'>  
             {blok.authorImage && (
-            <figure className='relative aspect-square w-30 h-30 rounded-full overflow-hidden'>
-              <Image 
-                src={blok.authorImage || ''} 
-                alt={blok.authorName} 
-                fill
-                sizes='(max-width: 768px) 70vw, (max-width: 1440px) 24vw, 240px'
-                className='w-full h-full object-cover object-top'
-              />
-            </figure >
+              <div className='p-4'>
+                <figure className='relative aspect-square basis-30 shrink-0 w-48 h-48 lg:w-full lg:h-auto overflow-hidden rounded-full'>
+                  <Image 
+                    src={blok.authorImage || ''} 
+                    alt={blok.authorName} 
+                    fill
+                    sizes='(max-width: 768px) 33vw, (max-width: 1440px) 20vw, 240px'
+                    className='w-full h-full object-cover object-top'
+                  />
+                </figure >
+              </div>
             )}
-            <h3 className='text-2xl tracking-[-0.035rem]'><Link href={blok.authorLink}>{blok.authorName}</Link></h3>
-            <p>
-              {blok.authorBiognotes && blok.authorBiognotes.length > 200 
-                ? `${blok.authorBiognotes.substring(0, 200)}... ` 
-                : blok.authorBiognotes}
-            </p>
-            <p>
-              {blok.authorBiognotes && blok.authorBiognotes.length > 200 && blok.authorLink && blok.authorLink.length > 0 && (
-                <Link href={blok.authorLink}>
-                  read more
-                </Link>
+            <div className='p-4 space-y-4'>
+              <h3 className='text-2xl tracking-[-0.035rem]'><Link href={blok.authorLink}>{blok.authorName}</Link></h3>
+              <p className='text-sm'>
+                {blok.authorBiognotes && blok.authorBiognotes.length > 200 
+                  ? `${blok.authorBiognotes.substring(0, 200)}... ` 
+                  : blok.authorBiognotes}
+              </p>
+              <p className='text-sm'>
+                {blok.authorBiognotes && blok.authorBiognotes.length > 200 && blok.authorLink && blok.authorLink.length > 0 && (
+                  <Link href={blok.authorLink} className='no-underline! font-semibold'>
+                    <ArrowUpRight className='w-4 h-4 inline-block' /> Read more
+                  </Link>
+                )}
+              </p>
+              {/* {JSON.stringify(blok.authorArticles[0])} */}
+
+              { blok.authorArticles && blok.authorArticles.length > 0 && !onlyArticleIsThisArticle && (
+                <div className='space-y-2 mt-8'>
+                  <h4 className='text-lg tracking-[-0.035rem] leading-tight'>Other articles by {blok.authorName}:</h4>
+                  <ul>
+                    {blok.authorArticles.map((article: { 
+                      name?: string;
+                      slug?: string;
+                    }, index: number) => (
+                      <li key={index} className='small text-sm'>
+                        <Link href={`/resources/inspiration/${article.slug}`} className='block no-underline! font-semibold text-qreen-dark py-2 border-b border-dashed border-qreen-dark hover:text-qreen hover:border-solid hover:border-qreen transition-all duration-300'>
+                          {article.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-            </p>
+            </div>
 
-            {/* {JSON.stringify(blok.authorArticles[0])} */}
-
-            { blok.authorArticles && blok.authorArticles.length > 0 && !onlyArticleIsThisArticle && (
-              <>
-                <h2 className='h3size'>Other articles by {blok.authorName}:</h2>
-                <ul>
-                  {blok.authorArticles.map((article: { 
-                    name?: string;
-                    slug?: string;
-                  }, index: number) => (
-                    <li key={index} className='small'>
-                      <Link href={`/resources/inspiration/${article.slug}`}>
-                        {article.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
           </div>  
         )}
-      </div>
+      </aside>
     </div>
   );
 }
