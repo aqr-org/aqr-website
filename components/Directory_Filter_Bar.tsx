@@ -181,7 +181,7 @@ export default function DirectoryFilterBar() {
       <div className='max-w-maxw mx-auto px-container'>
         { isDirPage ? (
           <div id="directory-filter-bar" className="md:w-3/4 ml-auto text-lgcking-tight flex flex-col md:flex-row md:items-center">
-            <div>
+            <div className='whitespace-nowrap text-xs md:text-base'>
               Show 
             </div>
             {isClient ? (
@@ -189,7 +189,7 @@ export default function DirectoryFilterBar() {
                 unstyled
                 instanceId="company-type-select"
                 className="inline-block"
-                value={{value: selectedCompanyType, label: selectedCompanyType === 'all' ? 'all of the companies' : selectedCompanyType}}
+                value={{value: selectedCompanyType, label: selectedCompanyType === 'all' ? 'all companies' : selectedCompanyType}}
                 onChange={(option) => setSelectedCompanyType(option?.value || 'all')}
                 classNames={{
                   control: (state) => state.isFocused 
@@ -200,15 +200,15 @@ export default function DirectoryFilterBar() {
                   option: () => 'text-qlack whitespace-nowrap',
                   input: () => 'text-qlack whitespace-nowrap',
                 }}
-                options={[{value: 'all', label: 'all of the companies'}, ...companyTypeOptions]}
+                options={[{value: 'all', label: 'all companies'}, ...companyTypeOptions]}
               />
             ) : (
               <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg tracking-tight">
-                all of the companies
+                all companies
               </span>
             )}
             
-            <div>
+            <div className='whitespace-nowrap text-xs md:text-base'>
               proficient in 
             </div>
             {isClient ? (
@@ -216,7 +216,7 @@ export default function DirectoryFilterBar() {
                 unstyled
                 instanceId="area-select"
                 className="inline-block"
-                value={{value: selectedArea, label: selectedArea === 'all' ? 'all of the quals sectors' : selectedArea}}
+                value={{value: selectedArea, label: selectedArea === 'all' ? 'all sectors' : selectedArea}}
                 onChange={(option) => setSelectedArea(option?.value || 'all')}
                 classNames={{
                   control: (state) => state.isFocused 
@@ -227,15 +227,15 @@ export default function DirectoryFilterBar() {
                   option: () => 'text-qlack whitespace-nowrap',
                   input: () => 'text-qlack whitespace-nowrap',
                 }}
-                options={[{value: 'all', label: 'all of the quals sectors'}, ...areaOptions]}
+                options={[{value: 'all', label: 'all sectors'}, ...areaOptions]}
               />
             ) : (
               <span className="inline-block mx-1 px-2 rounded-lg hover:bg-qaupe text-lg tracking-tight">
-                all of the quals sectors
+                all sectors
               </span>
             )}
             
-            <div>
+            <div className='whitespace-nowrap text-xs md:text-base'>
               from 
             </div>
             {isClient ? (

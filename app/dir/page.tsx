@@ -156,7 +156,7 @@ export default async function DirPage() {
                       data-country={company.company_contact_info?.country}
                       data-areas={companyAreas}
                       data-companytype={company.type}
-                      className="break-inside-avoid-column flex items-start gap-4 mb-0"
+                      className="break-inside-avoid-column flex items-start gap-4 mb-0 group-data-[liststyle=filters]:mb-4 hover:text-qreen-dark transition-all duration-300"
                     >
                       {(companyCountryFlag && companyCountryFlag != 'GB') &&
                         <img
