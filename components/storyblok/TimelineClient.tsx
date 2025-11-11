@@ -174,7 +174,7 @@ export default function TimelineClient({ milestones }: TimelineClientProps) {
           onScrollRight={() => scroll("right")}
           canScrollLeft={canScrollLeft}
           canScrollRight={canScrollRight}
-          className="top-0 bottom-auto right-auto left-0"
+          className="top-0 bottom-auto right-auto left-0 flex"
         />
       </div>
       <div className="relative z-10 h-full">
