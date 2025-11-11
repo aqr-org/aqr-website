@@ -12,6 +12,7 @@ interface TimelineMilestoneProps {
   };
   editable?: boolean; // Whether to use storyblokEditable (default: true)
   variant?: 'default' | 'carousel'; // Variant for different styling contexts
+  index?: number; // Index of the milestone
 }
 
 // Color mapping from globals.css
@@ -31,12 +32,27 @@ function getColorValue(colorName?: string, defaultColor: string = "#7bbd40"): st
   return colorMap[colorName] || defaultColor;
 }
 
-export default function TimelineMilestone({ blok, editable = true, variant = 'default' }: TimelineMilestoneProps) {
+// Generate a deterministic duration based on a string (for consistent SSR/client hydration)
+function getDeterministicDuration(seed: string, min: number = 10, max: number = 20): string {
+  // Simple hash function to convert string to number
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  // Normalize to range [min, max]
+  const normalized = Math.abs(hash) % 1000 / 1000; // 0-1 range
+  const duration = min + (normalized * (max - min));
+  return `${duration.toFixed(2)}s`;
+}
+
+export default function TimelineMilestone({ blok, editable = true, variant = 'default', index }: TimelineMilestoneProps) {
   const primaryColor = getColorValue(blok.primaryColor, "#7bbd40");
   const secondaryColor = getColorValue(blok.secondaryColor, "#4ca79e");
   
   // Generate unique IDs for gradients to avoid conflicts
-  const uniqueId = blok._uid || `milestone-${Math.random().toString(36).substr(2, 9)}`;
+  const uniqueId = blok._uid || `milestone-${index || 0}`;
   const radialGradientId = `paint0_radial_${uniqueId}`;
   const linearGradient1Id = `paint1_linear_${uniqueId}`;
   const linearGradient2Id = `paint2_linear_${uniqueId}`;
@@ -44,10 +60,15 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
   const clipPathId = `clip0_${uniqueId}`;
 
   const isCarousel = variant === 'carousel';
+  
+  // Generate deterministic animation duration based on uniqueId
+  const animationDuration = isCarousel ? getDeterministicDuration(uniqueId, 10, 20) : undefined;
+
+  
 
   return (
     <div
-      {...(editable ? storyblokEditable(blok) : {})}
+      {...(storyblokEditable(blok))}
       className={cn(
         "relative shrink-0 snap-start",
         "basis-[70%] md:basis-[90%]",
@@ -56,12 +77,12 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
     >
       <div 
         className={cn(
-          "relative h-full py-24 pl-[36%] flex items-end"
+          "relative h-full py-12 pl-[200px] flex items-end"
         )}
       >
         {/* SVG Background */}
         <svg
-          className="absolute top-auto bottom-0 inset-0 w-full h-auto aspect-[1.05] overflow-visible"
+          className="absolute top-auto bottom-0 inset-0 w-[500px] h-auto aspect-[1.05] overflow-visible"
           width="472"
           height="448"
           viewBox="0 0 472 448"
@@ -133,7 +154,7 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
             <g 
               opacity="0.25"
               className={isCarousel ? "animate-animated-circle origin-bottom-right" : undefined}
-              style={isCarousel ? { transformBox: 'fill-box' } : undefined}
+              style={{ transformBox: 'fill-box', animationDuration: animationDuration }}
             >
               <g mask={`url(#${maskId})`}>
                 <rect
@@ -156,8 +177,11 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
                 style={isCarousel ? { 
                   transformBox: 'fill-box',
                   // transform: 'rotate(-45deg)'
+                  animationDuration: animationDuration
                 } : undefined}
-                className={isCarousel ? "animate-shrink-grow-x" : undefined}
+                className={cn(
+                  isCarousel ? "animate-shrink-grow-x" : undefined,
+                )}
               />
             </g>
           </g>
@@ -165,15 +189,15 @@ export default function TimelineMilestone({ blok, editable = true, variant = 'de
 
         {/* Content */}
         <div className={cn(
-          "relative z-10 flex flex-col gap-4 pb-16"
+          "relative z-10 flex flex-col gap-4 pb-[150px]"
         )}>
           {blok.year && (
-            <h3 className="text-4xl md:text-5xl text-qlack tracking-tight">
+            <h3 className="text-3xl md:text-[2.375rem] text-qlack tracking-tight">
               {blok.year}
             </h3>
           )}
           {blok.description && (
-            <div className="rich-text prose prose-sm">
+            <div className="rich-text prose pl-6 text-balance">
               {render(blok.description, {
                 blokResolvers: {},
                 nodeResolvers: {},

@@ -161,8 +161,14 @@ export default function TimelineClient({ milestones }: TimelineClientProps) {
   if (milestones.length === 0) return null;
 
   return (
-    <>  
-      <div className="relative w-full max-w-maxwMain h-[88px] mt-12">
+    <div 
+      className="w-full md:w-[calc(100vw*0.7+var(--spacing-container))] xl:w-[calc(var(--container-maxw)*0.666+var(--spacing-container))] bg-qaupe mask-r-from-90%"
+      style={{
+        backgroundSize: '5px 5px',
+        backgroundImage: 'repeating-linear-gradient(-45deg, #00000022 0, #00000022 1px, #00000000 0, #00000000 50%)'
+      }}
+    >
+      <div className="absolute top-4 left-4 w-full max-w-maxwMain">
         <CarouselNavigation
           onScrollLeft={() => scroll("left")}
           onScrollRight={() => scroll("right")}
@@ -171,52 +177,45 @@ export default function TimelineClient({ milestones }: TimelineClientProps) {
           className="top-0 bottom-auto right-auto left-0"
         />
       </div>
-      <div 
-        className="w-full md:w-[calc(100vw*0.7+var(--spacing-container))] xl:w-[calc(var(--container-maxw)*0.666+var(--spacing-container))] bg-qaupe mask-r-from-90%"
-        style={{
-          backgroundSize: '10px 10px',
-          backgroundImage: 'repeating-linear-gradient(-45deg, #00000033 0, #00000033 1px, #00000000 0, #00000000 50%)'
-        }}
-      >
-        <div className="relative z-10 h-full">
-          <svg className="h-1 w-full absolute top-0 left-0" width="100%" height="100%">
-            <rect 
-              x="1" y="1" width="100%" height="100%" 
-              fill="none" 
-              stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
-          </svg>
-          <svg className="h-1 w-full absolute top-[calc(100%-1px)] left-0" width="100%" height="100%">
-            <rect 
-              x="1" y="1" width="100%" height="100%" 
-              fill="none" 
-              stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
-          </svg>
+      <div className="relative z-10 h-full">
+        <svg className="h-1 w-full absolute top-0 left-0" width="100%" height="100%">
+          <rect 
+            x="1" y="1" width="100%" height="100%" 
+            fill="none" 
+            stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
+        </svg>
+        <svg className="h-1 w-full absolute top-[calc(100%-1px)] left-0" width="100%" height="100%">
+          <rect 
+            x="1" y="1" width="100%" height="100%" 
+            fill="none" 
+            stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
+        </svg>
 
-          {/* Scroll container */}
-          <div
-            ref={scrollContainerRef}
-            className={cn(
-              "relative w-[calc(100%+var(--spacing-container)*2)]",
-              "flex items-stretch overflow-x-auto overflow-y-hidden",
-              "scroll-smooth snap-x snap-mandatory",
-              "no-scrollbar",
-              "gap-4 md:gap-6",
-              "h-full",
-              "pr-[25%] md:pr-[50%]"
-            )}
-          >
-            {milestones.map((milestone, index) => (
-              <TimelineMilestone 
-                key={milestone._uid} 
-                blok={milestone} 
-                editable={false}
-                variant="carousel"
-              />
-            ))}
-          </div>
+        {/* Scroll container */}
+        <div
+          ref={scrollContainerRef}
+          className={cn(
+            "relative w-[calc(100%+var(--spacing-container)*2)]",
+            "flex items-stretch overflow-x-auto overflow-y-hidden",
+            "scroll-smooth snap-x snap-mandatory",
+            "no-scrollbar",
+            "gap-4 md:gap-6",
+            "h-full",
+            "pr-[25%] md:pr-[50%]"
+          )}
+        >
+          {milestones.map((milestone, index) => (
+            <TimelineMilestone 
+              key={milestone._uid} 
+              blok={milestone} 
+              editable={false}
+              variant="carousel"
+              index={index}
+            />
+          ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
