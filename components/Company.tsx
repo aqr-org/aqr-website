@@ -214,7 +214,7 @@ export default function Company(props: CompanyProps) {
         </section>
 
         <section id="contact-info">
-          <svg className="h-1 w-full" width="100%" height="100%">
+          <svg className="h-[2px] w-full" width="100%" height="100%">
             <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
           </svg>
           <div className="flex flex-col md:flex-row items-start gap-12 py-4 w-full overflow-hidden">
@@ -229,7 +229,7 @@ export default function Company(props: CompanyProps) {
                   <p>
                     <a 
                       href={`mailto:${data.contact_info?.email}`}
-                      className="no-underline!"
+                      className="no-underline! hover:text-qreen-dark transition-colors duration-300"
                     >{data.contact_info?.email}</a>
                     </p>
                 </div>
@@ -243,7 +243,7 @@ export default function Company(props: CompanyProps) {
                   <p>
                     <a 
                       href={`tel:${data.contact_info?.phone}`}
-                      className="no-underline!"
+                      className="no-underline! hover:text-qreen-dark transition-colors duration-300"
                     >
                       {data.contact_info?.phone}
                     </a>
@@ -259,7 +259,7 @@ export default function Company(props: CompanyProps) {
                   <p>
                     <a 
                       href={`tel:${data.contact_info?.mobile}`}
-                      className="no-underline!"
+                      className="no-underline! hover:text-qreen-dark transition-colors duration-300"
                     >
                       {data.contact_info?.mobile}
                     </a>
@@ -272,7 +272,9 @@ export default function Company(props: CompanyProps) {
                     <path d="M5 0C2.23858 0 0 2.23858 0 5C0 7.76142 2.23858 10 5 10C7.76142 10 10 7.76142 10 5C10 2.23858 7.76142 0 5 0ZM5 8.33333C3.80653 8.33333 2.83333 7.36013 2.83333 6.16667C2.83333 4.9732 3.80653 4 5 4C6.19347 4 7.16667 4.9732 7.16667 6.16667C7.16667 7.36013 6.19347 8.33333 5 8.33333Z" fill="#11160C"/>
                   </svg>
                   <p>
-                    {data.contact_info?.website}
+                    <a href={data.contact_info?.website} target="_blank" rel="noopener noreferrer" className="no-underline! hover:text-qreen-dark transition-colors duration-300"> 
+                      {data.contact_info?.website}
+                    </a>
                   </p>
                 </div>
               }
@@ -282,7 +284,7 @@ export default function Company(props: CompanyProps) {
             <div>
               {data.contact_info?.linkedin &&
                 <a 
-                  href={`mailto:${data.contact_info?.linkedin}`}
+                  href={`${data.contact_info?.linkedin}`}
                   className="text-qreen-dark flex items-center gap-2 no-underline!"
                 >
                   LinkedIn 
@@ -327,7 +329,7 @@ export default function Company(props: CompanyProps) {
             </div>
           </div>
 
-          <svg className="h-1 w-full" width="100%" height="100%">
+          <svg className="h-[2px] w-full" width="100%" height="100%">
             <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
           </svg>
         </section>
@@ -349,7 +351,7 @@ export default function Company(props: CompanyProps) {
                 return (
                   <div key={category} className="space-y-5">
                     <h2 className="text-[2.375rem] leading-none">{category}</h2>
-                    <svg className="h-1 w-full" width="100%" height="100%">
+                    <svg className="h-[2px] w-full" width="100%" height="100%">
                       <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
                     </svg>
                     <ul className="flex flex-wrap gap-2">
@@ -387,7 +389,7 @@ export default function Company(props: CompanyProps) {
       {data.employees && data.employees.length > 0 && (
       <section id="employees" className="space-y-5 mt-24">
         <h2 className="text-[2.375rem] leading-none">Employees who are AQR members</h2>
-        <svg className="h-1 w-full" width="100%" height="100%">
+        <svg className="h-[2px] w-full" width="100%" height="100%">
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         <ul className="md:columns-2 lg:columns-3 space-y-2 pl-8">
@@ -405,7 +407,7 @@ export default function Company(props: CompanyProps) {
       {data.proforgs && data.proforgs.length > 0 && (
       <section id="proforgs" className="space-y-5 mt-24">
         <h2 className="text-[2.375rem] leading-none">Membership of Professional Organisations</h2>
-        <svg className="h-1 w-full" width="100%" height="100%">
+        <svg className="h-[2px] w-full" width="100%" height="100%">
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         {renderProfessionalOrganizations()}
@@ -417,7 +419,7 @@ export default function Company(props: CompanyProps) {
       {data.accred && (
       <section id="accred" className="space-y-5 mt-24">
         <h2 className="text-[2.375rem] leading-none">Standards Compliance Accreditations</h2>
-        <svg className="h-1 w-full" width="100%" height="100%">
+        <svg className="h-[2px] w-full" width="100%" height="100%">
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         <ul className="space-y-2 pl-8">
@@ -436,7 +438,7 @@ export default function Company(props: CompanyProps) {
       {(data.gradprog === "Yes" || data.gradprog === "YES") && (
       <section id="gradprog" className="space-y-5 mt-24">
         <h2 className="text-[2.375rem] leading-none">Training Opportunities</h2>
-        <svg className="h-1 w-full" width="100%" height="100%">
+        <svg className="h-[2px] w-full" width="100%" height="100%">
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         <p className="text-[1.375rem]">
@@ -448,7 +450,7 @@ export default function Company(props: CompanyProps) {
       {data.prsaward && (
       <section id="prsaward" className="space-y-5 mt-24">
         <h2 className="text-[2.375rem] leading-none">AQR Awards</h2>
-        <svg className="h-1 w-full" width="100%" height="100%">
+        <svg className="h-[2px] w-full" width="100%" height="100%">
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         <div 
