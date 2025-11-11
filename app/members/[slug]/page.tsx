@@ -104,7 +104,7 @@ export default async function ComnpaniesPage({
   if (storyblokStory) {
     // Render Storyblok story
     return (
-      <div className='max-w-176 has-[aside]:max-w-full animate-fade-in' >
+      <div className='max-w-maxwMain has-[aside]:max-w-full animate-fade-in' >
         <StoryblokStory story={storyblokStory} />
       </div>
     );
@@ -134,7 +134,7 @@ export default async function ComnpaniesPage({
     <article className='space-y-8'>
       
       <section>
-        <div className='flex items-center gap-8'>
+        <div className='flex flex-col md:flex-row md:items-center md:gap-8'>
           {memberData.image && (
             <div>
               <figure className='relative bg-[#EEEEEE] aspect-square w-[160px] h-[160px] rounded-full overflow-hidden'>
@@ -148,8 +148,8 @@ export default async function ComnpaniesPage({
               </figure>
             </div>
           )}
-          <div className="flex flex-col gap-2">
-            <h1 className='h1size text-6xl leading-[0.95] tracking-[-0.1125rem]'>
+          <div className="flex flex-col gap-2 mt-4 md:mt-0">
+            <h1 className='text-5xl md:text-6xl leading-[0.95] tracking-[-0.1125rem]'>
               {memberData.firstname} {memberData.lastname}
             </h1>
             <div>
@@ -184,7 +184,7 @@ export default async function ComnpaniesPage({
           <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
         </svg>
         {memberData.joined && (
-          <p className="text-[1.375rem] flex items-start gap-2 pl-8">
+          <p className="text-[1.375rem] flex items-start gap-2 md:pl-8">
             <svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="basis-4 shrink-0 grow-0 relative top-2">
               <path d="M6.5501 12.5001L0.850098 6.8001L2.2751 5.3751L6.5501 9.6501L15.7251 0.475098L17.1501 1.9001L6.5501 12.5001Z" fill="#1D1B20"/>
             </svg>
@@ -192,7 +192,7 @@ export default async function ComnpaniesPage({
           </p>
         )}
         {!memberData.joined && (
-          <p className="text-[1.375rem] flex items-start gap-2 pl-8">
+          <p className="text-[1.375rem] flex items-start gap-2 md:pl-8">
             <svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="basis-4 shrink-0 grow-0 relative top-2">
               <path d="M6.5501 12.5001L0.850098 6.8001L2.2751 5.3751L6.5501 9.6501L15.7251 0.475098L17.1501 1.9001L6.5501 12.5001Z" fill="#1D1B20"/>
             </svg>
@@ -207,7 +207,7 @@ export default async function ComnpaniesPage({
           <svg className="h-1 w-full" width="100%" height="100%">
             <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
           </svg>
-          <ul className="space-y-2 pl-8">
+          <ul className="space-y-2 md:pl-8">
             { memberData.timeline.map((item: string, index: number) => (
                 <li key={index} className="text-[1.375rem] flex items-start gap-2">
                   <svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="basis-4 shrink-0 grow-0 relative top-2">
