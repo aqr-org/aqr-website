@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useNavigation } from "@/hooks/useNavigation";
 
 interface AlphabetNavProps {
   entries: {
@@ -15,6 +16,8 @@ export default function AlphabetNav({ entries, ariaLabel = "Directory navigation
   const [isStuck, setIsStuck] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
+
+  const { isScrolled } = useNavigation();
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -49,8 +52,10 @@ export default function AlphabetNav({ entries, ariaLabel = "Directory navigation
           'border sticky top-[120px] ',
           'px-4 py-4 z-10 -ml-(--spacing-container) w-[calc(100%+2*var(--spacing-container))] md:w-full', 
           'md:-ml-6',
+          'transition-all duration-300 ease-in-out',
           // 'mask-r-from-75%',
-          isStuck ? 'bg-qaupe/95 shadow-md px-2 md:px-4 rounded-lg border-qreen-dark/30 -ml-[calc(var(--spacing-container)-0.5rem)] w-[calc(100%+2*var(--spacing-container)-1rem)]' : 'border-transparent'
+          isStuck ? 'bg-qaupe/95 shadow-md px-2 md:px-4 rounded-lg border-qreen-dark/30 -ml-[calc(var(--spacing-container)-0.5rem)] w-[calc(100%+2*var(--spacing-container)-1rem)]' : 'border-transparent',
+          isScrolled ? '-translate-y-full' : 'translate-y-0'
         )}
       >
         <div className="relative">
