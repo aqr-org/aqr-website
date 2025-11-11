@@ -16,6 +16,8 @@
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1400px;
   --container-maxw: var(--breakpoint-xl);
+  --container-maxwInner: calc(var(--container-maxw) - 2 * var(--spacing-container));
+  --container-maxwMain: 44rem;
 
   @keyframes appearText {
     from {
@@ -78,6 +80,18 @@
     transform: scaleY(100%);
   }
 }
+@keyframes shrinkGrowX {
+  0% {
+    transform: scaleX(100%);
+
+  }
+  50% {
+    transform: scaleX(80%);
+  }
+  100% {
+    transform: scaleX(100%);
+  }
+}
 @keyframes shrinkGrowExtreme {
   0% {
     transform: scaleY(100%);
@@ -125,6 +139,7 @@
   --animate-fade-in: fadeInAnimation 0.5s ease-in-out forwards;
   --animate-fade-out: fadeOutAnimation 0.5s ease-in-out forwards;
   --animate-shrink-grow: shrinkGrow 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
+  --animate-shrink-grow-x: shrinkGrowX 10s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-shrink-grow-1: shrinkGrowExtreme 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-shrink-grow-2: shrinkGrowExtreme 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;
   --animate-shrink-grow-3: shrinkGrowExtreme 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite forwards;

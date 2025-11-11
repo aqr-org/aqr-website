@@ -1,8 +1,11 @@
+import { cn } from "@/lib/utils";
+
 interface CarouselNavigationProps {
   onScrollLeft: () => void;
   onScrollRight: () => void;
   canScrollLeft: boolean;
   canScrollRight: boolean;
+  className?: string;
 }
 
 export default function CarouselNavigation({
@@ -10,9 +13,10 @@ export default function CarouselNavigation({
   onScrollRight,
   canScrollLeft,
   canScrollRight,
+  className,
 }: CarouselNavigationProps) {
   return (
-    <div className="hidden md:flex absolute right-0 bottom-full pb-4 z-20 items-center gap-2">
+    <div className={cn("hidden md:flex absolute right-0 bottom-full pb-4 z-20 items-center gap-2", className)}>
       <button
         onClick={onScrollLeft}
         className={`bg-white/80 rounded-lg p-6 shadow-lg text-qreen-dark hover:bg-qellow/80 transition-colors cursor-pointer ${canScrollLeft ? 'opacity-100' : 'opacity-50'}`}

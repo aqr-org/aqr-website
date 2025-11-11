@@ -23,6 +23,8 @@ import Homepage_awards_section from '@/components/storyblok/Homepage_awards_sect
 import Homepage_awards_section_shortlist_item2 from '@/components/storyblok/Homepage_awards_section_shortlist_item2';
 import Homepage_awards_section_shortlist_item_wrapper from '@/components/storyblok/Homepage_awards_section_shortlist_item_wrapper';
 import PodcastCard from '@/components/storyblok/PodcastCard';
+import Timeline from '@/components/storyblok/Timeline';
+import TimelineMilestone from '@/components/storyblok/TimelineMilestone';
 
 const components = {
   hero_homepage: Hero_Homepage,
@@ -50,6 +52,8 @@ const components = {
   homepage_awards_section_shortlist_item2: Homepage_awards_section_shortlist_item2,
   homepage_awards_section_shortlist_item: Homepage_awards_section_shortlist_item_wrapper,
   podcast_card: PodcastCard,
+  timeline: Timeline,
+  timeline_milestone: TimelineMilestone,
 };
 
 export default components ;
