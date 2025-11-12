@@ -187,7 +187,7 @@ export default function Company(props: CompanyProps) {
           <div className="flex items-start gap-4 mb-12">
             <img
               alt={data.contact_info?.country || 'UK'}
-              src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${companyCountryFlag || 'UK'}.svg`}
+              src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${companyCountryFlag || 'GB'}.svg`}
               className="w-12 h-auto aspect-[1.5] relative top-1"
             />
             {data.contact_info && (

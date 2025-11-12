@@ -146,7 +146,7 @@ export default async function DirPage() {
                 </h2>
                 {groupedCompanies[letter].map((company: CompanyWithExtraInfo) => {
                   const finalSlug = company.ident || company.slug;
-                  const companyCountryFlag = countries.find(country => country.name === company.company_contact_info?.country)?.code;
+                  const companyCountryFlag = countries.find(country => country.name === company.company_contact_info?.country)?.code || 'GB';
                   const companyAreas = company.company_areas?.map(area => area.area).join(', ');
 
                   return (
