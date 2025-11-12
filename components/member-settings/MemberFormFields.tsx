@@ -70,6 +70,19 @@ export default function MemberFormFields({
     loadExistingPortrait();
   }, [memberId]);
 
+  // Auto-upload portrait after member creation (create mode)
+  useEffect(() => {
+    const uploadPortraitAfterCreation = async () => {
+      // Only in create mode, when memberId becomes available and portrait file is selected
+      if (isCreateMode && memberId && portraitFile && !isUploadingPortrait) {
+        await handlePortraitUpload();
+      }
+    };
+    
+    uploadPortraitAfterCreation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberId]); // Only re-run when memberId changes (portraitFile and handlePortraitUpload are stable references)
+
   // Load active companies for select dropdown
   useEffect(() => {
     const loadCompanies = async () => {
@@ -139,6 +152,16 @@ export default function MemberFormFields({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // If portrait file is selected and we have a member ID (update mode), upload it first
+    if (portraitFile && memberId) {
+      const uploaded = await handlePortraitUpload();
+      if (!uploaded) {
+        alert('Failed to upload portrait. Please try again.');
+        return;
+      }
+    }
+    
     const biognotes = editor ? editor.getHTML() : '';
     await onSubmit(biognotes);
   };
