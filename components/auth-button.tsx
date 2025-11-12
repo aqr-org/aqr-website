@@ -162,23 +162,7 @@ export function AuthButton() {
         role="menu"
         aria-orientation="vertical"
       >
-          {isSuperadmin ? (
-            <Link
-              href="/superadmin"
-              className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
-              role="menuitem"
-            >
-              Superadmin Panel
-            </Link>
-          ) : (
-            <Link
-              href="/protected"
-              className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
-              role="menuitem"
-            >
-              Membership Settings
-            </Link>
-          )}
+          
           {sidebarItems.map((item: NavigationLinkData, index: number) => (
             <div key={item.name + index} className={cn(index === 0 ? "mt-0" : "mt-2")}>
               {item.component === "navigation_cta" ? (
@@ -210,7 +194,7 @@ export function AuthButton() {
                 </div>
               )}
               {item.dropdown_menu &&
-                <ul className="pl-4 space-y-1 mt-1">
+                <ul className="space-y-1 mt-1">
                   {item.dropdown_menu.map((dropdownItem: NavigationLinkData, dropdownIndex: number) => (
                     <li key={dropdownItem.name + dropdownIndex}>
                       <NavigationLink 
@@ -236,13 +220,34 @@ export function AuthButton() {
             </div>
           ))}
           
-          <div className="text-qreen mt-4 pt-2 border-t border-qlack/50 border-dashed font-semibold">
-            <p className="text-xs text-qlack/50 mb-2 whitespace-nowrap flex items-center gap-1 font-normal">
-              <UserRound className="w-3 h-3" /> {user.email}!
-            </p>
-            <LogoutMenuItem />
+          <div className="text-qreen mt-4">
+            <div className="bg-qreen/10 p-4 rounded-lg">
+              <p className="text-xs text-qlack/50 mb-1 whitespace-nowrap flex items-center gap-1 font-normal">
+                <UserRound className="w-3 h-3" /> {user.email}!
+              </p>
+              {isSuperadmin ? (
+                <Link
+                  href="/superadmin"
+                  className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+                  role="menuitem"
+                >
+                  Superadmin Panel
+                </Link>
+              ) : (
+                <Link
+                  href="/protected"
+                  className="flex-col text-qreen items-center gap-1 block hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+                  role="menuitem"
+                >
+                  Edit profile
+                </Link>
+              )}
+            </div>
+            <div className="text-right">
+              <LogoutMenuItem />
+            </div>
           </div>
-        </div>
+      </div>
     </div>
   ) : (
     <div className="flex gap-8 justify-between w-full">

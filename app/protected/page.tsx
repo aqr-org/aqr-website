@@ -14,16 +14,12 @@ export default async function ProtectedPage() {
   const userEmail = data.claims.email;
   const userBeaconData = (await beaconDataOf(userEmail)) as UserBeaconData;
 
-  if ('error' in userBeaconData) {
-    console.log("Beacon Data error:", userBeaconData?.error || "Unknown error");
-  }
-
   const orgName = userBeaconData.organizations?.[0]?.name ?? null;
 
   // 1) Check existence and fetch company + related rows in ONE request (use PostgREST relation selects)
   //    This assumes FK relationships exist: company_areas.company_id -> companies.id and company_contact_info.company_id -> companies.id
   //    Result returns company with nested company_areas and company_contact_info.
-  const { data: companyWithRelations, error: companyErr } = await supabase
+  const { data: companyWithRelations } = await supabase
     .from("companies")
     .select(`
       *,
@@ -33,14 +29,10 @@ export default async function ProtectedPage() {
     .eq("name", orgName)
     .maybeSingle(); // returns single object or null
 
-  if (companyErr) {
-    console.error("Company with relations error:", companyErr);
-  }
-
   const orgExistsOnBoth = !!companyWithRelations;
 
   // 2) Parallelize fetching members (independent) and storage listing (dependent on company presence)
-  const membersPromise = supabase.from("members").select("*").eq("email", userEmail);
+  const membersInfo = await supabase.from("members").select("*").eq("email", userEmail);
 
   let logoUrl: string | null = null;
   if (orgExistsOnBoth && companyWithRelations?.id) {
@@ -55,9 +47,6 @@ export default async function ProtectedPage() {
       logoUrl = (await supabase.storage.from("images").getPublicUrl(`companies/${name}`)).data.publicUrl;
     }
   }
-
-  const membersInfo = await membersPromise;
-  if (membersInfo.error) console.error("Members Info error:", membersInfo.error);
 
   // Build a compact company record from the single response
   const thisCompanyRecord = {

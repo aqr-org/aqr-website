@@ -4,8 +4,9 @@ import CompanyUpdateForm from "@/components/member-settings/CompanyUpdateForm";
 import MemberUpdateForm from "@/components/member-settings/MemberUpdateForm";
 import MemberCreateForm from "@/components/member-settings/MemberCreateForm";
 import CompanyCreateForm from "@/components/member-settings/CompanyCreateForm";
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { UserBeaconData } from "@/lib/types";
+import { useState, useEffect } from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 export default function ProtectedTabs({
   companyData,
@@ -26,6 +27,12 @@ export default function ProtectedTabs({
   userBeaconData: UserBeaconData;
 }) {
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const hasDirectoryMembership = (userBeaconData.allMemberships && userBeaconData.allMemberships.some(membership => membership.includes('Business Directory')));
   const isOnlyDirectoryMember = (
     userBeaconData.allMemberships 
@@ -33,9 +40,15 @@ export default function ProtectedTabs({
     && userBeaconData.allMemberships.some(membership => membership.includes('Business Directory')) 
   );
 
+  // Only render tabs after client-side mount to avoid hydration mismatches
+  // react-tabs generates random IDs which don't match between server and client
+  if (!isMounted) {
+    return <div className="p-8">Loading...</div>;
+  }
+
   return(
     <Tabs>
-      <TabList 
+        <TabList 
         className={`
           flex gap-1 items-end
           mb-0 

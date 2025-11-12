@@ -38,18 +38,16 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
 
   const handlePortraitUploaded = (url: string) => {
     // Portrait is stored by UUID, no need to update form state
-    console.log('Portrait uploaded:', url);
   };
 
   const handleSubmit = async (biognotes: string) => {
+    if (isCreating) {
+      return;
+    }
+
     setIsCreating(true);
     
-    console.log('Creating new member with form data:', formValues);
-    console.log('User email:', userEmail);
-    
-    // Basic validation - firstname and lastname are mandatory
     if (!formValues.firstname.trim() || !formValues.lastname.trim()) {
-      console.error("First name and last name are required");
       alert("Please fill in your First Name and Last Name (required fields)");
       setIsCreating(false);
       return;
@@ -58,6 +56,52 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
     const supabase = createClient();
 
     try {
+      // Pre-insert check - verify member doesn't already exist
+      const { data: existingMemberByEmail } = await supabase
+        .from("members")
+        .select("id, email, beacon_id, beacon_membership")
+        .eq("email", userEmail)
+        .maybeSingle();
+
+      let existingMemberByBeacon = null;
+      if (formValues.beacon_id) {
+        const { data: memberByBeacon } = await supabase
+          .from("members")
+          .select("id, email, beacon_id, beacon_membership")
+          .eq("beacon_id", formValues.beacon_id)
+          .maybeSingle();
+        
+        if (memberByBeacon) {
+          existingMemberByBeacon = memberByBeacon;
+        }
+      }
+
+      let existingMemberByMembership = null;
+      if (formValues.beacon_membership) {
+        const { data: memberByMembership } = await supabase
+          .from("members")
+          .select("id, email, beacon_id, beacon_membership")
+          .eq("beacon_membership", formValues.beacon_membership)
+          .maybeSingle();
+        
+        if (memberByMembership) {
+          existingMemberByMembership = memberByMembership;
+        }
+      }
+
+      const existingMember = existingMemberByEmail || existingMemberByBeacon || existingMemberByMembership;
+      
+      if (existingMember) {
+        setIsCreating(false);
+        setTimeout(() => {
+          router.refresh();
+        }, 500);
+        return;
+      }
+
+      // Set legacy_member_id to NULL to avoid unique constraint violation
+      // The constraint 'members_member_id_key' is on legacy_member_id with default value ''
+      // Multiple NULL values are allowed in unique constraints
       const insertData = {
         email: userEmail,
         firstname: formValues.firstname.trim(),
@@ -68,7 +112,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         joined: formValues.joined.trim() || null,
         biognotes: biognotes,
         maintag: formValues.maintag?.trim() || null,
-        timeline: formValues.timeline.filter(item => item.trim() !== ''), // Remove empty timeline entries\
+        timeline: formValues.timeline.filter(item => item.trim() !== ''),
         othertags: formValues.othertags.length > 0 ? formValues.othertags.map(tag => tag.trim()).filter(tag => tag !== '') : null,
         linkedin: formValues.linkedin?.trim() || null,
         flags: formValues.flags.length > 0 ? formValues.flags.map(flag => flag.trim()).filter(flag => flag !== '') : null,
@@ -77,43 +121,63 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         beacon_id: formValues.beacon_id || null,
         beacon_membership: formValues.beacon_membership || null,
         beacon_membership_status: formValues.beacon_membership_status || null,
+        legacy_member_id: null,
       };
 
-      console.log('Creating member with data:', insertData);
-
-      // Create a new member record with the form data
       const { data, error } = await supabase
         .from("members")
         .insert(insertData)
         .select()
         .single();
-
-      if (error) {
-        console.error("Error creating member record:", error);
-        console.error("Error details:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        alert(`Failed to create member record: ${error.message}`);
-      } else {
-        console.log("Member record created successfully:", data);
+      
+      if (data && data.id) {
         setWasCreated(true);
         setCreatedMemberId(data.id);
+        setIsCreating(false);
         
-        // Refresh the page to show the update form
         setTimeout(() => {
           router.refresh();
-        }, 1000);
+        }, 2000);
+        return;
+      }
+
+      if (error) {
+        const isDuplicateError = error.code === '23505' || 
+                                  error.message?.includes('duplicate key') ||
+                                  error.message?.includes('unique constraint') ||
+                                  error.message?.includes('members_member_id_key');
+
+        if (isDuplicateError) {
+          setIsCreating(false);
+          alert(
+            "A member record already exists for your account. The page will refresh to show your profile."
+          );
+          setTimeout(() => {
+            router.refresh();
+          }, 500);
+          return;
+        }
+
+        alert(`Failed to create member record: ${error.message || 'Unknown error'}`);
+        setIsCreating(false);
+        return;
+      }
+
+      if (!data || !data.id) {
+        alert("Member record creation completed but no data was returned. Please refresh the page.");
+        setIsCreating(false);
       }
 
     } catch (error) {
-      console.error("Unexpected error during member creation:", error);
-      alert("An unexpected error occurred while creating your member record.");
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('duplicate') || errorMessage.includes('unique constraint')) {
+        setIsCreating(false);
+        router.refresh();
+        return;
+      }
+      alert(`An unexpected error occurred while creating your member record: ${errorMessage}`);
+      setIsCreating(false);
     }
-    
-    setIsCreating(false);
   };
 
   const getSubmitButtonText = () => {

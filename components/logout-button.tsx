@@ -36,7 +36,7 @@ export function LogoutMenuItem() {
   return (
     <button
       type="button"
-      className="flex items-center cursor-pointer w-full text-left hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
+      className="inline-flex items-center cursor-pointer text-left pb-2 pt-4 hover:text-qreen/80 focus:outline-none focus:ring-2 focus:ring-qreen focus:rounded px-1"
       onClick={logout}
       onKeyDown={handleKeyDown}
       role="menuitem"
