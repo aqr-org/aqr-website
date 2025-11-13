@@ -6,6 +6,10 @@ import CompanyUpdateForm from "@/components/member-settings/CompanyUpdateForm";
 import MemberUpdateForm from "@/components/member-settings/MemberUpdateForm";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import Select from 'react-select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle } from "lucide-react";
 
 interface Company {
   id: string;
@@ -48,6 +52,10 @@ export default function SuperadminPanel() {
   const [isAdding, setIsAdding] = useState(false);
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
   const [isRemoving, setIsRemoving] = useState<Record<string, boolean>>({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<'member' | 'company' | null>(null);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Ensure component is mounted (client-side only) before rendering Select components
   useEffect(() => {
@@ -314,6 +322,75 @@ export default function SuperadminPanel() {
     setEditingPositions(newEditingPositions);
   };
 
+  const openDeleteModal = (type: 'member' | 'company') => {
+    setDeleteType(type);
+    setDeleteConfirmationText('');
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setDeleteType(null);
+    setDeleteConfirmationText('');
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirmationText !== 'Yes, delete!') {
+      return;
+    }
+
+    setIsDeleting(true);
+    const supabase = createClient();
+
+    try {
+      if (deleteType === 'member' && selectedMemberId) {
+        const { error } = await supabase
+          .from('members')
+          .delete()
+          .eq('id', selectedMemberId);
+
+        if (error) {
+          console.error('Error deleting member:', error);
+          alert('Error deleting member: ' + error.message);
+          setIsDeleting(false);
+          return;
+        }
+
+        // Remove from local state
+        setMembers(members.filter(m => m.id !== selectedMemberId));
+        setSelectedMemberId(null);
+        setMemberData(null);
+        alert('Member deleted successfully');
+      } else if (deleteType === 'company' && selectedCompanyId) {
+        const { error } = await supabase
+          .from('companies')
+          .delete()
+          .eq('id', selectedCompanyId);
+
+        if (error) {
+          console.error('Error deleting company:', error);
+          alert('Error deleting company: ' + error.message);
+          setIsDeleting(false);
+          return;
+        }
+
+        // Remove from local state
+        setCompanies(companies.filter(c => c.id !== selectedCompanyId));
+        setSelectedCompanyId(null);
+        setCompanyData(null);
+        setCompanyAreas([]);
+        setCompanyContactInfo(null);
+        alert('Company deleted successfully');
+      }
+    } catch (error) {
+      console.error('Unexpected error during deletion:', error);
+      alert('An unexpected error occurred');
+    }
+
+    setIsDeleting(false);
+    closeDeleteModal();
+  };
+
   return (
     <div className="w-full">
       <Tabs>
@@ -388,12 +465,24 @@ export default function SuperadminPanel() {
             )}
 
             {!isLoadingCompanyData && selectedCompanyId && companyData && (
-              <CompanyUpdateForm 
-                companyData={companyData}
-                companyAreas={companyAreas}
-                contactData={companyContactInfo}
-                isSuperAdmin={true}
-              />
+              <>
+                <div className="mb-4">
+                  <Button
+                    variant="alert"
+                    onClick={() => openDeleteModal('company')}
+                    className="w-full sm:w-auto bg-qrose text-qaupe text-sm"
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                    Delete Company
+                  </Button>
+                </div>
+                <CompanyUpdateForm 
+                  companyData={companyData}
+                  companyAreas={companyAreas}
+                  contactData={companyContactInfo}
+                  isSuperAdmin={true}
+                />
+              </>
             )}
 
             {!isLoadingCompanyData && selectedCompanyId && !companyData && (
@@ -454,10 +543,21 @@ export default function SuperadminPanel() {
             )}
 
             {!isLoadingMemberData && selectedMemberId && memberData && (
-              <MemberUpdateForm 
-                memberData={memberData}
-                isSuperAdmin={true}
-              />
+              <>
+                <div className="mb-4">
+                  <Button
+                    variant="alert"
+                    onClick={() => openDeleteModal('member')}
+                    className="w-full sm:w-auto bg-qrose text-qaupe text-sm"
+                  >
+                   <AlertTriangle className="w-4 h-4" /> Delete Member
+                  </Button>
+                </div>
+                <MemberUpdateForm 
+                  memberData={memberData}
+                  isSuperAdmin={true}
+                />
+              </>
             )}
 
             {!isLoadingMemberData && selectedMemberId && !memberData && (
@@ -620,6 +720,50 @@ export default function SuperadminPanel() {
           </div>
         </TabPanel>
       </Tabs>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {deleteType === 'member' ? 'Delete Member' : 'Delete Company'}
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this {deleteType}? This action cannot be undone.
+              <br />
+              <br />
+              Please type <strong>&quot;Yes, delete!&quot;</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              type="text"
+              placeholder='Type "Yes, delete!" to confirm'
+              value={deleteConfirmationText}
+              onChange={(e) => setDeleteConfirmationText(e.target.value)}
+              disabled={isDeleting}
+              className="bg-qlack/10 rounded-lg text-[16px] md:text-xl w-full p-4 px-5 placeholder:text-qlack/30 focus:shadow-lg focus:outline-hidden transition-all border border-qlack/20"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="default"
+              onClick={closeDeleteModal}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="alert"
+              onClick={handleDelete}
+              disabled={deleteConfirmationText !== 'Yes, delete!' || isDeleting}
+              className="bg-qrose text-qaupe"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
