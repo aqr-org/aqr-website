@@ -1,6 +1,6 @@
 'use client';
 
-import { Building2, Briefcase, Wrench, Users, MapPin, X } from 'lucide-react';
+import { Building2, Briefcase, Wrench, Users, MapPin, X, Check } from 'lucide-react';
 import FilterModal from './FilterModal';
 import FilterButton from './FilterButton';
 
@@ -10,6 +10,7 @@ interface FilterOptions {
   skills: string[];
   recruitment: string[];
   countries: string[];
+  gradProg?: boolean;
 }
 
 interface FilterModalProps {
@@ -23,13 +24,15 @@ interface FilterModalProps {
   activeFilters: FilterOptions;
   onFiltersChange: (filters: FilterOptions) => void;
   isLoading: boolean;
+  gradProgCount?: number;
 }
 
 export default function AdvancedDirectoryFilterModal({
   filterOptions,
   activeFilters,
   onFiltersChange,
-  isLoading
+  isLoading,
+  gradProgCount = 0
 }: FilterModalProps) {
   const handleFilterChange = (category: keyof FilterOptions, values: string[]) => {
     onFiltersChange({
@@ -44,12 +47,28 @@ export default function AdvancedDirectoryFilterModal({
       sectors: [],
       skills: [],
       recruitment: [],
-      countries: []
+      countries: [],
+      gradProg: false
+    });
+  };
+
+  const handleGradProgChange = (checked: boolean) => {
+    onFiltersChange({
+      ...activeFilters,
+      gradProg: checked
     });
   };
 
   const getTotalActiveCount = () => {
-    return Object.values(activeFilters).reduce((total, filters) => total + filters.length, 0);
+    let count = 0;
+    Object.entries(activeFilters).forEach(([key, value]) => {
+      if (key === 'gradProg') {
+        if (value === true) count += 1;
+      } else if (Array.isArray(value)) {
+        count += value.length;
+      }
+    });
+    return count;
   };
 
   return (
@@ -135,6 +154,35 @@ export default function AdvancedDirectoryFilterModal({
             icon={<MapPin className="h-4 w-4" />}
           />
         </FilterModal>
+
+        {/* Graduate Training Programme Checkbox */}
+        <div className="flex items-center gap-3 px-4 py-2 h-12 bg-qreen/10 rounded-full">
+          <label className="flex items-center gap-3 cursor-pointer flex-1">
+            <div className="relative">
+              <input
+                type="checkbox"
+                checked={activeFilters.gradProg === true}
+                onChange={(e) => handleGradProgChange(e.target.checked)}
+                className="sr-only"
+              />
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                activeFilters.gradProg === true 
+                  ? 'bg-qreen border-qreen' 
+                  : 'border-gray-300 bg-qaupe'
+              }`}>
+                {activeFilters.gradProg === true && (
+                  <Check className="h-3 w-3 text-white" />
+                )}
+              </div>
+            </div>
+            <span className="text-qreen-dark font-medium">
+              Graduate Training{activeFilters.gradProg === true ? '!' : '?'}
+            </span>
+            {/* {gradProgCount > 0 && (
+              <span className="text-sm text-gray-500">({gradProgCount})</span>
+            )} */}
+          </label>
+        </div>
       </div>
 
       {/* Active Filters Summary */}
@@ -152,25 +200,45 @@ export default function AdvancedDirectoryFilterModal({
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(activeFilters).map(([category, filters]) =>
-              filters.map((filter: string) => (
-                <span
-                  key={`${category}-${filter}`}
-                  className="group/activeFilter bg-qreen/20 text-qreen-dark px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                >
-                  {filter}
-                  <button
-                    onClick={() => handleFilterChange(category as keyof FilterOptions, 
-                      filters.filter((f: string) => f !== filter)
-                    )}
-                    className="text-qreen-dark bg-qaupe hover:bg-qreen-dark hover:text-qellow rounded-full p-1 transition-colors cursor-pointer group-hover/activeFilter:bg-qreen-dark group-hover/activeFilter:text-qellow"
-                    aria-label={`Remove ${filter} filter`}
+            {Object.entries(activeFilters).map(([category, value]) => {
+              if (category === 'gradProg' && value === true) {
+                return (
+                  <span
+                    key={`${category}-gradProg`}
+                    className="group/activeFilter bg-qreen/20 text-qreen-dark px-3 py-1 rounded-full text-sm flex items-center gap-2"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))
-            )}
+                    Offers Graduate Training Programme
+                    <button
+                      onClick={() => handleGradProgChange(false)}
+                      className="text-qreen-dark bg-qaupe hover:bg-qreen-dark hover:text-qellow rounded-full p-1 transition-colors cursor-pointer group-hover/activeFilter:bg-qreen-dark group-hover/activeFilter:text-qellow"
+                      aria-label="Remove Graduate Training Programme filter"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                );
+              }
+              if (Array.isArray(value)) {
+                return value.map((filter: string) => (
+                  <span
+                    key={`${category}-${filter}`}
+                    className="group/activeFilter bg-qreen/20 text-qreen-dark px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                  >
+                    {filter}
+                    <button
+                      onClick={() => handleFilterChange(category as keyof FilterOptions, 
+                        value.filter((f: string) => f !== filter)
+                      )}
+                      className="text-qreen-dark bg-qaupe hover:bg-qreen-dark hover:text-qellow rounded-full p-1 transition-colors cursor-pointer group-hover/activeFilter:bg-qreen-dark group-hover/activeFilter:text-qellow"
+                      aria-label={`Remove ${filter} filter`}
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ));
+              }
+              return null;
+            })}
           </div>
         </div>
       )}

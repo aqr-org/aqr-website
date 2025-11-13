@@ -9,7 +9,8 @@ export async function POST(request: NextRequest) {
       sectors = [],
       skills = [],
       recruitment = [],
-      countries = []
+      countries = [],
+      gradProg = false
     } = body;
 
     const supabase = await createClient();
@@ -116,6 +117,16 @@ export async function POST(request: NextRequest) {
       filteredCompanies = filteredCompanies.filter(company => 
         company.type && companyTypes.includes(company.type)
       );
+    }
+
+    // Filter by graduate training programme
+    if (gradProg === true) {
+      filteredCompanies = filteredCompanies.filter(company => {
+        const gradprog = company.gradprog;
+        if (!gradprog) return false;
+        // Check if value is "Yes" (case-insensitive)
+        return gradprog.toString().trim().toLowerCase() === 'yes';
+      });
     }
 
     // Filter by country

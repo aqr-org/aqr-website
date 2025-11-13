@@ -11,6 +11,7 @@ interface FilterOptions {
   skills: string[];
   recruitment: string[];
   countries: string[];
+  gradProg?: boolean;
 }
 
 interface CompanyResult {
@@ -38,9 +39,10 @@ interface AdvancedDirectoryPageProps {
     countries: FilterOption[];
   };
   initialFilters?: FilterOptions;
+  gradProgCount?: number;
 }
 
-export default function AdvancedDirectoryPage({ filterOptions, initialFilters }: AdvancedDirectoryPageProps) {
+export default function AdvancedDirectoryPage({ filterOptions, initialFilters, gradProgCount = 0 }: AdvancedDirectoryPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   
@@ -50,7 +52,8 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
       sectors: [],
       skills: [],
       recruitment: [],
-      countries: []
+      countries: [],
+      gradProg: false
     }
   );
   
@@ -76,7 +79,12 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
 
   const performSearch = async (searchFilters: FilterOptions) => {
     // Check if any filters are selected
-    const hasActiveFilters = Object.values(searchFilters).some(filterArray => filterArray.length > 0);
+    const hasActiveFilters = Object.entries(searchFilters).some(([key, value]) => {
+      if (key === 'gradProg') {
+        return value === true;
+      }
+      return Array.isArray(value) && value.length > 0;
+    });
     
     if (!hasActiveFilters) {
       setCompanies([]);
@@ -120,10 +128,15 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
       const params = new URLSearchParams();
       
       // Add each filter category to URL if it has values
-      Object.entries(newFilters).forEach(([key, values]) => {
-        if (values.length > 0) {
+      Object.entries(newFilters).forEach(([key, value]) => {
+        if (key === 'gradProg') {
+          // Handle boolean checkbox
+          if (value === true) {
+            params.set(key, 'true');
+          }
+        } else if (Array.isArray(value) && value.length > 0) {
           // Join multiple values with comma
-          params.set(key, values.map((v: string) => encodeURIComponent(v)).join(','));
+          params.set(key, value.map((v: string) => encodeURIComponent(v)).join(','));
         }
       });
       
@@ -145,7 +158,12 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
   // Perform initial search if initialFilters are provided
   useEffect(() => {
     if (isInitialMountRef.current && initialFilters) {
-      const hasActiveFilters = Object.values(initialFilters).some(filterArray => filterArray.length > 0);
+      const hasActiveFilters = Object.entries(initialFilters).some(([key, value]) => {
+        if (key === 'gradProg') {
+          return value === true;
+        }
+        return Array.isArray(value) && value.length > 0;
+      });
       if (hasActiveFilters) {
         isInitialMountRef.current = false;
         performSearch(initialFilters);
@@ -155,7 +173,12 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - initialFilters should only come from URL params on initial load
 
-  const hasActiveFilters = Object.values(filters).some(filterArray => filterArray.length > 0);
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'gradProg') {
+      return value === true;
+    }
+    return Array.isArray(value) && value.length > 0;
+  });
 
   return (
     <div className="animate-fade-in">
@@ -165,6 +188,7 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters }:
           activeFilters={filters}
           onFiltersChange={handleFiltersChange}
           isLoading={isLoading}
+          gradProgCount={gradProgCount}
         />
       </div>
       

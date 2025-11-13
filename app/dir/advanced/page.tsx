@@ -152,6 +152,20 @@ export default async function AdvancedDirectoryPage({ searchParams }: PageProps)
     return values.filter(v => validValues.has(v));
   };
 
+  // Parse gradProg from URL params (boolean checkbox)
+  const gradProgParam = params.gradProg;
+  const gradProg = Array.isArray(gradProgParam) 
+    ? gradProgParam[0] === 'true'
+    : gradProgParam === 'true';
+
+  // Calculate count of companies with graduate training programme
+  // Values can be "Yes" (case-insensitive) or null
+  const gradProgCount = companies.data?.filter(company => {
+    const gradprog = company.gradprog;
+    if (!gradprog) return false;
+    return gradprog.toString().trim().toLowerCase() === 'yes';
+  }).length || 0;
+
   // Parse and validate initial filters from URL params
   const rawFilters = {
     companyTypes: parseFilterParam(params.companyTypes),
@@ -166,7 +180,8 @@ export default async function AdvancedDirectoryPage({ searchParams }: PageProps)
     sectors: validateFilterValues(rawFilters.sectors, sectors),
     skills: validateFilterValues(rawFilters.skills, skills),
     recruitment: validateFilterValues(rawFilters.recruitment, recruitment),
-    countries: validateFilterValues(rawFilters.countries, countries)
+    countries: validateFilterValues(rawFilters.countries, countries),
+    gradProg: gradProg
   };
 
   const filterOptions = {
@@ -185,6 +200,7 @@ export default async function AdvancedDirectoryPage({ searchParams }: PageProps)
       <AdvancedDirectoryPageComponent 
         filterOptions={filterOptions} 
         initialFilters={initialFilters}
+        gradProgCount={gradProgCount}
       />
     </>
   );
