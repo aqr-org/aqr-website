@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import { Plus, Upload, X } from "lucide-react";
+import { Plus, Upload, X, ChevronUp, ChevronDown } from "lucide-react";
 import MenuBar from "@/components/ui/richtext-editor-menu";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -182,6 +182,20 @@ export default function MemberFormFields({
 
   const removeTimelineEntry = (index: number) => {
     const newTimeline = formValues.timeline.filter((_, i) => i !== index);
+    handleInputChange('timeline', newTimeline);
+  };
+
+  const moveTimelineEntryUp = (index: number) => {
+    if (index === 0) return; // Can't move first item up
+    const newTimeline = [...formValues.timeline];
+    [newTimeline[index - 1], newTimeline[index]] = [newTimeline[index], newTimeline[index - 1]];
+    handleInputChange('timeline', newTimeline);
+  };
+
+  const moveTimelineEntryDown = (index: number) => {
+    if (index === formValues.timeline.length - 1) return; // Can't move last item down
+    const newTimeline = [...formValues.timeline];
+    [newTimeline[index], newTimeline[index + 1]] = [newTimeline[index + 1], newTimeline[index]];
     handleInputChange('timeline', newTimeline);
   };
 
@@ -397,7 +411,7 @@ export default function MemberFormFields({
   const countryRequired = isCreateMode;
 
   return (
-    <form onSubmit={handleSubmit} className="form flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="form flex flex-col gap-4 space-y-8">
       
       <div className="flex flex-col md:flex-row md:gap-8">
         <label htmlFor="firstname">
@@ -654,7 +668,9 @@ export default function MemberFormFields({
       </div>
 
       <div>
-        <p>Notable Achievements and Contributions</p>
+        <label>
+          <p>Notable Achievements and Contributions</p>
+        </label>
         <div className="space-y-2">
           {formValues.timeline.map((entry, index) => (
             <div key={index} className="flex gap-2">
@@ -666,6 +682,26 @@ export default function MemberFormFields({
                 className="flex-1 border rounded p-2"
                 disabled={isLoading || wasSuccessful}
               />
+              <Button 
+                type="button" 
+                onClick={() => moveTimelineEntryUp(index)}
+                variant="secondary"
+                className="px-2 py-1 text-sm"
+                disabled={isLoading || wasSuccessful || index === 0}
+                title="Move up"
+              >
+                <ChevronUp className="w-4 h-4" />
+              </Button>
+              <Button 
+                type="button" 
+                onClick={() => moveTimelineEntryDown(index)}
+                variant="secondary"
+                className="px-2 py-1 text-sm"
+                disabled={isLoading || wasSuccessful || index === formValues.timeline.length - 1}
+                title="Move down"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </Button>
               <Button 
                 type="button" 
                 onClick={() => removeTimelineEntry(index)}
