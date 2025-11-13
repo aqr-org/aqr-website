@@ -353,7 +353,7 @@ export default function Company(props: CompanyProps) {
                     <ul className="flex flex-wrap gap-2">
                       {areas.map((area, index) => {
                         const areaUrl = categoryParam 
-                          ? `/dir/advanced?${categoryParam}=${encodeURIComponent(area)}`
+                          ? `/dir/advanced?${categoryParam}=${encodeURIComponent(encodeURIComponent(area))}`
                           : '/dir/advanced';
                         
                         return (
