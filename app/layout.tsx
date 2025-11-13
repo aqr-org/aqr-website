@@ -128,7 +128,9 @@ export default async function RootLayout({
           <BackgroundColorProvider>
             <Background />
             <BackgroundGraphics />
-            {children}
+            <div className="min-h-screen">
+              {children}
+            </div>
           </BackgroundColorProvider>
           {/* Footer streams in progressively */}
           <Suspense fallback={<div className="min-h-[200px]" />}>

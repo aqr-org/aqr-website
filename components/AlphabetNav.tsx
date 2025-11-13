@@ -55,7 +55,7 @@ export default function AlphabetNav({ entries, ariaLabel = "Directory navigation
           'transition-all duration-300 ease-in-out',
           // 'mask-r-from-75%',
           isStuck ? 'bg-qaupe/95 shadow-md px-2 md:px-4 rounded-lg border-qreen-dark/30 -ml-[calc(var(--spacing-container)-0.5rem)] w-[calc(100%+2*var(--spacing-container)-1rem)]' : 'border-transparent',
-          isScrolled ? '-translate-y-full' : 'translate-y-0'
+          isStuck && isScrolled ? '-translate-y-full' : 'translate-y-0'
         )}
       >
         <div className="relative">

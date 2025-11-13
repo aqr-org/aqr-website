@@ -6,6 +6,7 @@ import { getStoryblokApi } from '@/lib/storyblok';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { ArrowUpRight } from 'lucide-react';
 
 async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   try {
@@ -132,6 +133,10 @@ export default async function ComnpaniesPage({
     notFound();
   }
 
+  // Fetch inspiration articles by this member
+  const authorFullName = `${memberData.firstname} ${memberData.lastname}`;
+  const inspirationArticles = await fetchInspirationArticlesByAuthor(authorFullName);
+
   const formattedJoinedDate = memberData.joined ? (() => {
     // Check if it's the legacy format (MM/YYYY) or ISO date string
     if (memberData.joined.includes('/')) {
@@ -176,7 +181,7 @@ export default async function ComnpaniesPage({
               {memberData.firstname} {memberData.lastname}
             </h1>
             <div>
-              <p>{memberData.jobtitle}, {memberData.organisation}</p>
+              <p>{memberData.jobtitle && (memberData.jobtitle + ', ')}{memberData.organisation}</p>
               <p>{memberData.country}</p>
             </div>
           </div>
@@ -257,6 +262,58 @@ export default async function ComnpaniesPage({
           </ul>
         </section>
       )}
+
+      {inspirationArticles && inspirationArticles.length > 0 && (
+        <section className="space-y-5 mt-24">
+          <h2 className="text-[2.375rem] leading-none">Articles by {memberData.firstname}</h2>
+          <svg className="h-1 w-full" width="100%" height="100%">
+            <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
+          </svg>
+          <ul className="space-y-2 md:pl-8">
+            {inspirationArticles.map((article: any) => {
+              // Extract slug from full_slug if needed (e.g., "resources/inspiration/article-slug" -> "article-slug")
+              let articleSlug = article.slug;
+              if (article.full_slug && article.full_slug.startsWith('resources/inspiration/')) {
+                articleSlug = article.full_slug.replace('resources/inspiration/', '');
+              } else if (article.slug && article.slug.startsWith('resources/inspiration/')) {
+                articleSlug = article.slug.replace('resources/inspiration/', '');
+              }
+              
+              return (
+                <li key={article.id || article.uuid} className="text-[1.375rem] flex items-start gap-2">
+                  <ArrowUpRight className="w-5 h-5 relative top-1.5" />
+                  <Link href={`/resources/inspiration/${articleSlug}`} className="hover:underline">
+                    {article.content?.title || article.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </article>
   )
+}
+
+async function fetchInspirationArticlesByAuthor(authorName: string) {
+  try {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const storyblokApi = getStoryblokApi();
+    
+    const response = await storyblokApi.get(`cdn/stories`, { 
+      starts_with: 'resources/inspiration/',
+      version: isDraftMode ? 'draft' : 'published',
+      filter_query: {
+        author: {
+          like: `%${authorName}%`
+        }
+      }
+    });
+
+    return response.data?.stories || [];
+  } catch (error) {
+    console.error('Error fetching inspiration articles by author:', error);
+    return [];
+  }
 }
