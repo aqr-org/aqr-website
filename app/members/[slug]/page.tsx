@@ -118,9 +118,17 @@ export default async function ComnpaniesPage({
   }
 
   const formattedJoinedDate = memberData.joined ? (() => {
-    const [month, year] = memberData.joined.split('/');
-    const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+    // Check if it's the legacy format (MM/YYYY) or ISO date string
+    if (memberData.joined.includes('/')) {
+      // Legacy format: MM/YYYY
+      const [month, year] = memberData.joined.split('/');
+      const date = new Date(parseInt(year), parseInt(month) - 1);
+      return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+    } else {
+      // ISO date string format: 2025-10-01T11:00:00.000Z
+      const date = new Date(memberData.joined);
+      return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long' });
+    }
   })() : null;
 
   // check if memberData.biognotes has any html tags in it, if not surround it with <p> tags
