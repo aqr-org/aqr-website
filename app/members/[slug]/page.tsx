@@ -85,9 +85,24 @@ async function fetchSupabaseMember(slug: string) {
     ? await findValidImageUrl(supabase, member.data.id)
     : null;
 
+  // Check if member is on the board
+  let boardPosition = null;
+  if (member.data?.id) {
+    const boardMember = await supabase
+      .from('board_members')
+      .select('position')
+      .eq('member_id', member.data.id)
+      .single();
+
+    if (boardMember.data && !boardMember.error) {
+      boardPosition = boardMember.data.position;
+    }
+  }
+
   return {
     ...member.data,
     image: validImageUrl,
+    board_position: boardPosition,
   };
 }
 
@@ -207,6 +222,21 @@ export default async function ComnpaniesPage({
             {memberData.firstname} is a Member of the AQR
           </p>
         )}
+        {memberData.board_position && (
+          <p className="text-[1.375rem] flex items-start gap-2 md:pl-8">
+            <svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="basis-4 shrink-0 grow-0 relative top-2">
+              <path d="M6.5501 12.5001L0.850098 6.8001L2.2751 5.3751L6.5501 9.6501L15.7251 0.475098L17.1501 1.9001L6.5501 12.5001Z" fill="#1D1B20"/>
+            </svg>
+            {memberData.board_position === 'Chair' ? (
+              <>{memberData.firstname} is currently the Chair of the <Link href="/about/board">AQR Management Board</Link></>
+            ) : memberData.board_position === 'Board Member' ? (
+              <>{memberData.firstname} currently serves on the <Link href="/about/board">AQR Management Board</Link></>
+            ) : (
+              <>{memberData.firstname} currently serves on the <Link href="/about/board">AQR Management Board</Link> as {memberData.board_position}</>
+            )}
+          </p>
+        )}
+        
       </section>
 
       {memberData.timeline && memberData.timeline.length > 0 && (
