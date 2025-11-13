@@ -3,6 +3,7 @@ import Link from "next/link";
 import { profOrgsNameMap } from "@/lib/utils";
 import { countries } from "@/lib/countries";
 import Fern from "@/components/svgs/Fern";
+import CompanyMap from "@/components/CompanyMap";
 
 interface CompanyProps {
   data : {
@@ -34,6 +35,7 @@ interface CompanyProps {
       twitter?: string;
       youtube?: string;
       website?: string;
+      mapref?: string | null;
     } | null;
     employees?: {
       id: string;
@@ -332,6 +334,7 @@ export default function Company(props: CompanyProps) {
           <svg className="h-[2px] w-full" width="100%" height="100%">
             <rect x="1" y="1" width="100%" height="100%" fill="none" stroke="var(--color-qlack)" strokeWidth="1" strokeDasharray="4 4" />
           </svg>
+          
         </section>
 
         {data.areas && Object.keys(data.areas).length > 0 && (
@@ -460,6 +463,22 @@ export default function Company(props: CompanyProps) {
         </div>
       </section>    
       )}
+
+      { data.type === 'Viewing Facility' &&
+        <CompanyMap
+          companyName={data.name}
+          mapref={data.contact_info?.mapref || null}
+          addr1={data.contact_info?.addr1 || null}
+          addr2={data.contact_info?.addr2 || null}
+          addr3={data.contact_info?.addr3 || null}
+          addr4={data.contact_info?.addr4 || null}
+          addr5={data.contact_info?.addr5 || null}
+          postcode={data.contact_info?.postcode || null}
+          country={data.contact_info?.country || null}
+        />
+      }
+      
+      
 
     </article>
   );

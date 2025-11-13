@@ -59,7 +59,7 @@ export default async function DirVFLocationsPage() {
             <React.Fragment key={company.slug}>
               <Link 
                 href={`/dir/companies/${company.slug}`} 
-                className="hover:text-qreen-dark text-qlack w-full flex justify-between items-baseline"
+                className="hover:text-qreen-dark text-qlack w-full flex flex-col md:flex-row justify-between items-baseline"
               >
                 <h3 className="text-[1.375rem]">
                   {company.name}

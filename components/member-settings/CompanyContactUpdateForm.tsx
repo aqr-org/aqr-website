@@ -8,6 +8,7 @@ import { Check } from "lucide-react";
 import React from 'react'
 import Select from 'react-select'
 import { countries } from '@/lib/countries'
+import MapPreview from './MapPreview'
 
 interface CompanyContactData {
   id: string;
@@ -41,6 +42,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
+  const [mapUpdateKey, setMapUpdateKey] = useState(0);
   const options: { value: string; label: string }[] = countries.map(country => ({
     value: country.code,
     label: country.name,
@@ -124,6 +126,7 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
       } else {
         console.log("Company contact info updated successfully:", result.data);
         setWasUpdated(true);
+        setMapUpdateKey(prev => prev + 1); // Trigger map update
         if (onSuccess) {
           onSuccess();
         }
@@ -373,7 +376,9 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
         {/* Map Reference */}
         <div className="grid grid-cols-1 gap-4">
           <label htmlFor="mapref">
-            <p className="text-sm font-medium text-gray-600">Map Coordinates</p>
+            <p className="text-sm text-gray-600 font-normal!">
+              <strong className="font-semibold">Map Coordinates for your location.</strong>
+              <br /> This is only displayed for Viewing facilities. You only need to supply these if the map is not displaying your location correctly.</p>
             <input
               type="text"
               name="mapref"
@@ -386,6 +391,23 @@ export default function CompanyContactUpdateForm({ companyId, contactData, onSuc
               Enter coordinates as &ldquo;latitude,longitude&rdquo; (e.g., 52.396389,-1.811676)
             </p>
           </label>
+        </div>
+
+        <div id="map-preview">
+          <MapPreview
+            key={mapUpdateKey}
+            mapref={formValues.mapref}
+            addr1={formValues.addr1}
+            addr2={formValues.addr2}
+            addr3={formValues.addr3}
+            addr4={formValues.addr4}
+            addr5={formValues.addr5}
+            postcode={formValues.postcode}
+            country={formValues.country}
+            onLocationSelect={(lat, lon) => {
+              setFormValues(prev => ({ ...prev, mapref: `${lat},${lon}` }));
+            }}
+          />
         </div>
 
         <div className="flex justify-end pt-4">
