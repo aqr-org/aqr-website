@@ -194,7 +194,7 @@ export default function AdvancedDirectoryFilterModal({
             </span>
             <button
               onClick={clearAllFilters}
-              className="group/clearAllFilters text-qrose text-sm px-4 pl-2 py-1 rounded-full font-[500] cursor-pointer flex items-center gap-1 hover:font-[700] hover:tracking-tight transition-all"
+              className="group/clearAllFilters text-qrose text-sm px-4 pl-2 py-1 rounded-full font-medium cursor-pointer flex items-center gap-1 hover:font-bold hover:tracking-tight transition-all"
             >
               <X className="h-5 w-5 p-1 rounded-full bg-transparent text-qrose  group-hover/clearAllFilters:bg-qrose group-hover/clearAllFilters:text-qaupe transition-colors" /> Clear All Filters
             </button>

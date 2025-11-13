@@ -4,6 +4,7 @@ import { profOrgsNameMap } from "@/lib/utils";
 import { countries } from "@/lib/countries";
 import Fern from "@/components/svgs/Fern";
 import CompanyMap from "@/components/CompanyMap";
+import { Globe } from "lucide-react";
 
 interface CompanyProps {
   data : {
@@ -270,9 +271,7 @@ export default function Company(props: CompanyProps) {
               }
               {data.contact_info?.website &&
                 <div className="flex items-center gap-2 w-full overflow-hidden whitespace-nowrap">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M5 0C2.23858 0 0 2.23858 0 5C0 7.76142 2.23858 10 5 10C7.76142 10 10 7.76142 10 5C10 2.23858 7.76142 0 5 0ZM5 8.33333C3.80653 8.33333 2.83333 7.36013 2.83333 6.16667C2.83333 4.9732 3.80653 4 5 4C6.19347 4 7.16667 4.9732 7.16667 6.16667C7.16667 7.36013 6.19347 8.33333 5 8.33333Z" fill="#11160C"/>
-                  </svg>
+                  <Globe className="w-3.5 h-3.5" />
                   <p>
                     <a href={data.contact_info?.website} target="_blank" rel="noopener noreferrer" className="no-underline! hover:text-qreen-dark transition-colors duration-300"> 
                       {data.contact_info?.website}
@@ -286,7 +285,7 @@ export default function Company(props: CompanyProps) {
             <div>
               {data.contact_info?.linkedin &&
                 <a 
-                  href={`${data.contact_info?.linkedin}`}
+                  href={checkLinkedInLinkAndTransform(data.contact_info?.linkedin) || ''}
                   className="text-qreen-dark flex items-center gap-2 no-underline!"
                 >
                   LinkedIn 
@@ -297,7 +296,7 @@ export default function Company(props: CompanyProps) {
               }
               {data.contact_info?.twitter &&  
                   <a 
-                    href={`tel:${data.contact_info?.twitter}`}
+                    href={checkTwitterLinkAndTransform(data.contact_info?.twitter) || ''}
                     className="text-qreen-dark flex items-center gap-2 no-underline!"
                   >
                     X 
@@ -308,7 +307,7 @@ export default function Company(props: CompanyProps) {
               }
               {data.contact_info?.youtube &&
                   <a 
-                    href={`tel:${data.contact_info?.youtube}`}
+                    href={checkYouTubeLinkAndTransform(data.contact_info?.youtube) || ''}
                     className="text-qreen-dark flex items-center gap-2 no-underline!"
                   >
                     YouTube 
@@ -319,7 +318,7 @@ export default function Company(props: CompanyProps) {
               }
               {data.contact_info?.facebook &&
                   <a 
-                    href={`tel:${data.contact_info?.facebook}`}
+                    href={checkFacebookLinkAndTransform(data.contact_info?.facebook) || ''}
                     className="text-qreen-dark flex items-center gap-2 no-underline!"
                   >
                     Facebook 
