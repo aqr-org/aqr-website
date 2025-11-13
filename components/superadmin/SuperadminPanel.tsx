@@ -324,27 +324,27 @@ export default function SuperadminPanel() {
           `}
         >
           <Tab
-            className="border border-qlack border-b-0 font-normal bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
           >
             Edit Company
           </Tab>
           <Tab
-            className="border border-qlack border-b-0 font-normal bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
           >
             Edit Member
           </Tab>
           <Tab
-            className="border border-qlack border-b-0 font-normal bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
           >
             Board Members
           </Tab>
         </TabList>
 
         <TabPanel 
-          selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
         >
           <div className="w-full space-y-6">
             <div>
@@ -411,7 +411,7 @@ export default function SuperadminPanel() {
         </TabPanel>
 
         <TabPanel 
-          selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
         >
           <div className="w-full space-y-6">
             <div>
@@ -475,7 +475,7 @@ export default function SuperadminPanel() {
         </TabPanel>
 
         <TabPanel 
-          selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
         >
           <div className="w-full space-y-6">
             <div>
@@ -604,7 +604,7 @@ export default function SuperadminPanel() {
                               <button
                                 onClick={() => removeBoardMember(boardMember.id)}
                                 disabled={isRemoving[boardMember.id]}
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 transition-colors text-sm"
+                                className="bg-qrose text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 transition-colors text-sm"
                               >
                                 {isRemoving[boardMember.id] ? 'Removing...' : 'Remove'}
                               </button>

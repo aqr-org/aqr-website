@@ -26,8 +26,8 @@ export default async function SuperadminPage() {
   }
 
   return (
-    <main className="flex-1 w-full max-w-240 mx-auto flex flex-col gap-12">
-      <h1 className="text-3xl">Superuser Admin Panel</h1>
+    <main className="flex-1 w-full max-w-240 o mx-auto flex flex-col gap-12">
+      <h1 className="text-3xl px-container">Superuser Admin Panel</h1>
       <SuperadminPanel />
     </main>
   );
