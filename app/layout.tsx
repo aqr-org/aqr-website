@@ -14,6 +14,8 @@ import Background from "@/components/Background";
 import { BackgroundColorProvider } from "@/components/BackgroundProvider";
 import { getStoryblokApi } from '@/lib/storyblok';
 import { NavigationLinkData } from '@/lib/types/navigation';
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 const defaultUrl = process.env.SITE_URL
   ? process.env.SITE_URL
@@ -52,13 +54,10 @@ const mapNavigationItem = (item: NavigationLinkData): NavigationLinkData => ({
   )
 });
 
-// Async component for Navigation that fetches its own data
-async function NavigationAsync() {
-  try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
+// Cache navigation data fetch
+const fetchNavigationData = unstable_cache(
+  async (isDraftMode: boolean) => {
     const storyblokApi = getStoryblokApi();
-    
     const navigationResponse = await storyblokApi.get('cdn/stories', { 
       version: isDraftMode ? 'draft' : 'published',
       starts_with: 'site-settings/main-navigation',
@@ -73,7 +72,22 @@ async function NavigationAsync() {
       navigationData.links = navigationResponse.data.stories[0].content.nav_items.map(mapNavigationItem);
     }
 
-    return <Navigation links={navigationData.links} />;
+    return navigationData.links;
+  },
+  ['main-navigation'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['navigation'],
+  }
+);
+
+// Async component for Navigation that fetches its own data
+async function NavigationAsync() {
+  try {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const links = await fetchNavigationData(isDraftMode);
+    return <Navigation links={links} />;
   } catch (error: any) {
     // Silently handle prerendering errors to avoid build failures
     if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
@@ -84,21 +98,31 @@ async function NavigationAsync() {
   }
 }
 
-// Async component for Footer that fetches its own data
-async function FooterAsync() {
-  try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
+// Cache footer data fetch
+const fetchFooterData = unstable_cache(
+  async (isDraftMode: boolean) => {
     const storyblokApi = getStoryblokApi();
-    
     const footerResponse = await storyblokApi.get('cdn/stories', {
       version: isDraftMode ? 'draft' : 'published',
       starts_with: 'site-settings/footer',
       resolve_links: 'url'
     });
 
-    const footerData = footerResponse.data?.stories[0]?.content || null;
+    return footerResponse.data?.stories[0]?.content || null;
+  },
+  ['footer-data'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['footer'],
+  }
+);
 
+// Async component for Footer that fetches its own data
+async function FooterAsync() {
+  try {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const footerData = await fetchFooterData(isDraftMode);
     return <Footer footerData={footerData} />;
   } catch (error: any) {
     // Silently handle prerendering errors to avoid build failures

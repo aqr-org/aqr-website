@@ -9,6 +9,8 @@ import { countries } from "@/lib/countries";
 import React from "react";
 import AlphabetNav from "@/components/AlphabetNav";
 import { generatePageMetadata } from '@/lib/metadata';
+import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 
 type CompanyWithExtraInfo = Company & {
@@ -40,49 +42,44 @@ export async function generateMetadata(
   );
 }
 
+// Cache companies directory data using a client without cookies for read-only public data
+const getCachedCompanies = unstable_cache(
+  async () => {
+    // Create a simple client without cookies for read-only public queries
+    const supabase = createSupabaseClient(
+      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
+    );
+    
+    // Single query with relations - much more efficient than multiple queries
+    const { data: companies, error: companiesError } = await supabase
+      .from('companies')
+      .select(`
+        *,
+        company_contact_info(*),
+        company_areas(*)
+      `)
+      .eq('beacon_membership_status', 'Active');
+
+    if (companiesError) {
+      console.error("Companies error:", companiesError);
+      return [];
+    }
+
+    return companies || [];
+  },
+  ['directory-companies'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['companies', 'directory'],
+  }
+);
+
 export default async function DirPage() {
-  // Fetch initial data in parallel
-  const [supabase] = await Promise.all([
-    createClient()
-  ]);
-  
-  const companies = await supabase.from('companies').select('*').eq('beacon_membership_status', 'Active');
+  // Fetch cached companies data
+  const companies = await getCachedCompanies();
 
-  if (companies.error) {
-    console.error("Companies error:", companies.error);
-  }
-
-  // Fetch company contact info and areas in parallel
-  const [company_contact_info, company_areas] = await Promise.all([
-    companies.data 
-      ? supabase.from('company_contact_info').select('*').in('company_id', companies.data.map(company => company.id))
-      : Promise.resolve({ data: [], error: null }),
-    companies.data 
-      ? supabase.from('company_areas').select('*').in('company_id', companies.data.map(company => company.id))
-      : Promise.resolve({ data: [], error: null })
-  ]);
-
-  // More robust error handling
-  if (company_contact_info.error) {
-    console.error("Company contact info error:", company_contact_info.error);
-  }
-  if (company_areas.error) {
-    console.error("Company areas error:", company_areas.error);
-  }
-
-  // Add the company_contact_info to the companies.data
-  companies.data?.forEach(company => {
-    const thiscompany_contact_info = company_contact_info.data?.find(contact => contact.company_id === company.id);
-    company.company_contact_info = thiscompany_contact_info;
-  });
-
-  // Add the company_areas to the companies.data
-  companies.data?.forEach(company => {
-    const thiscompany_areas = company_areas.data?.filter(area => area.company_id === company.id);
-    company.company_areas = thiscompany_areas;
-  });
-
-  const companiesWithActiveSubs = companies.data ? [...companies.data] : [];
+  const companiesWithActiveSubs = companies ? [...companies] : [];
 
   companiesWithActiveSubs.sort((a, b) => {
     return a.name.localeCompare(b.name);
@@ -186,12 +183,16 @@ export default async function DirPage() {
   );
 }
 
-async function fetchStoryblokData(slug: string) {
+// Cache directory page Storyblok data
+const fetchStoryblokData = async (slug: string) => {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())
   ]);
   
   const isDraftMode = isEnabled;
-  return await storyblokApi.get(`cdn/stories/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  return await storyblokApi.get(`cdn/stories/${slug}`, { 
+    version: isDraftMode ? 'draft' : 'published',
+    resolve_links: 'url'
+  });
+};

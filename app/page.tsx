@@ -3,6 +3,7 @@ import { StoryblokStory, storyblokEditable } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { HomepageDataProvider } from '@/components/storyblok/HomepageDataContext';
 import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 interface Event {
   id: string;
@@ -53,20 +54,22 @@ interface Webinar {
   created_at?: string;
 }
 
-async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | null> {
-  const storyblokApi = getStoryblokApi();
+// Cache next upcoming event fetch
+const fetchNextUpcomingEvent = unstable_cache(
+  async (isDraftMode: boolean): Promise<Event | null> => {
+    const storyblokApi = getStoryblokApi();
 
-  try {
-    // Fetch a limited set of events sorted by date (much more efficient than getAll)
-    // Fetch 20 most recent events sorted ascending by date to find the next upcoming one
-    const response = await storyblokApi.get("cdn/stories", {
-      version: isDraftMode ? "draft" : "published",
-      content_type: "event",
-      starts_with: "events/",
-      excluding_slugs: "events/",
-      sort_by: "content.date:asc",
-      per_page: 20, // Limit to 20 most recent events instead of fetching all
-    });
+    try {
+      // Fetch a limited set of events sorted by date (much more efficient than getAll)
+      // Fetch 20 most recent events sorted ascending by date to find the next upcoming one
+      const response = await storyblokApi.get("cdn/stories", {
+        version: isDraftMode ? "draft" : "published",
+        content_type: "event",
+        starts_with: "events/",
+        excluding_slugs: "events/",
+        sort_by: "content.date:asc",
+        per_page: 20, // Limit to 20 most recent events instead of fetching all
+      });
 
     const events = response.data?.stories || [];
     if (!events || events.length === 0) {
@@ -86,12 +89,18 @@ async function fetchNextUpcomingEvent(isDraftMode: boolean): Promise<Event | nul
       return eventDate >= today;
     });
 
-    return futureEvent ? (futureEvent as Event) : null;
-  } catch (error) {
-    console.error("Error fetching events:", error);
-    return null;
+      return futureEvent ? (futureEvent as Event) : null;
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      return null;
+    }
+  },
+  ['next-upcoming-event'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['events'],
   }
-}
+);
 
 async function fetchGlossaryTermOfTheDay(isDraftMode: boolean): Promise<GlossaryTerm | null> {
   // Calculate date-based seed for cache key
@@ -160,47 +169,68 @@ async function fetchGlossaryTermOfTheDay(isDraftMode: boolean): Promise<Glossary
   return getCachedTerm();
 }
 
-async function fetchLatestWebinar(isDraftMode: boolean): Promise<Webinar | null> {
-  const storyblokApi = getStoryblokApi();
+// Cache latest webinar fetch
+const fetchLatestWebinar = unstable_cache(
+  async (isDraftMode: boolean): Promise<Webinar | null> => {
+    const storyblokApi = getStoryblokApi();
 
-  try {
-    // Fetch only the most recent webinar using sorting and pagination
-    const response = await storyblokApi.get("cdn/stories", {
-      version: isDraftMode ? "draft" : "published",
-      content_type: "webinar",
-      starts_with: "events/thehub/",
-      excluding_slugs: "events/thehub/",
-      sort_by: "content.date:desc", // Sort by content date descending
-      per_page: 1, // Only fetch the first (most recent) webinar
-    });
+    try {
+      // Fetch only the most recent webinar using sorting and pagination
+      const response = await storyblokApi.get("cdn/stories", {
+        version: isDraftMode ? "draft" : "published",
+        content_type: "webinar",
+        starts_with: "events/thehub/",
+        excluding_slugs: "events/thehub/",
+        sort_by: "content.date:desc", // Sort by content date descending
+        per_page: 1, // Only fetch the first (most recent) webinar
+      });
 
-    const webinars = response.data?.stories || [];
-    if (!webinars || webinars.length === 0) {
+      const webinars = response.data?.stories || [];
+      if (!webinars || webinars.length === 0) {
+        return null;
+      }
+
+      // Return the first (and only) webinar from the sorted result
+      return webinars[0] as Webinar;
+    } catch (error) {
+      console.error("Error fetching webinars:", error);
       return null;
     }
-
-    // Return the first (and only) webinar from the sorted result
-    return webinars[0] as Webinar;
-  } catch (error) {
-    console.error("Error fetching webinars:", error);
-    return null;
+  },
+  ['latest-webinar'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['webinars'],
   }
-}
+);
 
-async function fetchAllEvents(isDraftMode: boolean): Promise<Event[]> {
-  const storyblokApi = getStoryblokApi();
-  try {
-    return await storyblokApi.getAll(`cdn/stories`, { 
-      version: isDraftMode ? 'draft' : 'published',
-      content_type: 'event',
-      starts_with: 'events/',
-      excluding_slugs: 'events/'
-    });
-  } catch (error) {
-    console.error("Error fetching all events:", error);
-    return [];
+// Cache all events fetch for homepage
+const fetchAllEvents = unstable_cache(
+  async (isDraftMode: boolean): Promise<Event[]> => {
+    const storyblokApi = getStoryblokApi();
+    try {
+      // Use paginated query instead of getAll() to reduce bandwidth
+      // Fetch first page with reasonable limit - homepage typically doesn't need all events
+      const response = await storyblokApi.get("cdn/stories", {
+        version: isDraftMode ? "draft" : "published",
+        content_type: "event",
+        starts_with: "events/",
+        excluding_slugs: "events/",
+        per_page: 50, // Limit to 50 most recent events for homepage
+        sort_by: "content.date:desc",
+      });
+      return response.data?.stories || [];
+    } catch (error) {
+      console.error("Error fetching all events:", error);
+      return [];
+    }
+  },
+  ['homepage-events'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['events'],
   }
-}
+);
 
 // Helper function to fetch phonetic spelling in parallel with other data
 async function fetchPhoneticForGlossary(glossaryTermPromise: Promise<GlossaryTerm | null>): Promise<string | null> {
@@ -255,9 +285,13 @@ export default async function Home() {
 }
 
 
-async function fetchStoryblokData() {
+// Cache Storyblok homepage fetch with React cache for request deduplication
+const fetchStoryblokData = cache(async () => {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
-	const storyblokApi = getStoryblokApi();
-	return await storyblokApi.get(`cdn/stories/home`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  const storyblokApi = getStoryblokApi();
+  return await storyblokApi.get(`cdn/stories/home`, { 
+    version: isDraftMode ? 'draft' : 'published',
+    resolve_links: 'url' // Only resolve links when needed
+  });
+});

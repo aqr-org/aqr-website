@@ -4,6 +4,8 @@ import { draftMode } from 'next/headers';
 import EventPreview from '@/components/EventPreview';
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
@@ -156,21 +158,57 @@ export default async function CalendarPage() {
   );
 }
 
-async function fetchStoryblokData() {
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
-	const storyblokApi = getStoryblokApi();
-	return await storyblokApi.get(`cdn/stories/calendar`, { version: isDraftMode ? 'draft' : 'published' });
-}
-
-async function fetchAllEvents() {
+// Cache calendar page Storyblok data
+const fetchStoryblokData = cache(async () => {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.getAll(`cdn/stories`, { 
+  return await storyblokApi.get(`cdn/stories/calendar`, { 
     version: isDraftMode ? 'draft' : 'published',
-    content_type: 'event',
-    starts_with: 'events/',
-    excluding_slugs: 'events/'
+    resolve_links: 'url'
   });
-}
+});
+
+// For calendar page, we need all events, but we'll fetch them in batches and cache
+const fetchAllEvents = unstable_cache(
+  async () => {
+    const { isEnabled } = await draftMode();
+    const isDraftMode = isEnabled;
+    const storyblokApi = getStoryblokApi();
+    
+    // Fetch events in batches to avoid huge payloads
+    // Start with first page
+    let allEvents: any[] = [];
+    let page = 1;
+    const perPage = 100; // Storyblok max per_page
+    
+    while (true) {
+      const response = await storyblokApi.get('cdn/stories', {
+        version: isDraftMode ? 'draft' : 'published',
+        content_type: 'event',
+        starts_with: 'events/',
+        excluding_slugs: 'events/',
+        per_page: perPage,
+        page: page,
+        sort_by: 'content.date:desc',
+      });
+      
+      const events = response.data?.stories || [];
+      if (events.length === 0) break;
+      
+      allEvents = allEvents.concat(events);
+      
+      // If we got fewer than perPage, we've reached the end
+      if (events.length < perPage) break;
+      
+      page++;
+    }
+    
+    return allEvents;
+  },
+  ['calendar-all-events'],
+  {
+    revalidate: 300, // Cache for 5 minutes
+    tags: ['events', 'calendar'],
+  }
+);

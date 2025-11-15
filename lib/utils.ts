@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { BeaconMembershipResult } from "./types";
 import type { UserBeaconData } from "./types";
+import { unstable_cache } from 'next/cache';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -67,8 +68,8 @@ async function fetchBeaconMembershipByEmail(email: string, field: string = 'memb
   return await response.json();
 }
 
-export const beaconDataOf = async (email: string): Promise<object> => {
-  
+// Internal function to fetch Beacon data (not cached)
+async function fetchBeaconDataInternal(email: string): Promise<object> {
   const normalizedEmail = email.trim().toLowerCase();
   
   // Call Beacon API directly instead of making HTTP requests to our own routes
@@ -164,8 +165,28 @@ export const beaconDataOf = async (email: string): Promise<object> => {
       name: org.name,
     })),
   } 
-
+  
   return data;
+}
+
+// Cache Beacon API calls to reduce bandwidth usage
+// We need to create a cached wrapper for each email, so we use a helper function
+export async function beaconDataOf(email: string): Promise<object> {
+  const normalizedEmail = email.trim().toLowerCase();
+  
+  // Create a cached version for this specific email
+  const getCachedBeaconData = unstable_cache(
+    async () => {
+      return await fetchBeaconDataInternal(email);
+    },
+    [`beacon-data-${normalizedEmail}`],
+    {
+      revalidate: 600, // Cache for 10 minutes (membership status doesn't change frequently)
+      tags: ['beacon', 'membership'],
+    }
+  );
+  
+  return await getCachedBeaconData();
 }
 
 // Helper to verify that an email belongs to a Beacon person with an active membership

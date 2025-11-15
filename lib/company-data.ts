@@ -65,42 +65,41 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
   try {
     const supabase = await createClient();
     
-    // First, get the company data (this is required for subsequent queries)
-    const company = await supabase
+    // Use PostgREST relations to fetch company with nested data in a single query
+    const { data: companyData, error: companyError } = await supabase
       .from('companies')
-      .select('*')
+      .select(`
+        *,
+        company_contact_info(*),
+        company_areas(*)
+      `)
       .or(`ident.eq.${slug},and(ident.is.null,slug.eq.${slug})`)
       .single();
 
-    if (company.error) {
-      console.error("Company error:", company.error);
+    if (companyError) {
+      console.error("Company error:", companyError);
       return null;
     }
 
-    if (!company.data?.id) {
+    if (!companyData?.id) {
       return null;
     }
 
-  // Run all dependent queries in parallel
-  const [companyContactInfo, companyAreas, companyEmployees, companyLogo] = await Promise.all([
-    supabase
-      .from('company_contact_info')
-      .select('*')
-      .eq('company_id', company.data.id)
-      .single(),
-    supabase
-      .from('company_areas')
-      .select('area')
-      .eq('company_id', company.data.id),
-    supabase
-      .from('members')
-      .select('id, firstname, lastname, organisation, slug')
-      .eq('organisation', company.data.name),
-    supabase
-      .storage
-      .from('images')
-      .list('companies', { limit: 1, search: company.data.id.toString() })
-  ]);
+    // Extract nested data from the relation query
+    const companyContactInfo = companyData.company_contact_info?.[0] || null;
+    const companyAreas = companyData.company_areas || [];
+
+    // Fetch employees and logo in parallel (these can't be joined via relations)
+    const [companyEmployees, companyLogo] = await Promise.all([
+      supabase
+        .from('members')
+        .select('id, firstname, lastname, organisation, slug')
+        .eq('organisation', companyData.name),
+      supabase
+        .storage
+        .from('images')
+        .list('companies', { limit: 1, search: companyData.id.toString() })
+    ]);
 
   // Get logo URL if logo exists
   let companyLogoData: { data: { publicUrl: string } | null } = { data: null };
@@ -112,24 +111,11 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
     companyLogoData = { data: { publicUrl: logoUrlData.publicUrl } };
   }
 
-  // Log results
-  if (companyContactInfo.error) {
-    console.log("Company contact info error:", companyContactInfo.error);
-  } else {
-    // console.log("Company contact info:", companyContactInfo.data);
-  }
-
-  if (companyAreas.error) {
-    console.error("Company areas error:", companyAreas.error);
-  } else {
-    // console.log("Company areas:", companyAreas.data);
-  }
-
   // Fetch area categories if we have areas
   let areasByCategory: {[key: string]: string[]} = {};
   
-  if (companyAreas.data && companyAreas.data.length > 0) {
-    const areaNames = companyAreas.data.map(area => area.area);
+  if (companyAreas && companyAreas.length > 0) {
+    const areaNames = companyAreas.map((area: CompanyArea) => area.area);
     
     const { data: areasWithCategories, error: categoriesError } = await supabase
       .from('areas_master')
@@ -139,8 +125,6 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
     if (categoriesError) {
       console.error("Categories error:", categoriesError);
     } else {
-      // console.log("Areas with categories:", areasWithCategories);
-      
       // Group areas by category
       areasByCategory = areasWithCategories?.reduce((acc, areaObj) => {
         const category = areaObj.category || 'Uncategorized';
@@ -154,31 +138,31 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
   }
 
     return {
-      ...company.data,
+      ...companyData,
       // Ensure all required fields are strings as expected by Company component
-      type: company.data.type || '',
-      narrative: company.data.narrative || '',
-      companysize: company.data.companysize || '',
-      established: company.data.established?.toString() || '',
-      gradprog: company.data.gradprog || '',
-      contact_info: companyContactInfo.data ? {
-        id: companyContactInfo.data.id || '',
-        company_id: companyContactInfo.data.company_id || '',
-        email: companyContactInfo.data.email || '',
-        phone: companyContactInfo.data.phone || '',
-        mobile: companyContactInfo.data.mobile,
-        addr1: companyContactInfo.data.addr1,
-        addr2: companyContactInfo.data.addr2,
-        addr3: companyContactInfo.data.addr3,
-        addr4: companyContactInfo.data.addr4,
-        addr5: companyContactInfo.data.addr5,
-        postcode: companyContactInfo.data.postcode,
-        country: companyContactInfo.data.country,
-        facebook: companyContactInfo.data.facebook,
-        linkedin: companyContactInfo.data.linkedin,
-        twitter: companyContactInfo.data.twitter,
-        youtube: companyContactInfo.data.youtube,
-        website: companyContactInfo.data.website,
+      type: companyData.type || '',
+      narrative: companyData.narrative || '',
+      companysize: companyData.companysize || '',
+      established: companyData.established?.toString() || '',
+      gradprog: companyData.gradprog || '',
+      contact_info: companyContactInfo ? {
+        id: companyContactInfo.id || '',
+        company_id: companyContactInfo.company_id || '',
+        email: companyContactInfo.email || '',
+        phone: companyContactInfo.phone || '',
+        mobile: companyContactInfo.mobile,
+        addr1: companyContactInfo.addr1,
+        addr2: companyContactInfo.addr2,
+        addr3: companyContactInfo.addr3,
+        addr4: companyContactInfo.addr4,
+        addr5: companyContactInfo.addr5,
+        postcode: companyContactInfo.postcode,
+        country: companyContactInfo.country,
+        facebook: companyContactInfo.facebook,
+        linkedin: companyContactInfo.linkedin,
+        twitter: companyContactInfo.twitter,
+        youtube: companyContactInfo.youtube,
+        website: companyContactInfo.website,
       } : null,
       employees: companyEmployees.data || [],
       areas: areasByCategory || [],

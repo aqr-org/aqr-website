@@ -80,7 +80,8 @@ export default async function SlugPage({ params }: PageProps) {
   );
 }
 
-async function fetchStoryblokData(params: { parent: string }) {
+// Cache Storyblok page data with React cache for request deduplication
+const fetchStoryblokData = async (params: { parent: string }) => {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
   const storyblokApi = getStoryblokApi();

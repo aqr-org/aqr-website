@@ -8,6 +8,8 @@ import AlphabetNav from "@/components/AlphabetNav";
 import { generatePageMetadata } from '@/lib/metadata';
 import { Suspense } from "react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
+import { unstable_cache } from 'next/cache';
+import { cache } from 'react';
 
 export async function generateMetadata(
   { params: _params }: { params: Promise<Record<string, never>> },
@@ -140,25 +142,59 @@ export default async function DirPage() {
   );
 }
 
-async function fetchStoryblokData(slug: string) {
+// Cache glossary page Storyblok data
+const fetchStoryblokData = cache(async (slug: string) => {
   const [{ isEnabled }, storyblokApi] = await Promise.all([
     draftMode(),
     Promise.resolve(getStoryblokApi())
   ]);
   
   const isDraftMode = isEnabled;
-  return await storyblokApi.get(`cdn/stories/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
-async function fetchGlossaryTerms() {
-  const [{ isEnabled }, storyblokApi] = await Promise.all([
-    draftMode(),
-    Promise.resolve(getStoryblokApi())
-  ]);
-  
-  const isDraftMode = isEnabled;
-  return await storyblokApi.getAll(`cdn/stories`, { 
-    version: isDraftMode ? 'draft' : 'published' ,
-    starts_with: 'glossary/',
-    excluding_slugs: 'glossary/'
+  return await storyblokApi.get(`cdn/stories/${slug}`, { 
+    version: isDraftMode ? 'draft' : 'published',
+    resolve_links: 'url'
   });
-}
+});
+// Cache glossary terms fetch - fetch in batches instead of getAll()
+const fetchGlossaryTerms = unstable_cache(
+  async () => {
+    const [{ isEnabled }, storyblokApi] = await Promise.all([
+      draftMode(),
+      Promise.resolve(getStoryblokApi())
+    ]);
+    
+    const isDraftMode = isEnabled;
+    
+    // Fetch glossary terms in batches to avoid huge payloads
+    let allTerms: any[] = [];
+    let page = 1;
+    const perPage = 100; // Storyblok max per_page
+    
+    while (true) {
+      const response = await storyblokApi.get('cdn/stories', {
+        version: isDraftMode ? 'draft' : 'published',
+        starts_with: 'glossary/',
+        excluding_slugs: 'glossary/',
+        per_page: perPage,
+        page: page,
+      });
+      
+      const terms = response.data?.stories || [];
+      if (terms.length === 0) break;
+      
+      allTerms = allTerms.concat(terms);
+      
+      // If we got fewer than perPage, we've reached the end
+      if (terms.length < perPage) break;
+      
+      page++;
+    }
+    
+    return allTerms;
+  },
+  ['glossary-all-terms'],
+  {
+    revalidate: 3600, // Cache for 1 hour (glossary terms don't change often)
+    tags: ['glossary'],
+  }
+);

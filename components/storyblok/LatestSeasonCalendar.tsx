@@ -31,15 +31,38 @@ async function getDraftMode(): Promise<boolean> {
   }
 }
 
+// Fetch events in batches instead of getAll() to reduce bandwidth
 async function fetchAllEventsInternal(isDraftMode: boolean): Promise<Event[]> {
   const storyblokApi = getStoryblokApi();
   try {
-    return await storyblokApi.getAll(`cdn/stories`, { 
-      version: isDraftMode ? 'draft' : 'published',
-      content_type: 'event',
-      starts_with: 'events/',
-      excluding_slugs: 'events/'
-    });
+    // Fetch events in batches
+    let allEvents: Event[] = [];
+    let page = 1;
+    const perPage = 100; // Storyblok max per_page
+    
+    while (true) {
+      const response = await storyblokApi.get('cdn/stories', {
+        version: isDraftMode ? 'draft' : 'published',
+        content_type: 'event',
+        starts_with: 'events/',
+        excluding_slugs: 'events/',
+        per_page: perPage,
+        page: page,
+        sort_by: 'content.date:desc',
+      });
+      
+      const events = response.data?.stories || [];
+      if (events.length === 0) break;
+      
+      allEvents = allEvents.concat(events);
+      
+      // If we got fewer than perPage, we've reached the end
+      if (events.length < perPage) break;
+      
+      page++;
+    }
+    
+    return allEvents;
   } catch (error) {
     console.error("Error fetching all events:", error);
     return [];

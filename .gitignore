@@ -44,6 +44,9 @@ deno.lock
 *.tsbuildinfo
 next-env.d.ts
 
+performance-reports/
+
+
 certificates
 # Local Netlify folder
 .netlify
