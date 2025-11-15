@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { normalizeStoryblokUrl } from "@/lib/storyblok-url";
 import { UserRound } from "lucide-react";
-import NavigationLink from "./navigation/NavigationLink";
+import SuspenseNavigationLink from "./navigation/SuspenseNavigationLink";
 
 export default function RenderSidebar({ sidebar_items }: { sidebar_items: NavigationLinkData[] }) {
   return (
@@ -12,7 +12,7 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
         <div key={item.name+index} className={cn(index === 0 ? "mt-0" : "mt-8")}>
           {item.component === "navigation_cta" ? (
             <Button variant="default" className="text-qreen-dark border-qreen-dark">
-              <NavigationLink href={normalizeStoryblokUrl(item.link?.cached_url)} className="flex items-center gap-2 text-base">
+              <SuspenseNavigationLink href={normalizeStoryblokUrl(item.link?.cached_url)} className="flex items-center gap-2 text-base">
               {item.icon === 'suitcase' && (
                 <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect x="1" y="4.38623" width="14" height="10.9474" rx="2" stroke="#3C772B" strokeWidth="2"/>
@@ -23,15 +23,15 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
                 <UserRound />
               )}
                 {item.name}
-              </NavigationLink>
+              </SuspenseNavigationLink>
             </Button>
           ) : item.link?.cached_url !== "" ? (
-            <NavigationLink 
+            <SuspenseNavigationLink 
               href={normalizeStoryblokUrl(item.link?.cached_url)}
               className="md:text-lg font-semibold text-qlack mb-1.25 block"
             >
               {item.name}
-            </NavigationLink>
+            </SuspenseNavigationLink>
           ) : (
             <div className="md:text-lg font-semibold text-qlack mb-1.25">
               {item.name}
@@ -41,7 +41,7 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
             <ul className="pl-4 space-y-1.25">
               {item.dropdown_menu.map((dropdownItem: NavigationLinkData, dropdownIndex: number) => (
                 <li key={dropdownItem.name+dropdownIndex}>
-                  <NavigationLink 
+                  <SuspenseNavigationLink 
                     href={normalizeStoryblokUrl(dropdownItem.link?.cached_url)}
                     className={cn(
                       "group/sidebarlink",
@@ -54,7 +54,7 @@ export default function RenderSidebar({ sidebar_items }: { sidebar_items: Naviga
                     <span className="group-hover/sidebarlink:translate-x-1 transition-transform duration-300">
                       {dropdownItem.name}
                     </span>
-                  </NavigationLink>
+                  </SuspenseNavigationLink>
                 </li>
               ))}
             </ul>
