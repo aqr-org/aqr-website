@@ -35,6 +35,7 @@ export interface CompanyContactInfo {
   twitter?: string;
   youtube?: string;
   website?: string;
+  mapref?: string | null;
 }
 
 export interface CompanyArea {
@@ -86,8 +87,13 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
     }
 
     // Extract nested data from the relation query
-    const companyContactInfo = companyData.company_contact_info?.[0] || null;
-    const companyAreas = companyData.company_areas || [];
+    // Handle both array and single object cases for company_contact_info
+    // Supabase returns relations as arrays, so we take the first element
+    const companyContactInfoRaw = (companyData as any).company_contact_info;
+    const companyContactInfo = Array.isArray(companyContactInfoRaw) 
+      ? (companyContactInfoRaw.length > 0 ? companyContactInfoRaw[0] : null)
+      : (companyContactInfoRaw || null);
+    const companyAreas = (companyData as any).company_areas || [];
 
     // Fetch employees and logo in parallel (these can't be joined via relations)
     const [companyEmployees, companyLogo] = await Promise.all([
@@ -163,6 +169,7 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
         twitter: companyContactInfo.twitter,
         youtube: companyContactInfo.youtube,
         website: companyContactInfo.website,
+        mapref: companyContactInfo.mapref || null,
       } : null,
       employees: companyEmployees.data || [],
       areas: areasByCategory || [],

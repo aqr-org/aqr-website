@@ -128,11 +128,43 @@ async function fetchSupabaseMember(slug: string) {
     ? await fetchActiveCompany(supabase, member.data.maintag)
     : null;
 
+  // Ensure timeline is properly parsed as an array
+  // Timeline can be stored as: array directly, object with "line" property, or JSON string
+  let timeline: string[] = [];
+  if (member.data?.timeline) {
+    if (Array.isArray(member.data.timeline)) {
+      // Already an array
+      timeline = member.data.timeline;
+    } else if (typeof member.data.timeline === 'object' && member.data.timeline !== null) {
+      // Check if it's an object with a "line" property
+      if ('line' in member.data.timeline && Array.isArray((member.data.timeline as any).line)) {
+        timeline = (member.data.timeline as any).line;
+      } else {
+        // Try to convert object to array if it has array-like structure
+        timeline = [];
+      }
+    } else if (typeof member.data.timeline === 'string') {
+      // If it's a string, try to parse it as JSON
+      try {
+        const parsed = JSON.parse(member.data.timeline);
+        if (Array.isArray(parsed)) {
+          timeline = parsed;
+        } else if (typeof parsed === 'object' && parsed !== null && 'line' in parsed && Array.isArray(parsed.line)) {
+          timeline = parsed.line;
+        }
+      } catch (e) {
+        console.error("Error parsing timeline JSON:", e);
+        timeline = [];
+      }
+    }
+  }
+
   return {
     ...member.data,
     image: validImageUrl,
     board_position: boardPosition,
     active_company_name: companyName,
+    timeline: timeline,
   };
 }
 
@@ -275,7 +307,6 @@ export default async function ComnpaniesPage({
         )}
         
       </section>
-
       {memberData.timeline && memberData.timeline.length > 0 && (
         <section className="space-y-5 mt-24">
           <h2 className="text-[2.375rem] leading-none">Notable achievements and contributions</h2>
