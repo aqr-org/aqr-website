@@ -77,7 +77,7 @@ export default async function DirPage() {
 
   return (
     <>
-      <div className="mb-12 *:[p]:columns-2 max-w-176">
+      <div className="mb-12 *:[p]:columns-2 max-w-maxwMain">
         <StoryblokStory story={glossaryHomeStory.data.story} />
       </div>
       <Suspense fallback={
