@@ -198,9 +198,12 @@ export default async function ComnpaniesPage({
         )}
         
         {memberData.maintag &&
-          <p className="text-[1.375rem]">
-            <Link href={'/dir/companies/' + (memberData.maintag || '#')}>
-              More information about {memberData.organisation}
+          <p className="text-[1.375rem] my-8">
+            <Link 
+              href={'/dir/companies/' + (memberData.maintag || '#')} 
+              className="no-underline! flex items-center gap-2 font-semibold hover:text-qreen-dark transition-colors duration-300"
+            >
+              More information about {memberData.organisation} <ArrowUpRight className="w-5 h-5" />
             </Link>
           </p>
         }
@@ -233,11 +236,11 @@ export default async function ComnpaniesPage({
               <path d="M6.5501 12.5001L0.850098 6.8001L2.2751 5.3751L6.5501 9.6501L15.7251 0.475098L17.1501 1.9001L6.5501 12.5001Z" fill="#1D1B20"/>
             </svg>
             {memberData.board_position === 'Chair' ? (
-              <>{memberData.firstname} is currently the Chair of the <Link href="/about/board">AQR Management Board</Link></>
+              <>{memberData.firstname} is currently the Chair of the <Link href="/about/board" className='underline-offset-2 hover:text-qreen-dark hover:underline-offset-4 transition-all duration-300'>AQR Management Board</Link></>
             ) : memberData.board_position === 'Board Member' ? (
-              <>{memberData.firstname} currently serves on the <Link href="/about/board">AQR Management Board</Link></>
+              <>{memberData.firstname} currently serves on the <Link href="/about/board" className='underline-offset-2 hover:text-qreen-dark hover:underline-offset-4 transition-all duration-300'>AQR Management Board</Link></>
             ) : (
-              <>{memberData.firstname} currently serves on the <Link href="/about/board">AQR Management Board</Link> as {memberData.board_position}</>
+              <>{memberData.firstname} currently serves on the <Link href="/about/board" className='underline-offset-2 hover:text-qreen-dark hover:underline-offset-4 transition-all duration-300'>AQR Management Board</Link> as {memberData.board_position}</>
             )}
           </p>
         )}
