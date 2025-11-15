@@ -9,6 +9,7 @@ import { draftMode } from 'next/headers';
 import { unstable_cache } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { BeaconMembershipResult } from '@/lib/types/beacon';
+import { ArrowUpRight } from "lucide-react";
 
 type CompanyWithGroup = {
   name: string;
@@ -183,13 +184,18 @@ export async function generateMetadata(
 export default async function CompaniesPage() {
   try {
     // Use Promise.all to prevent waterfall - all requests run in parallel
-    const [beaconCompanies, companiesLookup, storyblok] = await Promise.all([
+    const [beaconCompanies, companiesLookupRaw, storyblok] = await Promise.all([
       getCachedGroupMembershipCompanies(),
       getCachedCompaniesLookup(),
       fetchStoryblokData('members/companies')
     ]);
 
     const storyBlokStory = storyblok?.data?.story;
+
+    // Convert cached lookup to Map (unstable_cache may serialize Map to plain object)
+    const companiesLookup: Map<string, { slug: string }> = companiesLookupRaw instanceof Map 
+      ? companiesLookupRaw 
+      : new Map(Object.entries((companiesLookupRaw || {}) as Record<string, { slug: string }>));
 
     // Match companies with Supabase
     const companiesWithMatches = await Promise.all(
@@ -270,10 +276,13 @@ export default async function CompaniesPage() {
                         <Link 
                           key={company.name} 
                           href={`/dir/companies/${company.slug}`}
-                          className="break-inside-avoid-column flex items-start gap-4 mb-0"
+                          className="break-inside-avoid-column flex items-start gap-4 mb-0 hover:text-qreen-dark transition-all duration-300"
                         >
                           <div>
-                            <h3 className="text-[1.375rem]">{company.name}</h3>
+                            <h3 className="text-[1.375rem] flex items-start gap-1 font-medium">
+                              <ArrowUpRight className="w-5 h-5 relative top-1.5" />
+                              {company.name}
+                            </h3>
                           </div>
                         </Link>
                       );
