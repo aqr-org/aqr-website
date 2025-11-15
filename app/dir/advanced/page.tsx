@@ -5,6 +5,7 @@ import { Metadata, ResolvingMetadata } from 'next';
 import { generatePageMetadata } from '@/lib/metadata';
 import { createClient } from '@/lib/supabase/server';
 import AdvancedDirectoryPageComponent from '@/components/AdvancedDirectoryPage';
+import { Suspense } from 'react';
 
 export async function generateMetadata(_: { params: Promise<Record<string, never>> }, parent: ResolvingMetadata): Promise<Metadata> {
   try {
@@ -197,11 +198,13 @@ export default async function AdvancedDirectoryPage({ searchParams }: PageProps)
       <div className="max-w-210 mb-12">
         <StoryblokStory story={storyBlokStory} />
       </div>
-      <AdvancedDirectoryPageComponent 
-        filterOptions={filterOptions} 
-        initialFilters={initialFilters}
-        gradProgCount={gradProgCount}
-      />
+      <Suspense fallback={<div className="min-h-[400px]" />}>
+        <AdvancedDirectoryPageComponent 
+          filterOptions={filterOptions} 
+          initialFilters={initialFilters}
+          gradProgCount={gradProgCount}
+        />
+      </Suspense>
     </>
   );
 }

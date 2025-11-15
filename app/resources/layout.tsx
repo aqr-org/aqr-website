@@ -18,7 +18,9 @@ export default async function ResoucesPageLayout({ children }: { children: React
         <div className="flex flex-col-reverse md:flex-row md:pt-4">
           <aside className="p-6 md:p-0 md:basis-1/4 md:pr-8 md:box-border bg-qlack/5 md:bg-transparent rounded-lg mt-16 md:mt-0">
             <h3 className="text-xl md:hidden text-qlack mb-4">More in Resources:</h3>
-            <RenderSidebar sidebar_items={sidebar_items} />
+            <Suspense fallback={<div className="h-64" />}>
+              <RenderSidebar sidebar_items={sidebar_items} />
+            </Suspense>
           </aside>
           <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
             <Suspense fallback={

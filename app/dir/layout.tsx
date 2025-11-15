@@ -24,7 +24,9 @@ export default async function DirPageLayout({ children }: { children: React.Reac
             <div className="mb-8">
               <AQRBusinessDirectorySVG />
             </div>
-            <RenderSidebar sidebar_items={sidebar_items} />
+            <Suspense fallback={<div className="h-64" />}>
+              <RenderSidebar sidebar_items={sidebar_items} />
+            </Suspense>
           </aside>
           <main id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
             <Suspense fallback={
