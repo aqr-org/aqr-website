@@ -51,14 +51,16 @@ return (
     {blok.aside && blok.aside.length > 0 && (
       <aside className={
           cn(
-            blok.aside && blok.aside.length > 0 ? 'lg:basis-4/12 lg:grow lg:max-w-[24rem]' : '',
+            'lg:basis-4/12 lg:grow lg:max-w-[24rem] lg:self-start',
              'mt-12 pt-12 lg:mt-0 ',
-             'p-6 bg-qlack/5 rounded-lg lg:self-start'
+             'p-6 sidebar_right'
           )
       }> 
-        {blok.aside.map((nestedBlok: any) => (
-          <StoryblokComponentWrapper blok={nestedBlok} key={nestedBlok._uid} />
-        ))}
+        <div className="prose"> 
+          {blok.aside.map((nestedBlok: any) => (
+            <StoryblokComponentWrapper blok={nestedBlok} key={nestedBlok._uid} />
+          ))}
+        </div>
       </aside>
     )}
 	</main>

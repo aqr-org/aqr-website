@@ -438,6 +438,23 @@ hr {
       @apply text-base;
     }
   }
+  & li:has(> p):not(:has(> :not(p))) {
+    @apply my-0!;
+  }
+  & li p:has(> a):not(:has(> :not(a))) > a,
+  & li p:has(> a):not(:has(> :not(a))) > a {
+    @apply no-underline block border-b border-dashed my-0 py-2;
+    @apply transition-all duration-300;
+    @apply text-pretty;
+    
+    &:hover {
+      @apply border-solid font-semibold tracking-[-0.01em];
+    }
+
+    & span {
+      @apply my-0!;
+    }
+  }
   
   /* Links */
   & a {
@@ -489,4 +506,11 @@ hr {
   & h4, & .h4size {
     @apply block text-[1.5rem] font-normal leading-none tracking-[-0.07125rem];
   }
+}
+.sidebar_right {
+  @apply bg-qlack text-qaupe rounded-lg;
+  background-image: url('/glossary_card_bg.svg');
+  background-size: cover;
+  background-position: top left;
+  background-repeat: repeat;
 }

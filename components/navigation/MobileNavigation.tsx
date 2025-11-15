@@ -44,8 +44,9 @@ export default function MobileNavigation({
                 aria-expanded={expandedSubmenus.has(index)}
                 aria-haspopup="true"
                 aria-controls={`mobile-submenu-${index}`}
-                className="flex items-center justify-between w-full py-2 text-left text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset border-b border-qlack/20"
+                className="flex items-center justify-between w-full py-2 text-left text-xl focus:outline-none border-b border-qlack/20 group/button relative hover:border-b-transparent focus:border-b-transparent"
               >
+                <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/button:bg-qreen/10 group-focus/button:bg-qreen/10 z-0"></span>
                 {link.name}
                 <ChevronDown 
                   className={`h-5 w-5 transition-transform duration-200 ${
@@ -56,7 +57,7 @@ export default function MobileNavigation({
               </button>
               <ul
                 id={`mobile-submenu-${index}`}
-                className={`overflow-hidden transition-all duration-200 pl-4 ${
+                className={`overflow-hidden transition-all duration-200 mb-4 pl-4 ${
                   expandedSubmenus.has(index) 
                     ? 'max-h-full opacity-100' 
                     : 'max-h-0 opacity-0'

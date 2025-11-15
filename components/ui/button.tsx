@@ -13,6 +13,8 @@ const buttonVariants = cva(
           "bg-transparent text-qlack border-2 border-qlack hover:bg-qlack hover:text-qaupe hover:border-qlack transition-all",
         qreen:
           "bg-transparent text-qreen border-2 border-qreen hover:bg-qreen hover:text-qaupe hover:border-qreen transition-all",
+        qaupe:
+          "bg-transparent text-qaupe border-2 border-qaupe hover:bg-qaupe hover:text-qaupe hover:border-qaupe transition-all",
         alert:
           "bg-red text-qaupe shadow-sm hover:bg-red/90",
         filled:

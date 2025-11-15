@@ -30,8 +30,8 @@ export default function Article({ blok }: ArticleProps) {
   const onlyArticleIsThisArticle = blok.authorArticles && blok.authorArticles.length === 1 && blok.authorArticles[0].slug === blok.slug;
   
   return (
-    <div {...storyblokEditable(blok)} className='block space-y-12 lg:flex gap-16'>
-      <div className='max-w-maxwMain basis-3/4 min-h-screen'>
+    <div {...storyblokEditable(blok)} className='block space-y-12 lg:flex gap-12'>
+      <main className='max-w-maxwMain basis-8/12 min-h-screen'>
         <div className='flex justify-between items-center mb-4'>
           <p className='text-sm text-qreen-dark'>
             {blok.date && new Date(blok.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -51,13 +51,13 @@ export default function Article({ blok }: ArticleProps) {
         <div className='prose prose_article'>
           {render(blok.content)}
         </div>
-      </div>
+      </main>
       {/* Author aside */}
-      <aside className='basis-1/4 shrink-0 grow bg-qlack/5 self-start rounded-sm overflow-hidden'>
+      <aside className='sidebar_right basis-4/12 shrink-0 grow bg-qlack/5 self-start rounded-sm overflow-hidden'>
         {blok.authorName && blok.authorLink && (
           <div className='md:flex lg:block'>  
             {blok.authorImage && (
-              <div className='p-4'>
+              <div className='p-6 lg:pb-0'>
                 <figure className='relative aspect-square basis-30 shrink-0 w-48 h-48 lg:w-full lg:h-auto overflow-hidden rounded-full'>
                   <Image 
                     src={blok.authorImage || ''} 
@@ -69,7 +69,7 @@ export default function Article({ blok }: ArticleProps) {
                 </figure >
               </div>
             )}
-            <div className='p-4 space-y-4'>
+            <div className='p-6 space-y-4'>
               <h3 className='text-2xl tracking-[-0.035rem]'><Link href={blok.authorLink}>{blok.authorName}</Link></h3>
               <p className='text-sm'>
                 {blok.authorBiognotes && blok.authorBiognotes.length > 200 

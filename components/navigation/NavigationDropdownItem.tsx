@@ -87,9 +87,10 @@ export default function NavigationDropdownItem({
         ) : (
           <NavigationLink 
             href={normalizeStoryblokUrl(item.link?.cached_url)}
-            className={`block py-2 text-qreen ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset`}
+            className={`block py-2 text-qreen ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none relative group/link`}
             role="menuitem"
           >
+            <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/link:bg-qreen/10 group-focus/link:bg-qreen/10 z-0"></span>
             {item.name}
           </NavigationLink>
         )}

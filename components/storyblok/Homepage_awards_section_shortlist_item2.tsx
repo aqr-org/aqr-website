@@ -31,14 +31,14 @@ function Homepage_awards_section_shortlist_item2({ blok }: Homepage_awards_secti
           />
         </div>
       )}
-      <div className="space-y-4 basis-full">
+      <div className="space-y-6 md:space-y-4 basis-full">
         {blok.research_title && (
           <h4 className="text-2xl md:text-[2.375rem] tracking-tight leading-[1.2]">
             {blok.research_title}
           </h4>
         )}
         {researchersItems.length > 0 && (
-          <div className="flex gap-12">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-12">
             {researchersItems.map((researchersBlok: any) => (
               <StoryblokServerComponent blok={researchersBlok} key={researchersBlok._uid} />
             ))}
