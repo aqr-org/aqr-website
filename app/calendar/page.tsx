@@ -117,7 +117,9 @@ export default async function CalendarPage() {
   return (
     <div className="max-w-210">
       {storyBlokStory && storyBlokStory.content.body && storyBlokStory.content.body.length > 0 &&
+      <div className="mb-12">
         <StoryblokStory story={storyBlokStory} />
+      </div>
       }
       
       {/* Display events grouped by season and year */}
