@@ -192,7 +192,7 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters, g
         />
       </div>
       
-      <div className="max-w-6xl">
+      <div className="max-w-6xl" id="directory-list-results">
         <AdvancedDirectoryResults
           companies={companies}
           isLoading={isLoading}
