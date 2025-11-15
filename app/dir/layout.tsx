@@ -16,7 +16,7 @@ export default async function DirPageLayout({ children }: { children: React.Reac
   const sidebar_items = sidebarData.data.story.content.nav_items;
 
   return (
-    <main>
+    <div className="min-h-screen">
       <DirectoryFilterBar />
       <div className="flex-1 w-full max-w-maxw mx-auto px-container min-h-screen">
       <div className="flex flex-col-reverse md:flex-row md:pt-4">
@@ -26,7 +26,7 @@ export default async function DirPageLayout({ children }: { children: React.Reac
             </div>
             <RenderSidebar sidebar_items={sidebar_items} />
           </aside>
-          <div id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
+          <main id="directory-list" className="group md:basis-3/4" data-liststyle="letters">
             <Suspense fallback={
               <div className="w-full min-h-[600px] md:min-h-[800px] flex items-center justify-center">
                 <LoadingAnimation text="Loading..." />
@@ -34,10 +34,10 @@ export default async function DirPageLayout({ children }: { children: React.Reac
             }>
               {children}
             </Suspense>
-          </div>
+          </main>
         </div>
       </div>
-    </main>
+    </div >
   );
 }
 
