@@ -7,7 +7,7 @@ export function useNavigation() {
   const [expandedSubmenus, setExpandedSubmenus] = useState<Set<number>>(new Set());
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const firstLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement | HTMLButtonElement | null>(null);
   const toggleButtonRef = useRef<HTMLButtonElement | null>(null);
   const submenuRefs = useRef<Map<number, HTMLButtonElement>>(new Map());
 

@@ -21,7 +21,7 @@ import {
 interface DesktopNavigationProps {
   links: NavigationLinkData[];
   expandedSubmenus: Set<number>;
-  firstLinkRef: React.RefObject<HTMLAnchorElement | null>;
+  firstLinkRef: React.RefObject<HTMLAnchorElement | HTMLButtonElement | null>;
   submenuRefs: React.RefObject<Map<number, HTMLButtonElement>>;
   toggleSubmenu: (index: number) => void;
   handleSubmenuKeyDown: (e: React.KeyboardEvent, index: number) => void;

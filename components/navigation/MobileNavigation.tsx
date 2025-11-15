@@ -11,7 +11,7 @@ interface MobileNavigationProps {
   open: boolean;
   expandedSubmenus: Set<number>;
   menuRef: React.RefObject<HTMLDivElement | null>;
-  firstLinkRef: React.RefObject<HTMLAnchorElement | null>;
+  firstLinkRef: React.RefObject<HTMLAnchorElement | HTMLButtonElement | null>;
   submenuRefs: React.MutableRefObject<Map<number, HTMLButtonElement>>;
   toggleSubmenu: (index: number) => void;
   handleSubmenuKeyDown: (e: React.KeyboardEvent, index: number) => void;
@@ -29,62 +29,75 @@ export default function MobileNavigation({
 }: MobileNavigationProps) {
   const mobileLinks = (
     <>
-      {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => (
-        <li key={index} className="relative px-4">
-          {(link.dropdown_menu && link.dropdown_menu.length > 0) || 
-         (link.dropdown_menu_2 && link.dropdown_menu_2.length > 0) || 
-         (link.dropdown_menu_3 && link.dropdown_menu_3.length > 0) ? (
-            <>
-              <button
-                ref={(el) => {
-                  if (el) submenuRefs.current.set(index, el);
-                }}
-                onClick={() => toggleSubmenu(index)}
-                onKeyDown={(e) => handleSubmenuKeyDown(e, index)}
-                aria-expanded={expandedSubmenus.has(index)}
-                aria-haspopup="true"
-                aria-controls={`mobile-submenu-${index}`}
-                className="flex items-center justify-between w-full py-2 text-left text-xl focus:outline-none border-b border-qlack/20 group/button relative hover:border-b-transparent focus:border-b-transparent"
-              >
-                <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/button:bg-qreen/10 group-focus/button:bg-qreen/10 z-0"></span>
-                {link.name}
-                <ChevronDown 
-                  className={`h-5 w-5 transition-transform duration-200 ${
-                    expandedSubmenus.has(index) ? 'rotate-180' : ''
-                  }`} 
-                  aria-hidden="true"
-                />
-              </button>
-              <ul
-                id={`mobile-submenu-${index}`}
-                className={`overflow-hidden transition-all duration-200 mb-4 pl-4 ${
-                  expandedSubmenus.has(index) 
-                    ? 'max-h-full opacity-100' 
-                    : 'max-h-0 opacity-0'
-                }`}
-                role="menu"
-                aria-label={`${link.name} submenu`}
+      {links.filter(link => link.component !== "navigation_cta").map((link: NavigationLinkData, index) => {
+        const isFirstItem = index === 0;
+        const hasDropdown = (link.dropdown_menu && link.dropdown_menu.length > 0) || 
+                           (link.dropdown_menu_2 && link.dropdown_menu_2.length > 0) || 
+                           (link.dropdown_menu_3 && link.dropdown_menu_3.length > 0);
+        
+        return (
+          <li key={index} className="relative px-4">
+            {hasDropdown ? (
+              <>
+                <button
+                  ref={(el) => {
+                    if (el) {
+                      submenuRefs.current.set(index, el);
+                      // Assign to firstLinkRef if this is the first item
+                      if (isFirstItem) {
+                        (firstLinkRef as React.MutableRefObject<HTMLAnchorElement | HTMLButtonElement | null>).current = el;
+                      }
+                    }
+                  }}
+                  onClick={() => toggleSubmenu(index)}
+                  onKeyDown={(e) => handleSubmenuKeyDown(e, index)}
+                  aria-expanded={expandedSubmenus.has(index)}
+                  aria-haspopup="true"
+                  aria-controls={`mobile-submenu-${index}`}
+                  className="flex items-center justify-between w-full py-2 text-left text-xl focus:outline-none border-b border-qlack/20 group/button relative hover:border-b-transparent focus:border-b-transparent"
                 >
-                  <NavigationDropdownItem 
-                    item={link} 
-                    itemIndex={index} 
-                    level={0} 
-                    isMobile={true}
+                  <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/button:bg-qreen/10 group-focus/button:bg-qreen/10 z-0"></span>
+                  {link.name}
+                  <ChevronDown 
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      expandedSubmenus.has(index) ? 'rotate-180' : ''
+                    }`} 
+                    aria-hidden="true"
                   />
-                </ul>
-            </>
-          ) : (
-            <NavigationLink 
-              href={normalizeStoryblokUrl(link.link?.cached_url)}
-              ref={index === 0 ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
-              className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
-              role="menuitem"
-            >
-              {link.name}
-            </NavigationLink>
-          )}
-        </li>
-      ))}
+                </button>
+                <ul
+                  id={`mobile-submenu-${index}`}
+                  className={`overflow-hidden transition-all duration-200 mb-4 pl-4 ${
+                    expandedSubmenus.has(index) 
+                      ? 'max-h-full opacity-100' 
+                      : 'max-h-0 opacity-0'
+                  }`}
+                  role="menu"
+                  aria-label={`${link.name} submenu`}
+                  aria-hidden={!expandedSubmenus.has(index)}
+                  >
+                    <NavigationDropdownItem 
+                      item={link} 
+                      itemIndex={index} 
+                      level={0} 
+                      isMobile={true}
+                      isParentExpanded={expandedSubmenus.has(index)}
+                    />
+                  </ul>
+              </>
+            ) : (
+              <NavigationLink 
+                href={normalizeStoryblokUrl(link.link?.cached_url)}
+                ref={isFirstItem ? firstLinkRef as React.RefObject<HTMLAnchorElement> : undefined} 
+                className="block py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset" 
+                role="menuitem"
+              >
+                {link.name}
+              </NavigationLink>
+            )}
+          </li>
+        );
+      })}
     </>
   );
 

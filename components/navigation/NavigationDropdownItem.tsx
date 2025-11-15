@@ -9,13 +9,15 @@ interface NavigationDropdownItemProps {
   itemIndex: number;
   level?: number;
   isMobile?: boolean;
+  isParentExpanded?: boolean;
 }
 
 export default function NavigationDropdownItem({ 
   item, 
   itemIndex, 
   level = 0, 
-  isMobile = true 
+  isMobile = true,
+  isParentExpanded = true
 }: NavigationDropdownItemProps) {
   const hasNestedDropdown = item.dropdown_menu && item.dropdown_menu.length > 0;
   const    hasDropdown2 = item.dropdown_menu_2 && item.dropdown_menu_2.length > 0;
@@ -48,6 +50,7 @@ export default function NavigationDropdownItem({
                       itemIndex={nestedIndex} 
                       level={level + 1} 
                       isMobile={true}
+                      isParentExpanded={isParentExpanded}
                     />
                   )}
                 </ul>
@@ -63,6 +66,7 @@ export default function NavigationDropdownItem({
                       itemIndex={nestedIndex} 
                       level={level + 1} 
                       isMobile={true}
+                      isParentExpanded={isParentExpanded}
                     />
                   )}
                 </ul>
@@ -78,6 +82,7 @@ export default function NavigationDropdownItem({
                       itemIndex={nestedIndex} 
                       level={level + 1} 
                       isMobile={true}
+                      isParentExpanded={isParentExpanded}
                     />
                   )}
                 </ul>
@@ -89,6 +94,7 @@ export default function NavigationDropdownItem({
             href={normalizeStoryblokUrl(item.link?.cached_url)}
             className={`block py-2 text-qreen ${textSizeClass} ${textColorClass} hover:text-gray-900 focus:outline-none relative group/link`}
             role="menuitem"
+            tabIndex={isParentExpanded ? undefined : -1}
           >
             <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/link:bg-qreen/10 group-focus/link:bg-qreen/10 z-0"></span>
             {item.name}
