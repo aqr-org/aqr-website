@@ -96,7 +96,7 @@ export default function NavigationDropdownItem({
             role="menuitem"
             tabIndex={isParentExpanded ? undefined : -1}
           >
-            <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/link:bg-qreen/10 group-focus/link:bg-qreen/10 z-0"></span>
+            <span className="absolute -inset-1 -inset-x-3 rounded-lg group-hover/link:bg-qreen/10 group-focus-visible/link:bg-qreen/10 group-active/link:bg-qreen/20 z-0"></span>
             {item.name}
           </NavigationLink>
         )}

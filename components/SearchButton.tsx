@@ -35,7 +35,7 @@ export default function SearchButton({ liveSearch = true }: SearchButtonProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center justify-center p-2 text-qlack hover:text-qreen hover:bg-qreen/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-qreen focus:ring-offset-2"
+        className="inline-flex items-center justify-center p-2 text-qlack hover:text-qreen hover:bg-qreen/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-qreen focus-visible:ring-offset-2 active:bg-qreen/10"
         aria-label={`Search (${isMac ? '⌘K' : 'Ctrl+K'})`}
         title={`Search (${isMac ? '⌘K' : 'Ctrl+K'})`}
       >

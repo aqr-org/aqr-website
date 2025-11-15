@@ -13,7 +13,7 @@ export default function NavigationToggle({ open, setOpen, toggleButtonRef }: Nav
         aria-expanded={open}
         aria-label={open ? 'Close navigation' : 'Open navigation'}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-qlack-5 focus:outline-2 focus:outline-qreen"
+        className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-qlack/5 focus-visible:outline-2 focus-visible:outline-qreen active:bg-qlack/10"
       >
         <span className="sr-only">Toggle navigation</span>
         {open ? (
