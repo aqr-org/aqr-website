@@ -66,6 +66,29 @@ async function fetchStoryblokStory(slug: string) {
   }
 }
 
+// Check if maintag is an active company and fetch company name
+async function fetchActiveCompany(supabase: SupabaseClient, maintag: string) {
+  if (!maintag) return null;
+  
+  try {
+    const { data: company, error } = await supabase
+      .from('companies')
+      .select('name, ident, slug')
+      .eq('beacon_membership_status', 'Active')
+      .or(`ident.eq.${maintag},slug.eq.${maintag}`)
+      .single();
+
+    if (error || !company) {
+      return null;
+    }
+
+    return company.name;
+  } catch (error) {
+    console.error("Error fetching active company:", error);
+    return null;
+  }
+}
+
 // Fetch Supabase member data
 async function fetchSupabaseMember(slug: string) {
   const supabase = await createClient();
@@ -100,10 +123,16 @@ async function fetchSupabaseMember(slug: string) {
     }
   }
 
+  // Check if maintag is an active company and get company name
+  const companyName = member.data?.maintag
+    ? await fetchActiveCompany(supabase, member.data.maintag)
+    : null;
+
   return {
     ...member.data,
     image: validImageUrl,
     board_position: boardPosition,
+    active_company_name: companyName,
   };
 }
 
@@ -197,13 +226,13 @@ export default async function ComnpaniesPage({
           />
         )}
         
-        {memberData.maintag &&
+        {memberData.active_company_name &&
           <p className="text-[1.375rem] my-8">
             <Link 
               href={'/dir/companies/' + (memberData.maintag || '#')} 
               className="no-underline! flex items-center gap-2 font-semibold hover:text-qreen-dark transition-colors duration-300"
             >
-              More information about {memberData.organisation} <ArrowUpRight className="w-5 h-5" />
+              More information about {memberData.active_company_name} <ArrowUpRight className="w-5 h-5" />
             </Link>
           </p>
         }
