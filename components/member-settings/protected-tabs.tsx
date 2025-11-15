@@ -56,16 +56,16 @@ export default function ProtectedTabs({
       >
         {!isOnlyDirectoryMember && 
           <Tab
-            className="border border-qlack border-b-0 bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
           >
             Edit your personal info
           </Tab> 
         }
         {hasDirectoryMembership && 
           <Tab
-            className="border border-qlack border-b-0 bg-qaupe bg-linear-to-t from-qlack/10 to-30% to-qaupe text-qlack px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="!font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe"
+            className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
+            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
           >
             Edit your organisation info
           </Tab>
@@ -74,7 +74,7 @@ export default function ProtectedTabs({
 
       {!isOnlyDirectoryMember &&
         <TabPanel 
-          selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
         >
           <div id="member-admin">
             
@@ -95,7 +95,7 @@ export default function ProtectedTabs({
 
       {hasDirectoryMembership &&
         <TabPanel 
-          selectedClassName={` border border-qlack rounded-b-lg rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
         >
           <div id="company-admin">
             { !companyData &&
