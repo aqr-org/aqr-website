@@ -68,7 +68,7 @@ export function NewsletterSignUp() {
           </p>
         </div>
         
-        <form onSubmit={handleSubmit} className="form max-w-2xl md:ml-[160px]">
+        <form onSubmit={handleSubmit} className="form max-w-2xl md:ml-[160px]" suppressHydrationWarning>
           {/* <div className="grid gap-6 md:grid-cols-2 mb-6">
             <div>
               <Label htmlFor="firstName" className="text-qaupe">
@@ -101,7 +101,7 @@ export function NewsletterSignUp() {
           </div> */}
           
           <div className="mt-12 flex flex-col md:flex-row items-start gap-4">
-            <div>
+            <div suppressHydrationWarning>
               <Input
                 id="email"
                 type="email"
