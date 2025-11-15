@@ -153,10 +153,10 @@ export default async function ComnpaniesPage() {
                       <Link 
                         key={member.id} 
                         href={`/members/${member.slug}`}
-                        className="break-inside-avoid-column flex items-start gap-4 mb-4 md:mb-0"
+                        className="break-inside-avoid-column flex items-start gap-4 mb-4 md:mb-0 hover:text-qreen-dark transition-all duration-300"
                       >
                         <div>
-                          <h3 className="text-[1.375rem]">{member.lastname}, {member.firstname}</h3>
+                          <h3 className="text-[1.375rem] leading-tight mb-1">{member.lastname}, {member.firstname}</h3>
                           <h4 className="uppercase tracking-[0.04em]">{member.organisation}</h4>
                         </div>
                       </Link>
