@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import AdvancedDirectoryFilterModal from './AdvancedDirectoryFilterModal';
 import AdvancedDirectoryResults from './AdvancedDirectoryResults';
 
@@ -45,6 +45,7 @@ interface AdvancedDirectoryPageProps {
 export default function AdvancedDirectoryPage({ filterOptions, initialFilters, gradProgCount = 0 }: AdvancedDirectoryPageProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   
   const [filters, setFilters] = useState<FilterOptions>(
     initialFilters || {
@@ -63,6 +64,7 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters, g
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const urlUpdateTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const isInitialMountRef = useRef(true);
+  const isUpdatingFromURLRef = useRef(false);
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -118,8 +120,35 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters, g
     }
   };
 
+  // Helper function to parse comma-separated values from URL params
+  const parseFilterParam = useCallback((param: string | null): string[] => {
+    if (!param) return [];
+    return param.split(',').filter(Boolean).map(v => decodeURIComponent(v.trim()));
+  }, []);
+
+  // Parse filters from URL search params
+  const parseFiltersFromURL = useCallback((params: URLSearchParams): FilterOptions => {
+    // Parse gradProg from URL params (boolean checkbox)
+    const gradProgParam = params.get('gradProg');
+    const gradProg = gradProgParam === 'true';
+
+    return {
+      companyTypes: parseFilterParam(params.get('companyTypes')),
+      sectors: parseFilterParam(params.get('sectors')),
+      skills: parseFilterParam(params.get('skills')),
+      recruitment: parseFilterParam(params.get('recruitment')),
+      countries: parseFilterParam(params.get('countries')),
+      gradProg: gradProg
+    };
+  }, [parseFilterParam]);
+
   // Update URL search params when filters change
   const updateURLParams = useCallback((newFilters: FilterOptions) => {
+    // Don't update URL if we're currently syncing from URL to avoid loops
+    if (isUpdatingFromURLRef.current) {
+      return;
+    }
+
     if (urlUpdateTimeoutRef.current) {
       clearTimeout(urlUpdateTimeoutRef.current);
     }
@@ -155,23 +184,109 @@ export default function AdvancedDirectoryPage({ filterOptions, initialFilters, g
     updateURLParams(newFilters);
   };
 
-  // Perform initial search if initialFilters are provided
+  // Perform initial search if initialFilters are provided, or clear filters if none
   useEffect(() => {
-    if (isInitialMountRef.current && initialFilters) {
-      const hasActiveFilters = Object.entries(initialFilters).some(([key, value]) => {
+    if (isInitialMountRef.current) {
+      if (initialFilters) {
+        const hasActiveFilters = Object.entries(initialFilters).some(([key, value]) => {
+          if (key === 'gradProg') {
+            return value === true;
+          }
+          return Array.isArray(value) && value.length > 0;
+        });
+        if (hasActiveFilters) {
+          performSearch(initialFilters);
+        } else {
+          // No active filters in initialFilters - ensure filters are cleared
+          const clearedFilters: FilterOptions = {
+            companyTypes: [],
+            sectors: [],
+            skills: [],
+            recruitment: [],
+            countries: [],
+            gradProg: false
+          };
+          setFilters(clearedFilters);
+          setCompanies([]);
+          setHasSearched(false);
+        }
+      } else {
+        // No initialFilters provided - clear all filters
+        const clearedFilters: FilterOptions = {
+          companyTypes: [],
+          sectors: [],
+          skills: [],
+          recruitment: [],
+          countries: [],
+          gradProg: false
+        };
+        setFilters(clearedFilters);
+        setCompanies([]);
+        setHasSearched(false);
+      }
+      isInitialMountRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - initialFilters should only come from URL params on initial load
+
+  // Sync filters with URL parameters when URL changes (e.g., from link clicks)
+  useEffect(() => {
+    // Skip on initial mount (handled by initialFilters)
+    if (isInitialMountRef.current) {
+      return;
+    }
+
+    // Only handle if we're on the dir/advanced page
+    if (pathname !== '/dir/advanced') {
+      return;
+    }
+
+    isUpdatingFromURLRef.current = true;
+
+    // Parse filters from current URL
+    const urlFilters = parseFiltersFromURL(searchParams);
+
+    // Check if URL has any query params
+    const hasURLParams = searchParams.toString().length > 0;
+
+    if (!hasURLParams) {
+      // No query params - clear all filters
+      const clearedFilters: FilterOptions = {
+        companyTypes: [],
+        sectors: [],
+        skills: [],
+        recruitment: [],
+        countries: [],
+        gradProg: false
+      };
+      setFilters(clearedFilters);
+      setCompanies([]);
+      setHasSearched(false);
+    } else {
+      // Has query params - apply filters from URL
+      setFilters(urlFilters);
+      
+      // Check if there are active filters
+      const hasActiveFilters = Object.entries(urlFilters).some(([key, value]) => {
         if (key === 'gradProg') {
           return value === true;
         }
         return Array.isArray(value) && value.length > 0;
       });
+
       if (hasActiveFilters) {
-        isInitialMountRef.current = false;
-        performSearch(initialFilters);
+        debouncedSearch(urlFilters);
+      } else {
+        setCompanies([]);
+        setHasSearched(false);
       }
     }
-    isInitialMountRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount - initialFilters should only come from URL params on initial load
+
+    // Reset flag after a short delay to allow state updates to complete
+    setTimeout(() => {
+      isUpdatingFromURLRef.current = false;
+    }, 100);
+  }, [searchParams, pathname, parseFiltersFromURL, debouncedSearch]);
 
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
     if (key === 'gradProg') {
