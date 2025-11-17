@@ -3,7 +3,7 @@ import { getStoryblokApi } from '@/lib/storyblok';
 import { unstable_cache } from 'next/cache';
 
 const defaultUrl = process.env.SITE_URL
-  ? process.env.SITE_URL
+  ? process.env.URL
   : "https://localhost:3001";
 
 // Routes that should be excluded from sitemap

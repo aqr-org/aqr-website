@@ -211,7 +211,7 @@ export const checkActiveBeaconMembership = async (email: string): Promise<{ ok: 
 
 
 export const sbCompanyHasActiveBeaconSub = async (companyName: string): Promise<boolean> => {
-  const baseUrl = process.env.SITE_URL || 'https://localhost:3001';
+  const baseUrl = process.env.URL || 'https://localhost:3001';
   const beaconMembershipRes = await fetch(`${baseUrl}/auth/beacon/membership`);
 
   if (!beaconMembershipRes.ok) {

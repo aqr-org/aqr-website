@@ -4,7 +4,6 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import { Suspense } from "react";
-import { LoadingAnimation } from "@/components/ui/loading-animation";
 import StoryblokProvider from "@/components/StoryblokProvider";
 import { draftMode } from 'next/headers';
 import DraftModeAlert from '@/components/storyblok/DraftModeAlert';
@@ -15,11 +14,8 @@ import { BackgroundColorProvider } from "@/components/BackgroundProvider";
 import { getStoryblokApi } from '@/lib/storyblok';
 import { NavigationLinkData } from '@/lib/types/navigation';
 import { unstable_cache } from 'next/cache';
-import { cache } from 'react';
 
-const defaultUrl = process.env.SITE_URL
-  ? process.env.SITE_URL
-  : "https://localhost:3001";
+const defaultUrl = process.env.URL || "https://localhost:3001";
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
