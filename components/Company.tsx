@@ -377,7 +377,7 @@ export default function Company(props: CompanyProps) {
 
         <section id="narrative">
           <div 
-            className="pl-8 prose" 
+            className="pl-8 prose max-w-[680px]" 
             dangerouslySetInnerHTML={{ __html: sanitizedNarrative }} 
           />
         </section>
