@@ -86,6 +86,7 @@ export function useElementRect({
         return
       }
 
+      // Read geometric properties (batched by requestAnimationFrame from callers)
       const newRect = targetElement.getBoundingClientRect()
       setRect({
         x: newRect.x,
@@ -112,7 +113,10 @@ export function useElementRect({
     const targetElement = getTargetElement()
     if (!targetElement) return
 
-    updateRect()
+    // Use requestAnimationFrame for initial read to avoid forced reflow
+    window.requestAnimationFrame(() => {
+      updateRect()
+    })
 
     const cleanup: (() => void)[] = []
 
@@ -124,7 +128,13 @@ export function useElementRect({
       cleanup.push(() => resizeObserver.disconnect())
     }
 
-    const handleUpdate = () => updateRect()
+    // Wrap scroll/resize handlers in requestAnimationFrame to batch geometric reads
+    // and avoid forced reflows
+    const handleUpdate = () => {
+      window.requestAnimationFrame(() => {
+        updateRect()
+      })
+    }
 
     window.addEventListener("scroll", handleUpdate, { passive: true })
     window.addEventListener("resize", handleUpdate, { passive: true })

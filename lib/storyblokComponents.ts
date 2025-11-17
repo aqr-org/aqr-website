@@ -1,30 +1,34 @@
-import Page from "@/components/storyblok/Page";
-import Hero_Homepage from '@/components/storyblok/Hero_Homepage';
-import PictureCard from '@/components/storyblok/PictureCard';
-import RichText from '@/components/storyblok/RichText';
-import Glossary_Entry from '@/components/storyblok/Glossary_Entry';
-import Article from '@/components/storyblok/Article';
-import Webinar from '@/components/storyblok/Webinar';
-import Event from '@/components/storyblok/Event';
-import BeaconForm from '@/components/storyblok/BeaconForm';
-import Youtube from '@/components/storyblok/Youtube';
-import Audio from '@/components/storyblok/Audio';
-import Image from '@/components/storyblok/Image';
-import Flex from '@/components/storyblok/Flex';
-import Button from '@/components/storyblok/Button';
-import FeatureCards from '@/components/storyblok/FeatureCards';
-import HomepageJoinUsBlock from '@/components/storyblok/HomepageJoinUsBlock';
-import LatestSeasonCalendar from '@/components/storyblok/LatestSeasonCalendar';
-import BoardMembers from '@/components/storyblok/BoardMembers';
-import TestimonialCarousel from '@/components/storyblok/TestimonialCarousel';
-import Expandable from '@/components/storyblok/Expandable';
-import Homepage_joinus_benefits from '@/components/storyblok/Homepage_joinus_benefits';
-import Homepage_awards_section from '@/components/storyblok/Homepage_awards_section';
-import Homepage_awards_section_shortlist_item2 from '@/components/storyblok/Homepage_awards_section_shortlist_item2';
-import Homepage_awards_section_shortlist_item_wrapper from '@/components/storyblok/Homepage_awards_section_shortlist_item_wrapper';
-import PodcastCard from '@/components/storyblok/PodcastCard';
-import Timeline from '@/components/storyblok/Timeline';
-import TimelineMilestone from '@/components/storyblok/TimelineMilestone';
+import dynamic from 'next/dynamic';
+
+// Lazy load Storyblok components to reduce initial bundle size
+// These components are only needed when rendering Storyblok content
+const Page = dynamic(() => import("@/components/storyblok/Page"), { ssr: true });
+const Hero_Homepage = dynamic(() => import('@/components/storyblok/Hero_Homepage'), { ssr: true });
+const PictureCard = dynamic(() => import('@/components/storyblok/PictureCard'), { ssr: true });
+const RichText = dynamic(() => import('@/components/storyblok/RichText'), { ssr: true });
+const Glossary_Entry = dynamic(() => import('@/components/storyblok/Glossary_Entry'), { ssr: true });
+const Article = dynamic(() => import('@/components/storyblok/Article'), { ssr: true });
+const Webinar = dynamic(() => import('@/components/storyblok/Webinar'), { ssr: true });
+const Event = dynamic(() => import('@/components/storyblok/Event'), { ssr: true });
+const BeaconForm = dynamic(() => import('@/components/storyblok/BeaconForm'), { ssr: true });
+const Youtube = dynamic(() => import('@/components/storyblok/Youtube'), { ssr: true });
+const Audio = dynamic(() => import('@/components/storyblok/Audio'), { ssr: true });
+const Image = dynamic(() => import('@/components/storyblok/Image'), { ssr: true });
+const Flex = dynamic(() => import('@/components/storyblok/Flex'), { ssr: true });
+const Button = dynamic(() => import('@/components/storyblok/Button'), { ssr: true });
+const FeatureCards = dynamic(() => import('@/components/storyblok/FeatureCards'), { ssr: true });
+const HomepageJoinUsBlock = dynamic(() => import('@/components/storyblok/HomepageJoinUsBlock'), { ssr: true });
+const LatestSeasonCalendar = dynamic(() => import('@/components/storyblok/LatestSeasonCalendar'), { ssr: true });
+const BoardMembers = dynamic(() => import('@/components/storyblok/BoardMembers'), { ssr: true });
+const TestimonialCarousel = dynamic(() => import('@/components/storyblok/TestimonialCarousel'), { ssr: true });
+const Expandable = dynamic(() => import('@/components/storyblok/Expandable'), { ssr: true });
+const Homepage_joinus_benefits = dynamic(() => import('@/components/storyblok/Homepage_joinus_benefits'), { ssr: true });
+const Homepage_awards_section = dynamic(() => import('@/components/storyblok/Homepage_awards_section'), { ssr: true });
+const Homepage_awards_section_shortlist_item2 = dynamic(() => import('@/components/storyblok/Homepage_awards_section_shortlist_item2'), { ssr: true });
+const Homepage_awards_section_shortlist_item_wrapper = dynamic(() => import('@/components/storyblok/Homepage_awards_section_shortlist_item_wrapper'), { ssr: true });
+const PodcastCard = dynamic(() => import('@/components/storyblok/PodcastCard'), { ssr: true });
+const Timeline = dynamic(() => import('@/components/storyblok/Timeline'), { ssr: true });
+const TimelineMilestone = dynamic(() => import('@/components/storyblok/TimelineMilestone'), { ssr: true });
 
 const components = {
   hero_homepage: Hero_Homepage,

@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { useHotkeys } from 'react-hotkeys-hook';
-import SearchModal from './SearchModal';
+import dynamic from 'next/dynamic';
+
+// Lazy load SearchModal - only needed when user opens search
+const SearchModal = dynamic(() => import('./SearchModal'), {
+  ssr: false,
+});
 
 interface SearchButtonProps {
   liveSearch?: boolean;

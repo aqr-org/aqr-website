@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import SearchModal from '@/components/SearchModal';
+import dynamic from 'next/dynamic';
+
+// Lazy load SearchModal - only needed when user opens search
+const SearchModal = dynamic(() => import('@/components/SearchModal'), {
+  ssr: false,
+});
 
 export default function SearchPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);

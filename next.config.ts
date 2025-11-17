@@ -32,6 +32,24 @@ const nextConfig: NextConfig = {
     ],
   },
   outputFileTracingRoot: __dirname,
+  compiler: {
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  experimental: {
+    // Optimize package imports to reduce bundle size
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-collapsible',
+    ],
+  },
   async headers() {
     return [
       {

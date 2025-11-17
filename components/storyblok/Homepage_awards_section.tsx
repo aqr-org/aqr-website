@@ -40,6 +40,8 @@ function Homepage_awards_section({ blok }: Homepage_awards_sectionProps) {
                     alt={blok.award_logo.alt || 'Award Logo'}
                     aspectRatioDesktop="1"
                     aspectRatioMobile="1"
+                    width={176}
+                    height={176}
                     sizes="(max-width: 768px) 75vw, 176px"
                     className="w-full h-auto"
                     noCrop={true}

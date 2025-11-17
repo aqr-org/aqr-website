@@ -63,6 +63,8 @@ function Picture(props: PictureProps) {
             src={props.src} 
             alt={props.alt} 
             style={props.imgStyle}
+            width={props.width || 1080}
+            height={props.height || 1080}
           />
         </picture>
       )
@@ -110,6 +112,8 @@ function Picture(props: PictureProps) {
           src={props.src} 
           alt={props.alt} 
           style={props.imgStyle}
+          width={props.width || 1080}
+          height={props.height || 1080}
         />
       </picture>
     )

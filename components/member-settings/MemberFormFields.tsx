@@ -11,6 +11,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import type { MemberFormData, MemberFormFieldsProps } from '@/lib/types/members';
 import dynamic from 'next/dynamic';
 
+// Lazy load heavy dependencies
 const Select = dynamic(() => import('react-select'), { ssr: false });
 
 export default function MemberFormFields({
