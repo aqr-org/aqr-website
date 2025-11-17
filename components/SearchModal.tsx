@@ -287,7 +287,10 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-qreen-dark truncate">{result.title}</h4>
           {result.excerpt && (
-            <p className="text-sm text-gray-600 mt-1 line-clamp-2">{result.excerpt}</p>
+            <div 
+              className="text-sm text-gray-600 mt-1 line-clamp-2 **:text-sm **:text-gray-600 **:font-normal **:m-0 **:p-0 **:leading-normal"
+              dangerouslySetInnerHTML={{ __html: result.excerpt }}
+            />
           )}
           <div className="flex items-center gap-2 mt-2">
             <span className="text-xs text-qreen bg-qreen/10 px-2 py-1 rounded">
@@ -296,7 +299,7 @@ export default function SearchModal({ open, onOpenChange, liveSearch = true }: S
             {/* <span className="text-xs text-gray-500">{result.url}</span> */}
           </div>
         </div>
-        <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 ml-2" />
+        <ArrowRight className="h-4 w-4 text-gray-400 shrink-0 ml-2" />
       </div>
     </button>
   );
