@@ -86,7 +86,8 @@ async function NavigationAsync() {
     return <Navigation links={links} />;
   } catch (error: any) {
     // Silently handle prerendering errors to avoid build failures
-    if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
+    const errorMessage = typeof error?.message === 'string' ? error.message : String(error?.message || '');
+    if (errorMessage.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
       return <Navigation links={[]} />;
     }
     console.error('Error fetching navigation data from Storyblok:', error);
@@ -122,7 +123,8 @@ async function FooterAsync() {
     return <Footer footerData={footerData} />;
   } catch (error: any) {
     // Silently handle prerendering errors to avoid build failures
-    if (error?.message?.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
+    const errorMessage = typeof error?.message === 'string' ? error.message : String(error?.message || '');
+    if (errorMessage.includes('prerender') || error?.digest === 'HANGING_PROMISE_REJECTION') {
       return <Footer footerData={null} />;
     }
     console.error('Error fetching footer data from Storyblok:', error);

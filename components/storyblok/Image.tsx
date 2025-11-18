@@ -98,8 +98,9 @@ export default function Image({ blok }: ImageProps) {
     : 'md:mr-auto';
 
   // Mix blend mode class
-  const blendModeClass = blok.special_class.includes('multiply') ? 'mix-blend-multiply' : '';
-  const roundedFullClass = blok.special_class.includes('rounded-full') ? 'overflow-hidden rounded-full' : '';
+  const specialClass = typeof blok.special_class === 'string' ? blok.special_class : '';
+  const blendModeClass = specialClass.includes('multiply') ? 'mix-blend-multiply' : '';
+  const roundedFullClass = specialClass.includes('rounded-full') ? 'overflow-hidden rounded-full' : '';
 
   return (
     <div 

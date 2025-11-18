@@ -96,14 +96,52 @@ async function fetchStoryblokData(parent: string, child: string) {
       }
     );
     return response;
-  } catch (error) {
-    // Log error details for debugging
-    console.error('Storyblok API Error Details:');
-    console.error('- Error type:', typeof error);
-    console.error('- Error message:', error instanceof Error ? error.message : 'Unknown error');
-    console.error('- Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('- Params being requested:', parent, child);
-    // Re-throw to be caught by the main component's try-catch
+  } catch (error: any) {
+    // Try to extract meaningful error information
+    let errorMessage = 'Unknown error';
+    let statusCode: number | undefined;
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
+    // Check for HTTP response errors
+    if (error?.response) {
+      statusCode = error.response?.status;
+      const responseData = error.response?.data;
+      
+      if (statusCode === 404) {
+        errorMessage = `Story not found: ${parent}/${child}`;
+        // Log concise 404 message (expected when story doesn't exist)
+        console.log(`Storyblok story not found: ${parent}/${child} (404)`);
+      } else {
+        // Log full details for other errors
+        console.error('Storyblok API Error Details:');
+        console.error('- HTTP Status:', statusCode);
+        console.error('- Response Data:', responseData);
+        console.error('- Requested path:', `${parent}/${child}`);
+        
+        if (statusCode === 401) {
+          errorMessage = 'Unauthorized - Check Storyblok API token';
+        } else if (statusCode === 403) {
+          errorMessage = 'Forbidden - Check Storyblok permissions';
+        }
+      }
+    } else {
+      // Non-HTTP errors - log full details
+      console.error('Storyblok API Error:', error);
+    }
+    
+    // If it's a 404, throw a more specific error
+    if (statusCode === 404) {
+      throw new Error(errorMessage);
+    }
+    
+    // Re-throw original error to preserve stack trace
     throw error;
   }
 }
