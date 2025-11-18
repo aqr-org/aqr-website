@@ -98,7 +98,8 @@ export default function Image({ blok }: ImageProps) {
     : 'md:mr-auto';
 
   // Mix blend mode class
-  const blendModeClass = blok.special_class === 'multiply' ? 'mix-blend-multiply' : '';
+  const blendModeClass = blok.special_class.includes('multiply') ? 'mix-blend-multiply' : '';
+  const roundedFullClass = blok.special_class.includes('rounded-full') ? 'overflow-hidden rounded-full' : '';
 
   return (
     <div 
@@ -134,6 +135,7 @@ export default function Image({ blok }: ImageProps) {
             `inline-block w-full h-auto`,
             '[&>img]:inline-block',
             textAlignClass,
+            roundedFullClass,
           )}
           style={{ 
             aspectRatio: blok.aspect_ratio ? blok.aspect_ratio : '1.77778',
