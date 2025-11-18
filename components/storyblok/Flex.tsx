@@ -51,7 +51,7 @@ export default function Flex({ blok }: FlexProps) {
       basisStyle = {
         ['--basis-calc' as string]: `calc((100% - ${gapCount} * ${gapRem}) / ${itemCount})`,
       };
-      basis = 'md:*:basis-[var(--basis-calc)]';
+      basis = 'md:*:basis-[var(--basis-calc)]!';
     }
   } else {
     // Fallback to original basis calculation when not evenly spacing
