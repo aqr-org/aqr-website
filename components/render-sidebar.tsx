@@ -7,7 +7,7 @@ import SuspenseNavigationLink from "./navigation/SuspenseNavigationLink";
 
 export default function RenderSidebar({ sidebar_items }: { sidebar_items: NavigationLinkData[] }) {
   return (
-    <nav aria-label="Secondary sidebar navigation" id="secondary-navigation" className="md:sticky md:top-8 z-10">
+    <nav aria-label="Secondary sidebar navigation" id="secondary-navigation" className="md:sticky md:top-[140px] z-10">
       {sidebar_items.map((item: NavigationLinkData, index: number) => (
         <div key={item.name+index} className={cn(index === 0 ? "mt-0" : "mt-8")}>
           {item.component === "navigation_cta" ? (
