@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-function CallbackHandlerContent() {
+export default function CallbackPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
       const supabase = createClient();
 
-      // Check for hash fragments FIRST (PKCE flow with access_token)
+      // Check for hash fragments (PKCE flow with access_token)
       // Supabase redirects with hash fragments like: #access_token=...&refresh_token=...&type=recovery
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get("access_token");
@@ -27,7 +26,7 @@ function CallbackHandlerContent() {
         return;
       }
 
-      // Priority 1: Hash fragments with tokens (most common for PKCE recovery)
+      // Priority 1: Hash fragments with tokens (PKCE recovery flow)
       if (accessToken && refreshToken) {
         try {
           // Set the session using the tokens from hash fragments
@@ -50,26 +49,7 @@ function CallbackHandlerContent() {
         }
       }
 
-      // Priority 2: Check for query code parameter
-      // Note: For PKCE recovery flow, Supabase redirects with hash fragments, not query code
-      // If we have a code but no hash fragments, it might be from a different flow
-      // However, code exchange requires code verifier which isn't available in redirect context
-      // So we skip code exchange and check for session instead
-      const code = searchParams.get("code");
-      if (code && !accessToken) {
-        // Code present but no hash fragments - this shouldn't happen for PKCE recovery
-        // Check if session was already set by middleware or Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          router.push("/auth/update-password");
-          return;
-        }
-        // If no session and we have a code but can't exchange it, it's an error
-        router.push("/auth/error?error=Invalid recovery link. Please request a new password reset email.");
-        return;
-      }
-
-      // Priority 3: Check if user already has a session (might have been set by middleware or previous step)
+      // Priority 2: Check if user already has a session (might have been set by middleware)
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         router.push("/auth/update-password");
@@ -81,7 +61,7 @@ function CallbackHandlerContent() {
     };
 
     handleCallback();
-  }, [router, searchParams]);
+  }, [router]);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -89,20 +69,6 @@ function CallbackHandlerContent() {
         <p className="text-muted-foreground">Processing password reset...</p>
       </div>
     </div>
-  );
-}
-
-export default function CallbackHandler() {
-  return (
-    <Suspense fallback={
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    }>
-      <CallbackHandlerContent />
-    </Suspense>
   );
 }
 
