@@ -19,9 +19,21 @@ export function normalizeStoryblokUrl(cached_url?: string): string {
       return cached_url;
     }
     
-    // If it's a full URL, extract the path portion
+    // If it's a full URL, only extract the path portion if it matches our site URL or localhost
     const url = new URL(cached_url);
-    return url.pathname;
+    const origin = url.origin;
+    const siteUrl = process.env.URL ? new URL(process.env.URL).origin : null;
+    
+    // Only extract pathname if it's from our site or localhost
+    if (siteUrl && origin === siteUrl) {
+      return url.pathname;
+    }
+    if (origin.includes('localhost')) {
+      return url.pathname;
+    }
+    
+    // If it's a different domain, return the original URL
+    return cached_url;
   } catch {
     // If it's not a full URL (or URL parsing fails), treat it as a relative path
     // Ensure it starts with '/'
