@@ -23,7 +23,7 @@ return (
         width="1440" height="950" viewBox="0 0 1440 950" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className='overflow-visible w-auto h-2/3 top-[120px] md:top-0 md:w-full md:h-auto max-w-maxw mx-auto relative'
+        className='overflow-visible w-auto h-[66svh] top-[120px] md:top-0 md:w-full md:h-auto max-w-maxw mx-auto relative'
       >
         <path 
           style={{
