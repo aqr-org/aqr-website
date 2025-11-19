@@ -16,6 +16,12 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
+
+    // Exclude .well-known paths (Chrome DevTools, etc.)
+    if (resolvedParams.parent === '.well-known') {
+      return await generatePageMetadata({}, {});
+    }
+
     const parentMetaPromise = typeof parent === 'function' ? parent() : parent;
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
       fetchStoryblokData(resolvedParams.parent, resolvedParams.child, resolvedParams.grandchild),
@@ -53,6 +59,12 @@ export async function generateMetadata(
 
 export default async function SlugPage({ params }: PageProps) {
   const resolvedParams = params instanceof Promise ? await params : params;
+
+  // Exclude .well-known paths (Chrome DevTools, etc.)
+  if (resolvedParams.parent === '.well-known') {
+    notFound();
+  }
+  
   let storyBlokStory;
   
   try {
