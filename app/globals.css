@@ -424,7 +424,7 @@ hr {
   
   /* Block elements */
   & blockquote {
-    @apply text-lg text-qreen-dark italic leading-[1.4] pl-4;
+    @apply text-lg font-serif italic leading-[1.4];
   }
   & ul {
     @apply list-disc ml-4;
