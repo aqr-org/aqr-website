@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function CallbackPage() {
+function CallbackPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -20,13 +21,16 @@ export default function CallbackPage() {
       const errorParam = hashParams.get("error");
       const errorDescription = hashParams.get("error_description");
 
+      // Get the next parameter from query string (where to redirect after successful auth)
+      const next = searchParams.get("next") || "/protected";
+
       // If there's an error in the hash, handle it
       if (errorParam) {
         router.push(`/auth/error?error=${encodeURIComponent(errorDescription || errorParam)}`);
         return;
       }
 
-      // Priority 1: Hash fragments with tokens (PKCE recovery flow)
+      // Priority 1: Hash fragments with tokens (PKCE flow)
       if (accessToken && refreshToken) {
         try {
           // Set the session using the tokens from hash fragments
@@ -36,8 +40,13 @@ export default function CallbackPage() {
           });
 
           if (!error) {
-            // Successfully set session, redirect to update password page
-            router.push("/auth/update-password");
+            // Only redirect to password reset if this is a recovery flow
+            if (type === "recovery") {
+              router.push("/auth/update-password");
+            } else {
+              // For signup (type="signup") or other flows, redirect to the next parameter or protected page
+              router.push(next);
+            }
             return;
           } else {
             router.push(`/auth/error?error=${encodeURIComponent(error.message)}`);
@@ -52,23 +61,48 @@ export default function CallbackPage() {
       // Priority 2: Check if user already has a session (might have been set by middleware)
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/auth/update-password");
+        // Only redirect to password reset if next parameter explicitly says so
+        // Otherwise, redirect to the next parameter or protected page
+        if (next === "/auth/update-password") {
+          router.push("/auth/update-password");
+        } else {
+          router.push(next);
+        }
         return;
       }
 
       // No valid token or session found
-      router.push("/auth/error?error=No valid token found. Please request a new password reset link.");
+      // Only show password reset error if this was supposed to be a password reset flow
+      if (next === "/auth/update-password") {
+        router.push(`/auth/error?error=No valid token found. Please request a new password reset link.`);
+      } else {
+        router.push(`/auth/error?error=No valid token found. Please try again.`);
+      }
     };
 
     handleCallback();
-  }, [router]);
+  }, [router, searchParams]);
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="text-center">
-        <p className="text-muted-foreground">Processing password reset...</p>
+        <p className="text-muted-foreground">Processing authentication...</p>
       </div>
     </div>
+  );
+}
+
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <CallbackPageContent />
+    </Suspense>
   );
 }
 
