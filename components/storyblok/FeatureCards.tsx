@@ -369,10 +369,10 @@ export default async function FeatureCards({
     buttonColor: "text-qaupe",
     buttonHoverColor: "group-hover:text-qaupe",
     content: (
-      <div className="@container w-full h-full text-center space-y-2 text-qaupe text-sm @[300px]:text-[1.375rem] leading-[0.8] flex flex-col items-center justify-center">
+      <div className="@container w-full h-full text-left space-y-2 text-qaupe text-sm @[300px]:text-[1.375rem] leading-[0.8] flex flex-col items-center justify-center">
         <p>You want to <span className='text-qlack'>develop.</span></p> 
         <p>You want to <span className='text-qlack'>be recognised.</span></p>  
-        <p>You want to feel <span className='text-qlack'>inspired.</span></p>
+        <p>You want to <span className='text-qlack'>feelinspired.</span></p>
         <p>You want to <span className='text-qlack'>connect.</span></p>
         
         <p className="text-4xl @[300px]:text-[2.375rem] tracking-[-0.07125rem] my-6 md:my-12">So <span className="inline-block relative">
