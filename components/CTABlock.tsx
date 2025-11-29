@@ -61,7 +61,7 @@ export function CTABlock() {
               <br />
               You want to <span className="text-qlack">be recognised.</span>
               <br />
-              You feel <span className="text-qlack">inspired.</span>
+              You want to feel <span className="text-qlack">inspired.</span>
               <br />
               You want to <span className="text-qlack">connect.</span>
             </p>
