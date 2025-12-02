@@ -171,31 +171,46 @@ export default function MemberFormFields({
     onFormChange({ ...formValues, [field]: value });
   };
 
+  // Helper function to ensure timeline is always an array
+  // This provides a defensive layer in case data comes in unexpected formats
+  const ensureTimelineArray = (timeline: any): string[] => {
+    if (!timeline) return [];
+    if (Array.isArray(timeline)) return timeline;
+    // If somehow timeline is not an array, return empty array as fallback
+    console.warn('Timeline is not an array, converting to empty array:', timeline);
+    return [];
+  };
+
   const handleTimelineChange = (index: number, value: string) => {
-    const newTimeline = [...formValues.timeline];
+    const safeTimeline = ensureTimelineArray(formValues.timeline);
+    const newTimeline = [...safeTimeline];
     newTimeline[index] = value;
     handleInputChange('timeline', newTimeline);
   };
 
   const addTimelineEntry = () => {
-    handleInputChange('timeline', [...formValues.timeline, '']);
+    const safeTimeline = ensureTimelineArray(formValues.timeline);
+    handleInputChange('timeline', [...safeTimeline, '']);
   };
 
   const removeTimelineEntry = (index: number) => {
-    const newTimeline = formValues.timeline.filter((_, i) => i !== index);
+    const safeTimeline = ensureTimelineArray(formValues.timeline);
+    const newTimeline = safeTimeline.filter((_, i) => i !== index);
     handleInputChange('timeline', newTimeline);
   };
 
   const moveTimelineEntryUp = (index: number) => {
     if (index === 0) return; // Can't move first item up
-    const newTimeline = [...formValues.timeline];
+    const safeTimeline = ensureTimelineArray(formValues.timeline);
+    const newTimeline = [...safeTimeline];
     [newTimeline[index - 1], newTimeline[index]] = [newTimeline[index], newTimeline[index - 1]];
     handleInputChange('timeline', newTimeline);
   };
 
   const moveTimelineEntryDown = (index: number) => {
-    if (index === formValues.timeline.length - 1) return; // Can't move last item down
-    const newTimeline = [...formValues.timeline];
+    const safeTimeline = ensureTimelineArray(formValues.timeline);
+    if (index === safeTimeline.length - 1) return; // Can't move last item down
+    const newTimeline = [...safeTimeline];
     [newTimeline[index], newTimeline[index + 1]] = [newTimeline[index + 1], newTimeline[index]];
     handleInputChange('timeline', newTimeline);
   };
@@ -698,7 +713,7 @@ export default function MemberFormFields({
                 onClick={() => moveTimelineEntryDown(index)}
                 variant="secondary"
                 className="px-2 py-1 text-sm"
-                disabled={isLoading || wasSuccessful || index === formValues.timeline.length - 1}
+                disabled={isLoading || wasSuccessful || index === (Array.isArray(formValues.timeline) ? formValues.timeline.length - 1 : 0)}
                 title="Move down"
               >
                 <ChevronDown className="w-4 h-4" />
