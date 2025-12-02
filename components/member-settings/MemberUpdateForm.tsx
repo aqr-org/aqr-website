@@ -32,6 +32,33 @@ export default function MemberUpdateForm({ memberData, isSuperAdmin = false }: M
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
   
+  // Normalize timeline to ensure it's always an array
+  const normalizeTimeline = (timeline: any): string[] => {
+    if (!timeline) return [];
+    if (Array.isArray(timeline)) return timeline;
+    if (typeof timeline === 'object' && timeline !== null) {
+      // Check if it's an object with a "line" property
+      if ('line' in timeline && Array.isArray(timeline.line)) {
+        return timeline.line;
+      }
+      return [];
+    }
+    if (typeof timeline === 'string') {
+      // If it's a string, try to parse it as JSON
+      try {
+        const parsed = JSON.parse(timeline);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        } else if (typeof parsed === 'object' && parsed !== null && 'line' in parsed && Array.isArray(parsed.line)) {
+          return parsed.line;
+        }
+      } catch (e) {
+        console.error("Error parsing timeline JSON:", e);
+      }
+    }
+    return [];
+  };
+  
   // Controlled state for form values
   const [formValues, setFormValues] = useState<MemberFormData>({
     firstname: memberData?.firstname || '',
@@ -41,7 +68,7 @@ export default function MemberUpdateForm({ memberData, isSuperAdmin = false }: M
     country: memberData?.country || '',
     maintag: memberData?.maintag || '',
     joined: memberData?.joined || '',
-    timeline: memberData?.timeline || [],
+    timeline: normalizeTimeline(memberData?.timeline),
     othertags: [],
     linkedin: '',
     flags: [],

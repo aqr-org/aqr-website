@@ -673,7 +673,7 @@ export default function MemberFormFields({
           <p>Notable Achievements and Contributions</p>
         </label>
         <div className="space-y-2">
-          {formValues.timeline.map((entry, index) => (
+          {Array.isArray(formValues.timeline) && formValues.timeline.map((entry, index) => (
             <div key={index} className="flex gap-2">
               <input
                 type="text"

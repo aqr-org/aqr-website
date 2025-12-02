@@ -307,7 +307,7 @@ export default async function ComnpaniesPage({
         )}
         
       </section>
-      {memberData.timeline && memberData.timeline.length > 0 && (
+      {memberData.timeline && Array.isArray(memberData.timeline) && memberData.timeline.length > 0 && (
         <section className="space-y-5 mt-24">
           <h2 className="text-[2.375rem] leading-none">Notable achievements and contributions</h2>
           <svg className="h-1 w-full" width="100%" height="100%">
