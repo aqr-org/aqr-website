@@ -121,6 +121,7 @@ async function fetchBeaconDataInternal(email: string): Promise<object> {
 
   const orgsFromMemberships = [] as { id: string; name: string }[];
   let personId = '';
+  let personEntity: any = null;
 
   membershipResults.forEach((membership) => {
     const references = membership.references;
@@ -128,6 +129,7 @@ async function fetchBeaconDataInternal(email: string): Promise<object> {
 
       if (normalizedEmail === ref.entity.emails?.[0]?.email.toString().toLowerCase()) {
         personId = ref.entity.id;
+        personEntity = ref.entity;
       }
 
       // Entity type ID 268431 corresponds to "Organization" in our Beacon API
@@ -149,12 +151,17 @@ async function fetchBeaconDataInternal(email: string): Promise<object> {
   });
   const uniqueOrgs = Object.values(uniqueOrgsMap);
   
+  // Use the person entity that matches the logged-in user's email for firstname/lastname
+  // This ensures we get the correct person's name even for group memberships
+  const firstName = personEntity?.name?.first || (membershipRecord.references[0]?.entity?.name as { first: string })?.first || '';
+  const lastName = personEntity?.name?.last || (membershipRecord.references[0]?.entity?.name as { last: string })?.last || '';
+  
   const data = {
     id: membershipId,
     personId: personId,
     // membershipRecord: membershipRecord,
-    firstname: (membershipRecord.references[0].entity.name as { first: string }).first,
-    lastname: (membershipRecord.references[0].entity.name as { last: string }).last,
+    firstname: firstName,
+    lastname: lastName,
     email: normalizedEmail,
     hasCurrentMembership: memberShipIsActive,
     joined: membershipRecord.entity.start_date,

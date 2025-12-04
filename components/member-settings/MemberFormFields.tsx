@@ -524,7 +524,7 @@ export default function MemberFormFields({
           isDisabled={isLoading || wasSuccessful || isLoadingCompanies}
         />
         <p className="text-xs text-qlack mt-1">
-          If you&apos;re associated with a company in our directory and would like to link to it from your member profile, select it from the list above
+          If your company is in the AQR Directory and you would like to link to it from your member profile, select it from the list above
         </p>
       </label>
 
