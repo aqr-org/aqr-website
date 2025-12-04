@@ -4,6 +4,8 @@ import { generatePageMetadata } from '@/lib/metadata';
 import { storyblokEditable } from '@storyblok/react/rsc';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { checkStoryblokPageAuth, isStoryblokEditor } from '@/lib/auth-utils';
 
 type Props = {
   params: Promise<Record<string, never>>
@@ -48,6 +50,16 @@ export default async function WebinarPage() {
         <p>No webinars available.</p>
       </main>
     );
+  }
+
+  // Check if we're in Storyblok editor (skip auth check if so)
+  const inStoryblokEditor = await isStoryblokEditor();
+  
+  // Check if page is protected and user is authenticated
+  // This must be outside try-catch to allow Next.js to handle redirect properly
+  const authStatus = await checkStoryblokPageAuth(newestWebinar, inStoryblokEditor);
+  if (authStatus.isProtected && !authStatus.isAuthenticated) {
+    redirect("/auth/login");
   }
 
   return (

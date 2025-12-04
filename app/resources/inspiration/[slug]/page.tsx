@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import Image from 'next/image';
 import Link from 'next/link';
 import { draftMode } from 'next/headers';
+import { notFound } from 'next/navigation';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -20,76 +21,91 @@ export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  // read route params
-  const storyblok = await fetchStoryblokData(params);
-  const { meta_title, meta_description, og_image } = storyblok.data.story.content;
+  try {
+    // read route params
+    const storyblok = await fetchStoryblokData(params);
+    const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
-  return await generatePageMetadata(
-    {
-      meta_title,
-      meta_description,
-      og_image
-    },
-    parent
-  );
+    return await generatePageMetadata(
+      {
+        meta_title,
+        meta_description,
+        og_image
+      },
+      parent
+    );
+  } catch (error) {
+    // Return fallback metadata if story not found
+    return await generatePageMetadata({}, parent);
+  }
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const storyblok = await fetchStoryblokData(params);
-  const story = storyblok.data.story;
-  const author = await searchMembersForAuthor(story.content.author);
+  try {
+    const storyblok = await fetchStoryblokData(params);
+    const story = storyblok.data.story;
+    const author = await searchMembersForAuthor(story.content.author);
 
-  if (author) {
-    story.content.authorLink = `/members/${author.slug}`;
-    story.content.authorName = author.firstname + ' ' + author.lastname;
-    story.content.authorImage = await findValidImageUrl(author.id);
-    story.content.authorArticles = await findAllArticlesForAuthor(author.firstname + ' ' + author.lastname);
-    story.content.authorBiognotes = author.biognotes;
-    story.content.slug = story.slug;
+    if (author) {
+      story.content.authorLink = `/members/${author.slug}`;
+      story.content.authorName = author.firstname + ' ' + author.lastname;
+      story.content.authorImage = await findValidImageUrl(author.id);
+      story.content.authorArticles = await findAllArticlesForAuthor(author.firstname + ' ' + author.lastname);
+      story.content.authorBiognotes = author.biognotes;
+      story.content.slug = story.slug;
+    }
+
+    const onlyArticleIsThisArticle = story.content.authorArticles && story.content.authorArticles.length === 1 && story.content.authorArticles[0].slug === story.slug;
+
+    return (
+      <main>
+        <StoryblokStory story={story} />
+        {/* <pre>{JSON.stringify(storyblok.data, null, 2)}</pre> */}
+        {/* {author && author.slug && (
+          <div>
+            <figure className='relative aspect-[0.75] w-[120px] rounded'>
+              <Image 
+                src={story.content.authorImage} 
+                alt={author.firstname + ' ' + author.lastname} 
+                fill
+                sizes='(max-width: 768px) 70vw, 120px'
+                className='aspect-[0.75] w-[120px]'
+              />
+            </figure >
+            <p>{author.biognotes}</p>
+
+            { story.content.authorArticles && story.content.authorArticles.length > 0 && !onlyArticleIsThisArticle && (
+              <>
+                <h2 className='text-lg my-4'>Other articles by {author.firstname} {author.lastname}:</h2>
+                <ul>
+                  {story.content.authorArticles.map((article: { 
+                    content: {
+                      title: string 
+                    }, 
+                    slug?: string
+                  }) => (
+                    <li key={article.content.title}>
+                      <Link href={`/resources/inspiration/${article.slug}`}>
+                        {article.content.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )} */}
+      </main>
+    );
+  } catch (error: any) {
+    // Check if it's a 404 error
+    const statusCode = error?.response?.status;
+    if (statusCode === 404) {
+      notFound();
+    }
+    // Re-throw other errors
+    throw error;
   }
-
-  const onlyArticleIsThisArticle = story.content.authorArticles && story.content.authorArticles.length === 1 && story.content.authorArticles[0].slug === story.slug;
-
-  return (
-    <main>
-      <StoryblokStory story={story} />
-      {/* <pre>{JSON.stringify(storyblok.data, null, 2)}</pre> */}
-      {/* {author && author.slug && (
-        <div>
-          <figure className='relative aspect-[0.75] w-[120px] rounded'>
-            <Image 
-              src={story.content.authorImage} 
-              alt={author.firstname + ' ' + author.lastname} 
-              fill
-              sizes='(max-width: 768px) 70vw, 120px'
-              className='aspect-[0.75] w-[120px]'
-            />
-          </figure >
-          <p>{author.biognotes}</p>
-
-          { story.content.authorArticles && story.content.authorArticles.length > 0 && !onlyArticleIsThisArticle && (
-            <>
-              <h2 className='text-lg my-4'>Other articles by {author.firstname} {author.lastname}:</h2>
-              <ul>
-                {story.content.authorArticles.map((article: { 
-                  content: {
-                    title: string 
-                  }, 
-                  slug?: string
-                }) => (
-                  <li key={article.content.title}>
-                    <Link href={`/resources/inspiration/${article.slug}`}>
-                      {article.content.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      )} */}
-    </main>
-  );
 }
 
 async function fetchStoryblokData(params: ArticlePageProps['params']) {

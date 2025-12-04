@@ -2,6 +2,7 @@ import Company from '@/components/Company'
 import { Metadata, ResolvingMetadata } from 'next'
 import { getCompanyData } from '@/lib/company-data'
 import { generatePageMetadata } from '@/lib/metadata';
+import { notFound } from 'next/navigation';
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -52,16 +53,9 @@ export default async function CompaniesPage({
     // Use the cached function - this will reuse the data from generateMetadata
     const companyData = await getCompanyData(slug);
 
-    // If no company found, return early
+    // If no company found, show 404
     if (!companyData) {
-      return (
-        <div className="animate-fade-in">
-          <h1>Company Detail Page for slug: {slug}</h1>
-          <div className="mb-4">
-            <p className="text-red-500">Company not found</p>
-          </div>
-        </div>
-      )
+      notFound();
     }
 
     return (
@@ -71,13 +65,6 @@ export default async function CompaniesPage({
     )
   } catch (error) {
     console.error("Error in CompaniesPage:", error);
-    return (
-      <div>
-        <h1>Error Loading Company</h1>
-        <div className="mb-4">
-          <p className="text-red-500">An error occurred while loading the company data.</p>
-        </div>
-      </div>
-    )
+    notFound();
   }
 }
