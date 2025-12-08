@@ -16,6 +16,225 @@ interface Company {
   name: string;
   beacon_membership_id: string;
   beacon_membership_status?: string | null;
+  beacon_id?: string | null; // Organization ID from Beacon (optional)
+}
+
+interface ChangedMembership {
+  id: string;
+  status: string[];
+  type: string[];
+  updated_at: string;
+  memberEmails: string[]; // Emails of referenced persons (for Individual/Group memberships)
+  organizationIds: string[]; // IDs of referenced organizations (for Business Directory memberships)
+  organizationNames: string[]; // Names of referenced organizations (for Business Directory memberships)
+}
+
+/**
+ * Fetches changed memberships from BeaconCRM API
+ * Returns memberships with status != 'Active' that were updated in the last 7 days
+ */
+async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMembership[]> {
+  const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
+  const beaconApiUrl = process.env.BEACON_API_URL;
+
+  if (!beaconAuthToken) {
+    console.error('BEACON_AUTH_TOKEN not configured');
+    return [];
+  }
+
+  if (!beaconApiUrl) {
+    console.error('BEACON_API_URL not configured');
+    return [];
+  }
+
+  // Calculate date 7 days ago
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgoISO = sevenDaysAgo.toISOString();
+
+  // Note: Beacon API doesn't support date operators (>=, >, etc.) in filters
+  // So we'll fetch memberships without date filtering and filter in code
+  // Build empty filter body (or we could filter by other fields if needed)
+  const filterBody = {
+    filter_conditions: []
+  };
+
+  const allChangedMemberships: ChangedMembership[] = [];
+  let page = 1;
+  const perPage = 100; // Reasonable page size
+  let hasMorePages = true;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      // Reset pagination on retry
+      if (attempt > 0) {
+        page = 1;
+        allChangedMemberships.length = 0;
+        hasMorePages = true;
+      }
+
+      // Fetch pages until no more results
+      // Note: Beacon API might not support pagination via query params, so we'll try without them first
+      while (hasMorePages) {
+        // Try with pagination params, but Beacon might ignore them
+        const filterUrl = `${beaconApiUrl}/entities/membership/filter`;
+        const response = await fetch(filterUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${beaconAuthToken}`,
+            'Beacon-Application': 'developer_api',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(filterBody)
+        });
+
+        if (response.status === 429) {
+          // Rate limited - wait and retry
+          const waitTime = (attempt + 1) * 2000; // Exponential backoff: 2s, 4s
+          console.warn(`Rate limited for membership filter, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`);
+          if (attempt < retries) {
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            break; // Break out of pagination loop to retry
+          }
+          console.error(`Failed to fetch changed memberships after ${retries} retries: 429 Rate Limited`);
+          return allChangedMemberships; // Return what we have so far
+        }
+
+        if (!response.ok) {
+          console.error(`Failed to fetch changed memberships page ${page}: ${response.status} ${response.statusText}`);
+          // Try to get error details
+          try {
+            const errorData = await response.text();
+            console.error(`Error details: ${errorData}`);
+          } catch (e) {
+            // Ignore error reading error response
+          }
+          // If it's a client error (4xx), don't retry
+          if (response.status >= 400 && response.status < 500) {
+            return allChangedMemberships; // Return what we have so far
+          }
+          // For server errors, break to retry outer loop
+          break;
+        }
+
+        const data = await response.json();
+        
+        // Extract membership entities from results
+        // The API returns { results: [{ entity: {...}, references: [...] }] }
+        const results = data.results || [];
+        
+        console.log(`[DEBUG] Beacon filter API returned ${results.length} result(s) on page ${page}`);
+        
+        if (results.length === 0) {
+          hasMorePages = false;
+          break;
+        }
+
+        // Filter memberships that don't have 'Active' status AND were updated in last 7 days
+        const pageMemberships: ChangedMembership[] = results
+          .map((result: any) => {
+            const entity = result.entity;
+            if (!entity) return null;
+            
+            // Filter by date: only include memberships updated in last 7 days
+            const updatedAt = entity.updated_at || entity.updatedAt;
+            if (!updatedAt) {
+              return null; // Skip memberships without updated_at
+            }
+            
+            const updatedDate = new Date(updatedAt);
+            if (isNaN(updatedDate.getTime()) || updatedDate < sevenDaysAgo) {
+              return null; // Skip memberships older than 7 days
+            }
+            
+            // Log first few memberships for debugging
+            if (allChangedMemberships.length < 3) {
+              console.log(`[DEBUG] Membership ${entity.id}: status=${JSON.stringify(entity.status)}, updated_at=${updatedAt}`);
+            }
+            
+            // Filter out memberships that have 'Active' in status array
+            const statusArray = entity.status || [];
+            if (statusArray.includes('Active')) {
+              return null;
+            }
+            
+            // Extract member emails and organization IDs/names from references
+            const references = result.references || [];
+            const memberEmails: string[] = [];
+            const organizationIds: string[] = [];
+            const organizationNames: string[] = [];
+            
+            references.forEach((ref: any) => {
+              const refEntity = ref.entity;
+              if (!refEntity) return;
+              
+              // Use entity_type_id to distinguish entity types precisely
+              // 268434 = person (member)
+              // 268431 = organization (company)
+              if (refEntity.entity_type_id === 268434) {
+                // Person entity - extract emails
+                if (refEntity.emails && Array.isArray(refEntity.emails)) {
+                  refEntity.emails.forEach((emailObj: any) => {
+                    if (emailObj.email) {
+                      memberEmails.push(emailObj.email.toLowerCase().trim());
+                    }
+                  });
+                }
+              } else if (refEntity.entity_type_id === 268431) {
+                // Organization entity - extract organization ID
+                if (refEntity.id) {
+                  organizationIds.push(String(refEntity.id));
+                }
+                // Also extract organization name for logging/debugging
+                if (refEntity.name) {
+                  const orgName = typeof refEntity.name === 'string' 
+                    ? refEntity.name 
+                    : refEntity.name.full || refEntity.name;
+                  if (orgName) {
+                    organizationNames.push(orgName.trim());
+                  }
+                }
+              }
+            });
+            
+            return {
+              id: String(entity.id),
+              status: statusArray,
+              type: entity.type || [],
+              updated_at: entity.updated_at || entity.updatedAt || '',
+              memberEmails,
+              organizationIds,
+              organizationNames
+            };
+          })
+          .filter((membership: ChangedMembership | null) => membership !== null);
+
+        console.log(`[DEBUG] After filtering out 'Active' statuses: ${pageMemberships.length} membership(s)`);
+        allChangedMemberships.push(...pageMemberships);
+
+        // Since Beacon API might not support pagination, we'll only fetch once
+        // If we got results, assume we got them all (or Beacon will return all in one call)
+        hasMorePages = false;
+      }
+
+      // Successfully fetched all pages
+      console.log(`Found ${allChangedMemberships.length} changed membership(s) in Beacon (status != 'Active', updated in last 7 days)`);
+      return allChangedMemberships;
+    } catch (error) {
+      if (attempt < retries) {
+        const waitTime = (attempt + 1) * 1000;
+        console.warn(`Error fetching changed memberships, retrying in ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        continue;
+      }
+      console.error(`Error fetching changed memberships:`, error);
+      // Return what we have so far instead of empty array
+      return allChangedMemberships;
+    }
+  }
+
+  // Return what we have if we exhausted retries
+  return allChangedMemberships;
 }
 
 /**
@@ -63,6 +282,17 @@ async function fetchBeaconMembership(membershipId: string, retries = 2): Promise
       }
 
       const data = await response.json();
+      
+      // Debug logging for API response structure (only log first 500 chars to avoid spam)
+      if (membershipId === '8996') {
+        console.log(`[DEBUG] API response for membership ${membershipId}:`, {
+          hasEntity: !!data.entity,
+          entityStatus: data.entity?.status,
+          entityId: data.entity?.id,
+          responsePreview: JSON.stringify(data).substring(0, 500)
+        });
+      }
+      
       return data.entity as BeaconMembershipEntity;
     } catch (error) {
       if (attempt < retries) {
@@ -80,10 +310,14 @@ async function fetchBeaconMembership(membershipId: string, retries = 2): Promise
 }
 
 /**
- * Syncs a single member's membership status
+ * Updates a member's status in Supabase
  * Returns update details object if an update was made, null otherwise
  */
-async function syncMemberStatus(member: Member): Promise<{
+async function updateMemberStatus(
+  member: Member,
+  newStatus: string | null,
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<{
   entity_type: 'member';
   member_id: string;
   company_id: null;
@@ -92,33 +326,19 @@ async function syncMemberStatus(member: Member): Promise<{
   new_status: string;
   beacon_membership_id: string;
 } | null> {
-  const membershipEntity = await fetchBeaconMembership(member.beacon_membership);
-
-  if (!membershipEntity) {
-    console.warn(`Could not fetch Beacon membership ${member.beacon_membership} for member ${member.id}`);
-    return null;
-  }
-
-  // Extract status from Beacon entity (status is an array, take first value)
-  const beaconStatus = membershipEntity.status?.[0] || null;
-
-  // Compare with current status in Supabase
   const currentStatus = member.beacon_membership_status || null;
-
-  // Normalize for comparison (trim whitespace, handle null/undefined)
-  const normalizedBeaconStatus = beaconStatus?.trim() || null;
+  const normalizedNewStatus = newStatus?.trim() || null;
   const normalizedCurrentStatus = currentStatus?.trim() || null;
 
   // Only update if status has changed
-  if (normalizedBeaconStatus === normalizedCurrentStatus) {
+  if (normalizedNewStatus === normalizedCurrentStatus) {
     return null; // No change needed
   }
 
   // Update member status in Supabase
-  const supabase = createClient();
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseClient
     .from('members')
-    .update({ beacon_membership_status: normalizedBeaconStatus })
+    .update({ beacon_membership_status: normalizedNewStatus })
     .eq('id', member.id);
 
   if (updateError) {
@@ -132,22 +352,25 @@ async function syncMemberStatus(member: Member): Promise<{
     company_id: null,
     member_email: member.email,
     old_status: normalizedCurrentStatus,
-    new_status: normalizedBeaconStatus || '',
+    new_status: normalizedNewStatus || '',
     beacon_membership_id: member.beacon_membership,
   };
 
-  // Log detailed update information (matching what was in beacon_sync_logs table)
   console.log(`[STATUS_UPDATE] ${JSON.stringify(updateDetail)}`);
-  console.log(`Updated member ${member.id} (${member.email}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
+  console.log(`Updated member ${member.id} (${member.email}): ${normalizedCurrentStatus} → ${normalizedNewStatus}`);
   
   return updateDetail;
 }
 
 /**
- * Syncs a single company's membership status
+ * Updates a company's status in Supabase
  * Returns update details object if an update was made, null otherwise
  */
-async function syncCompanyStatus(company: Company): Promise<{
+async function updateCompanyStatus(
+  company: Company,
+  newStatus: string | null,
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<{
   entity_type: 'company';
   member_id: null;
   company_id: string;
@@ -156,33 +379,19 @@ async function syncCompanyStatus(company: Company): Promise<{
   new_status: string;
   beacon_membership_id: string;
 } | null> {
-  const membershipEntity = await fetchBeaconMembership(company.beacon_membership_id);
-
-  if (!membershipEntity) {
-    console.warn(`Could not fetch Beacon membership ${company.beacon_membership_id} for company ${company.id}`);
-    return null;
-  }
-
-  // Extract status from Beacon entity (status is an array, take first value)
-  const beaconStatus = membershipEntity.status?.[0] || null;
-
-  // Compare with current status in Supabase
   const currentStatus = company.beacon_membership_status || null;
-
-  // Normalize for comparison (trim whitespace, handle null/undefined)
-  const normalizedBeaconStatus = beaconStatus?.trim() || null;
+  const normalizedNewStatus = newStatus?.trim() || null;
   const normalizedCurrentStatus = currentStatus?.trim() || null;
 
   // Only update if status has changed
-  if (normalizedBeaconStatus === normalizedCurrentStatus) {
+  if (normalizedNewStatus === normalizedCurrentStatus) {
     return null; // No change needed
   }
 
   // Update company status in Supabase
-  const supabase = createClient();
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseClient
     .from('companies')
-    .update({ beacon_membership_status: normalizedBeaconStatus })
+    .update({ beacon_membership_status: normalizedNewStatus })
     .eq('id', company.id);
 
   if (updateError) {
@@ -196,86 +405,245 @@ async function syncCompanyStatus(company: Company): Promise<{
     company_id: company.id,
     company_name: company.name,
     old_status: normalizedCurrentStatus,
-    new_status: normalizedBeaconStatus || '',
+    new_status: normalizedNewStatus || '',
     beacon_membership_id: company.beacon_membership_id,
   };
 
-  // Log detailed update information (matching what was in beacon_sync_logs table)
   console.log(`[STATUS_UPDATE] ${JSON.stringify(updateDetail)}`);
-  console.log(`Updated company ${company.id} (${company.name}): ${normalizedCurrentStatus} → ${normalizedBeaconStatus}`);
+  console.log(`Updated company ${company.id} (${company.name}): ${normalizedCurrentStatus} → ${normalizedNewStatus}`);
   
   return updateDetail;
 }
 
 /**
- * Main sync handler
- * Accepts event and context for Netlify Functions compatibility
+ * Main sync handler - Optimized version
+ * Queries Beacon API for changed memberships instead of checking all Supabase members
  */
 async function syncBeaconStatuses(
   event?: any,
   context?: any
 ): Promise<{ statusCode: number; body: string }> {
-  console.log('=== Starting Beacon membership status sync ===');
+  console.log('=== Starting Beacon membership status sync (optimized) ===');
   const startTime = Date.now();
 
   try {
     const supabase = createClient();
 
-    // Fetch all members with a beacon_membership
-    const { data: members, error: membersError } = await supabase
-      .from('members')
-      .select('id, email, firstname, lastname, beacon_membership, beacon_membership_status')
-      .not('beacon_membership', 'is', null)
-      .not('beacon_membership', 'eq', '');
+    // Step 1: Fetch changed memberships from Beacon API
+    const changedMemberships = await fetchChangedBeaconMemberships();
 
-    if (membersError) {
-      console.error('Failed to fetch members:', membersError);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to fetch members', details: membersError.message }),
-      };
+    console.log(`[DEBUG] Total changed memberships found: ${changedMemberships.length}`);
+    if (changedMemberships.length > 0) {
+      console.log(`[DEBUG] First few membership IDs: ${changedMemberships.slice(0, 5).map(m => m.id).join(', ')}`);
     }
 
-    // Fetch all companies with a beacon_membership_id
-    const { data: companies, error: companiesError } = await supabase
-      .from('companies')
-      .select('id, name, beacon_membership_id, beacon_membership_status')
-      .not('beacon_membership_id', 'is', null)
-      .not('beacon_membership_id', 'eq', '');
-
-    if (companiesError) {
-      console.error('Failed to fetch companies:', companiesError);
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to fetch companies', details: companiesError.message }),
-      };
-    }
-
-    const memberCount = members?.length || 0;
-    const companyCount = companies?.length || 0;
-    const totalEntities = memberCount + companyCount;
-
-    if (totalEntities === 0) {
-      console.log('No members or companies with beacon_membership found');
-      console.log('=== Function ran successfully: No entities to sync ===');
+    if (changedMemberships.length === 0) {
+      console.log('No changed memberships found in Beacon (status != "Active", updated in last 7 days)');
+      console.log('=== Function ran successfully: No changes to sync ===');
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'No entities to sync', synced: 0, updated: 0 }),
+        body: JSON.stringify({ 
+          message: 'No changed memberships found', 
+          changedMemberships: 0,
+          updated: 0 
+        }),
       };
     }
 
-    console.log(`Found ${memberCount} member(s) and ${companyCount} company(ies) to sync`);
+    console.log(`Found ${changedMemberships.length} changed membership(s) in Beacon`);
 
-    // Process entities with timeout protection
-    // Limit processing to stay within 30s Netlify function timeout
-    const maxProcessingTime = 25000; // 25 seconds, leave 5s buffer
-    const startProcessingTime = Date.now();
+    // Step 2: Separate memberships by type
+    // Business Directory types should only update companies
+    // Individual/Group Membership types should only update members
+    const BUSINESS_DIRECTORY_TYPES = [
+      'Business Directory',
+      'Business Directory Basic',
+      'Business Directory Standard',
+      'Business Directory Enhanced'
+    ];
+
+    const businessDirectoryMemberships = changedMemberships.filter(membership => {
+      const membershipTypes = membership.type || [];
+      return membershipTypes.some(type => BUSINESS_DIRECTORY_TYPES.includes(type));
+    });
+
+    const individualGroupMemberships = changedMemberships.filter(membership => {
+      const membershipTypes = membership.type || [];
+      return !membershipTypes.some(type => BUSINESS_DIRECTORY_TYPES.includes(type));
+    });
+
+    console.log(`Split memberships: ${businessDirectoryMemberships.length} Business Directory, ${individualGroupMemberships.length} Individual/Group`);
+
+    // Step 3: Extract membership IDs by type
+    const businessDirectoryIds = businessDirectoryMemberships.map(m => m.id);
+    const individualGroupIds = individualGroupMemberships.map(m => m.id);
+
+    // Step 4: Extract emails and organization names/IDs from membership references
+    // For Individual/Group memberships: collect all member emails
+    // For Business Directory memberships: collect all organization names and IDs
+    const memberEmailsToUpdate = new Set<string>();
+    const organizationNamesToUpdate = new Set<string>();
+    const organizationIdsToUpdate = new Set<string>();
+    
+    // Map membership ID to the membership object for status lookup
+    const membershipMap = new Map<string, ChangedMembership>();
+    
+    individualGroupMemberships.forEach(membership => {
+      membershipMap.set(membership.id, membership);
+      membership.memberEmails.forEach(email => memberEmailsToUpdate.add(email));
+    });
+    
+    businessDirectoryMemberships.forEach(membership => {
+      membershipMap.set(membership.id, membership);
+      membership.organizationIds.forEach(orgId => organizationIdsToUpdate.add(orgId));
+      membership.organizationNames.forEach(orgName => organizationNamesToUpdate.add(orgName.toLowerCase().trim()));
+    });
+    
+    console.log(`[DEBUG] Found ${memberEmailsToUpdate.size} unique member email(s) from Individual/Group memberships`);
+    console.log(`[DEBUG] Found ${organizationIdsToUpdate.size} unique organization ID(s) and ${organizationNamesToUpdate.size} unique organization name(s) from Business Directory memberships`);
+
+    // Step 5: Query Supabase for matching entities by email/organization ID
+    let allMembers: Member[] = [];
+    let allCompanies: Company[] = [];
+    
+    // Create a map to track which membership(s) each member/company should be updated with
+    // A member might be referenced in multiple Individual/Group memberships - use the most recent non-Active one
+    const memberEmailToMembershipMap = new Map<string, ChangedMembership>();
+    // Map membership ID to membership (for companies matched by beacon_membership_id)
+    const membershipIdToMembershipMap = new Map<string, ChangedMembership>();
+    // Map organization ID (beacon_id) to membership (for companies matched by beacon_id)
+    const organizationIdToMembershipMap = new Map<string, ChangedMembership>();
+
+    // Query members by email for Individual/Group memberships
+    if (memberEmailsToUpdate.size > 0) {
+      const emailArray = Array.from(memberEmailsToUpdate);
+      const BATCH_SIZE = 100;
+      
+      for (let i = 0; i < emailArray.length; i += BATCH_SIZE) {
+        const batch = emailArray.slice(i, i + BATCH_SIZE);
+        
+        const { data: members, error: membersError } = await supabase
+          .from('members')
+          .select('id, email, firstname, lastname, beacon_membership, beacon_membership_status')
+          .in('email', batch);
+
+        if (membersError) {
+          console.error(`Failed to fetch members batch:`, membersError);
+        } else {
+          // For each member found, determine which membership to use for status update
+          (members || []).forEach(member => {
+            const normalizedEmail = member.email.toLowerCase().trim();
+            
+            // Find all Individual/Group memberships that reference this member
+            const matchingMemberships = individualGroupMemberships.filter(m =>
+              m.memberEmails.includes(normalizedEmail)
+            );
+            
+            if (matchingMemberships.length > 0) {
+              // Use the membership with the most recent updated_at
+              const mostRecent = matchingMemberships.reduce((latest, current) => {
+                const latestDate = new Date(latest.updated_at);
+                const currentDate = new Date(current.updated_at);
+                return currentDate > latestDate ? current : latest;
+              });
+              
+              memberEmailToMembershipMap.set(normalizedEmail, mostRecent);
+              allMembers.push(member);
+            }
+          });
+        }
+      }
+    }
+
+    // Query companies for Business Directory memberships
+    // Match by beacon_membership_id first, then by organization ID (beacon_id field) if available
+    if (businessDirectoryIds.length > 0) {
+      const BATCH_SIZE = 100;
+      
+      // First, try matching by beacon_membership_id
+      for (let i = 0; i < businessDirectoryIds.length; i += BATCH_SIZE) {
+        const batch = businessDirectoryIds.slice(i, i + BATCH_SIZE);
+        
+        const { data: companies, error: companiesError } = await supabase
+          .from('companies')
+          .select('id, name, beacon_membership_id, beacon_membership_status, beacon_id')
+          .in('beacon_membership_id', batch);
+
+        if (companiesError) {
+          console.error(`Failed to fetch companies batch:`, companiesError);
+        } else {
+          // For each company found, use the membership that matches its beacon_membership_id
+          (companies || []).forEach(company => {
+            const membershipId = company.beacon_membership_id;
+            const membership = businessDirectoryMemberships.find(m => m.id === membershipId);
+            
+            if (membership) {
+              // Store mapping by membership ID
+              membershipIdToMembershipMap.set(membershipId, membership);
+              allCompanies.push(company);
+            }
+          });
+        }
+      }
+      
+      // Also try matching by organization ID (beacon_id field) if companies have it
+      // This handles cases where beacon_membership_id might not be set correctly
+      if (organizationIdsToUpdate.size > 0) {
+        const orgIdArray = Array.from(organizationIdsToUpdate);
+        
+        for (let i = 0; i < orgIdArray.length; i += BATCH_SIZE) {
+          const batch = orgIdArray.slice(i, i + BATCH_SIZE);
+          
+          // Query companies by beacon_id (organization ID from Beacon)
+          const { data: companies, error: companiesError } = await supabase
+            .from('companies')
+            .select('id, name, beacon_membership_id, beacon_membership_status, beacon_id')
+            .in('beacon_id', batch);
+
+          if (companiesError) {
+            // beacon_id field might not exist, that's okay - we'll skip this matching method
+            console.log(`[DEBUG] Companies table might not have beacon_id field, skipping organization ID matching`);
+          } else {
+            // For each company found, find the Business Directory membership that references this organization
+            (companies || []).forEach(company => {
+              // Skip if already matched
+              if (allCompanies.some(c => c.id === company.id)) {
+                return;
+              }
+              
+              const orgId = String(company.beacon_id);
+              const matchingMemberships = businessDirectoryMemberships.filter(m =>
+                m.organizationIds.includes(orgId)
+              );
+              
+              if (matchingMemberships.length > 0) {
+                // Use the membership with the most recent updated_at
+                const mostRecent = matchingMemberships.reduce((latest, current) => {
+                  const latestDate = new Date(latest.updated_at);
+                  const currentDate = new Date(current.updated_at);
+                  return currentDate > latestDate ? current : latest;
+                });
+                
+                // Store mapping by organization ID (beacon_id) for direct lookup
+                organizationIdToMembershipMap.set(orgId, mostRecent);
+                // Also store by membership ID for consistency
+                membershipIdToMembershipMap.set(mostRecent.id, mostRecent);
+                allCompanies.push(company);
+                console.log(`[DEBUG] Matched company "${company.name}" (beacon_id: ${orgId}) to Business Directory membership ${mostRecent.id} by organization ID`);
+              }
+            });
+          }
+        }
+      }
+    }
+
+    console.log(`Matched ${allMembers.length} member(s) for Individual/Group memberships and ${allCompanies.length} company(ies) for Business Directory memberships`);
+
+    // Step 6: Process updates in parallel batches
+    const updateBatchSize = 10; // Process 10 updates in parallel
     let updatedMemberCount = 0;
     let updatedCompanyCount = 0;
     let errorCount = 0;
-    let processedMemberCount = 0;
-    let processedCompanyCount = 0;
-    // Track all updates for detailed logging
     const updateDetails: Array<{
       entity_type: 'member' | 'company';
       member_id?: string | null;
@@ -287,173 +655,129 @@ async function syncBeaconStatuses(
       beacon_membership_id: string;
     }> = [];
 
-    // Process in smaller batches with rate limiting protection
-    const batchSize = 3; // Reduced to avoid 429 rate limits
-    const delayBetweenBatches = 1000; // 1 second delay between batches to respect rate limits
-    const delayBetweenItems = 200; // Small delay between each item
-
-    // Calculate rotation offset based on day of year (1-365/366)
-    // This ensures we rotate through all entities over time
-    const getDayOfYear = () => {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), 0, 0);
-      const diff = now.getTime() - start.getTime();
-      return Math.floor(diff / (1000 * 60 * 60 * 24));
-    };
-
-    const dayOfYear = getDayOfYear();
-    const ENTITIES_PER_TYPE_PER_DAY = 300;
-
-    // Determine which entities to process based on rotation
-    // Fallback: if total <= limit, check all daily; otherwise rotate
-    let membersToProcess: Member[];
-    let companiesToProcess: Company[];
-
-    if (memberCount <= ENTITIES_PER_TYPE_PER_DAY) {
-      // Less than 300 members: check all every day
-      membersToProcess = members || [];
-      console.log(`Processing all ${memberCount} member(s) (below daily limit)`);
-    } else {
-      // More than 300 members: rotate through chunks
-      const memberOffset = (dayOfYear * ENTITIES_PER_TYPE_PER_DAY) % memberCount;
-      const memberEnd = memberOffset + ENTITIES_PER_TYPE_PER_DAY;
-      // Handle wrap-around: if offset + limit > total, take from start
-      if (memberEnd > memberCount) {
-        const remainder = memberEnd - memberCount;
-        membersToProcess = (members || [])
-          .slice(memberOffset)
-          .concat((members || []).slice(0, remainder));
-      } else {
-        membersToProcess = (members || []).slice(memberOffset, memberEnd);
-      }
-      console.log(`Rotating members: processing ${membersToProcess.length} (offset ${memberOffset}) of ${memberCount} total`);
-    }
-
-    if (companyCount <= ENTITIES_PER_TYPE_PER_DAY) {
-      // Less than 300 companies: check all every day
-      companiesToProcess = companies || [];
-      console.log(`Processing all ${companyCount} company(ies) (below daily limit)`);
-    } else {
-      // More than 300 companies: rotate through chunks
-      const companyOffset = (dayOfYear * ENTITIES_PER_TYPE_PER_DAY) % companyCount;
-      const companyEnd = companyOffset + ENTITIES_PER_TYPE_PER_DAY;
-      // Handle wrap-around: if offset + limit > total, take from start
-      if (companyEnd > companyCount) {
-        const remainder = companyEnd - companyCount;
-        companiesToProcess = (companies || [])
-          .slice(companyOffset)
-          .concat((companies || []).slice(0, remainder));
-      } else {
-        companiesToProcess = (companies || []).slice(companyOffset, companyEnd);
-      }
-      console.log(`Rotating companies: processing ${companiesToProcess.length} (offset ${companyOffset}) of ${companyCount} total`);
-    }
-
-    // Process members first
-    for (let i = 0; i < membersToProcess.length; i += batchSize) {
-      // Check if we're running out of time
-      const elapsed = Date.now() - startProcessingTime;
-      if (elapsed > maxProcessingTime) {
-        console.warn(`Timeout approaching. Processed ${processedMemberCount + processedCompanyCount} of ${totalEntities} entities. Will continue in next run.`);
-        break;
-      }
-
-      // Process batch sequentially (to avoid rate limits)
-      const batch = membersToProcess.slice(i, i + batchSize);
-      for (const member of batch) {
+    // Process members in batches
+    for (let i = 0; i < allMembers.length; i += updateBatchSize) {
+      const batch = allMembers.slice(i, i + updateBatchSize);
+      const updatePromises = batch.map(async (member) => {
         try {
-          const updateDetail = await syncMemberStatus(member);
-          processedMemberCount++;
-          if (updateDetail) {
-            updatedMemberCount++;
-            updateDetails.push(updateDetail);
+          const normalizedEmail = member.email.toLowerCase().trim();
+          const membership = memberEmailToMembershipMap.get(normalizedEmail);
+          
+          if (membership) {
+            const newStatus = membership.status?.[0] || null;
+            const updateDetail = await updateMemberStatus(member, newStatus, supabase);
+            if (updateDetail) {
+              updatedMemberCount++;
+              updateDetails.push({
+                ...updateDetail,
+                beacon_membership_id: membership.id
+              });
+            }
           }
         } catch (error) {
-          processedMemberCount++;
-          console.error(`Error syncing member ${member.id}:`, error);
+          console.error(`Error updating member ${member.id}:`, error);
           errorCount++;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, delayBetweenItems));
-      }
-
-      // Delay between batches
-      if (i + batchSize < membersToProcess.length) {
-        await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
-      }
+      });
+      await Promise.all(updatePromises);
     }
 
-    // Then process companies
-    for (let i = 0; i < companiesToProcess.length; i += batchSize) {
-      // Check if we're running out of time
-      const elapsed = Date.now() - startProcessingTime;
-      if (elapsed > maxProcessingTime) {
-        console.warn(`Timeout approaching. Processed ${processedMemberCount + processedCompanyCount} of ${totalEntities} entities. Will continue in next run.`);
-        break;
-      }
-
-      // Process batch sequentially (to avoid rate limits)
-      const batch = companiesToProcess.slice(i, i + batchSize);
-      for (const company of batch) {
+    // Process companies in batches
+    for (let i = 0; i < allCompanies.length; i += updateBatchSize) {
+      const batch = allCompanies.slice(i, i + updateBatchSize);
+      const updatePromises = batch.map(async (company) => {
         try {
-          const updateDetail = await syncCompanyStatus(company);
-          processedCompanyCount++;
-          if (updateDetail) {
-            updatedCompanyCount++;
-            updateDetails.push(updateDetail);
+          let membership: ChangedMembership | undefined;
+          
+          // Try matching by beacon_membership_id first (most reliable)
+          const membershipId = company.beacon_membership_id;
+          if (membershipId) {
+            membership = membershipIdToMembershipMap.get(membershipId);
+          }
+          
+          // Fallback to matching by organization ID (beacon_id) - now that all companies have beacon_id
+          if (!membership && company.beacon_id) {
+            const orgId = String(company.beacon_id);
+            membership = organizationIdToMembershipMap.get(orgId);
+            
+            // If still not found, search through all Business Directory memberships
+            // This handles edge cases where company wasn't matched in the initial query
+            if (!membership) {
+              const matchingMemberships = businessDirectoryMemberships.filter(m =>
+                m.organizationIds.includes(orgId)
+              );
+              if (matchingMemberships.length > 0) {
+                // Use the membership with the most recent updated_at
+                membership = matchingMemberships.reduce((latest, current) => {
+                  const latestDate = new Date(latest.updated_at);
+                  const currentDate = new Date(current.updated_at);
+                  return currentDate > latestDate ? current : latest;
+                });
+                // Cache it for future lookups
+                organizationIdToMembershipMap.set(orgId, membership);
+              }
+            }
+          }
+          
+          if (membership) {
+            const newStatus = membership.status?.[0] || null;
+            const updateDetail = await updateCompanyStatus(company, newStatus, supabase);
+            if (updateDetail) {
+              updatedCompanyCount++;
+              updateDetails.push({
+                ...updateDetail,
+                beacon_membership_id: membership.id
+              });
+            }
+          } else {
+            console.warn(`[DEBUG] Could not find matching membership for company "${company.name}" (beacon_membership_id: ${company.beacon_membership_id || 'none'}, beacon_id: ${company.beacon_id || 'none'})`);
           }
         } catch (error) {
-          processedCompanyCount++;
-          console.error(`Error syncing company ${company.id}:`, error);
+          console.error(`Error updating company ${company.id}:`, error);
           errorCount++;
         }
-        
-        await new Promise(resolve => setTimeout(resolve, delayBetweenItems));
-      }
-
-      // Delay between batches
-      if (i + batchSize < companiesToProcess.length) {
-        await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
-      }
+      });
+      await Promise.all(updatePromises);
     }
 
     const duration = Date.now() - startTime;
-    const processedCount = processedMemberCount + processedCompanyCount;
     const updatedCount = updatedMemberCount + updatedCompanyCount;
-    
-    // Explicit logging for Netlify dashboard
+
+    // Logging
     if (updatedCount === 0) {
       console.log(`=== Function ran successfully: No changes to Supabase required ===`);
-      console.log(`Processed ${processedCount} entities (${processedMemberCount} members, ${processedCompanyCount} companies)`);
+      console.log(`Found ${changedMemberships.length} changed membership(s) in Beacon`);
+      console.log(`  - ${businessDirectoryMemberships.length} Business Directory memberships`);
+      console.log(`  - ${individualGroupMemberships.length} Individual/Group memberships`);
+      console.log(`Matched ${allMembers.length} member(s) and ${allCompanies.length} company(ies) in Supabase`);
       console.log(`All statuses are up to date. Duration: ${duration}ms`);
     } else {
       console.log(`=== Function ran successfully: Made ${updatedCount} change(s) to Supabase ===`);
+      console.log(`Found ${changedMemberships.length} changed membership(s) in Beacon`);
+      console.log(`  - ${businessDirectoryMemberships.length} Business Directory memberships`);
+      console.log(`  - ${individualGroupMemberships.length} Individual/Group memberships`);
+      console.log(`Matched ${allMembers.length} member(s) and ${allCompanies.length} company(ies) in Supabase`);
       console.log(`Updated ${updatedMemberCount} member(s) and ${updatedCompanyCount} company(ies)`);
-      console.log(`Processed ${processedCount} entities total. Duration: ${duration}ms`);
+      console.log(`Duration: ${duration}ms`);
       
-      // Log all updates in a structured format (matching beacon_sync_logs table structure)
+      // Log all updates in a structured format
       console.log(`=== All Status Updates (${updateDetails.length} total) ===`);
       updateDetails.forEach((update, index) => {
         console.log(`[UPDATE ${index + 1}/${updateDetails.length}] ${JSON.stringify(update)}`);
       });
     }
-    
+
     const summary = {
-      message: processedCount < (membersToProcess.length + companiesToProcess.length) ? 'Sync partially completed (timeout protection)' : 'Sync completed',
-      rotation: {
-        dayOfYear,
-        membersProcessed: membersToProcess.length,
-        companiesProcessed: companiesToProcess.length,
+      message: 'Sync completed',
+      changedMemberships: {
+        total: changedMemberships.length,
+        businessDirectory: businessDirectoryMemberships.length,
+        individualGroup: individualGroupMemberships.length,
       },
-      total: {
-        members: memberCount,
-        companies: companyCount,
-        total: totalEntities,
-      },
-      processed: {
-        members: processedMemberCount,
-        companies: processedCompanyCount,
-        total: processedCount,
+      matched: {
+        members: allMembers.length,
+        companies: allCompanies.length,
+        total: allMembers.length + allCompanies.length,
       },
       updated: {
         members: updatedMemberCount,
