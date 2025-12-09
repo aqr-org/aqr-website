@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: PageProps) {
               <CardTitle className="text-2xl">
                 Thank you for signing up!
               </CardTitle>
-              <CardDescription>You&apos;ve successfully signed up. Please check your email to confirm your account before signing in.</CardDescription>
+              <CardDescription>Please check your email to confirm your account before signing in.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs">
