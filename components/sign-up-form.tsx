@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, LoaderCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -474,6 +474,11 @@ export function SignUpForm({
                 </p>
               }
               <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && 
+                  <div className="animate-spin">
+                    <LoaderCircle />
+                  </div>
+                }
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
             </div>
