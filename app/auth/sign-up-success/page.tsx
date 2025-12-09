@@ -23,7 +23,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   // Token exists - show success page
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="flex min-h-svh w-full items-start justify-center p-6 md:p-8">
       <div className="w-full max-w-lg">
         <div className="flex flex-col gap-6 pb-[200px]">
           <Card>
