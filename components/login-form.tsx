@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { TriangleAlert } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,6 +16,12 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  ERROR_CODES,
+  logAuthError,
+  safeJsonParse,
+  safeFetch,
+} from "@/lib/error-utils";
 
 export function LoginForm({
   className,
@@ -32,62 +39,241 @@ export function LoginForm({
     setIsLoading(true);
     setError(null);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
-      const normalizedEmail = email.trim().toLowerCase();
       
       // First check if this is the superadmin (skip Beacon check if so)
-      const superadminCheckResponse = await fetch('/api/check-superadmin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail }),
-      });
-      
-      const superadminCheck = superadminCheckResponse.ok 
-        ? await superadminCheckResponse.json() 
-        : { skipBeaconCheck: false };
+      const { response: superadminCheckResponse, error: superadminFetchError } = await safeFetch(
+        '/api/check-superadmin',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail }),
+        },
+        ERROR_CODES.SUPERADMIN_CHECK_FAILED,
+        'superadmin_check',
+        normalizedEmail
+      );
+
+      let superadminCheck = { skipBeaconCheck: false };
+
+      if (superadminFetchError) {
+        logAuthError({
+          errorCode: ERROR_CODES.SUPERADMIN_CHECK_FAILED,
+          step: 'superadmin_check_fetch',
+          error: new Error(superadminFetchError),
+          email: normalizedEmail,
+        });
+        // Continue with default (not superadmin) if fetch fails
+      } else if (superadminCheckResponse) {
+        if (superadminCheckResponse.ok) {
+          const { data: parsedCheck, error: jsonError } = await safeJsonParse<{
+            skipBeaconCheck: boolean;
+          }>(
+            superadminCheckResponse,
+            ERROR_CODES.SUPERADMIN_JSON_PARSE,
+            'superadmin_check',
+            normalizedEmail
+          );
+
+          if (jsonError) {
+            logAuthError({
+              errorCode: ERROR_CODES.SUPERADMIN_JSON_PARSE,
+              step: 'superadmin_check_json',
+              error: new Error(jsonError),
+              email: normalizedEmail,
+            });
+            // Continue with default (not superadmin) if JSON parse fails
+          } else if (parsedCheck) {
+            superadminCheck = parsedCheck;
+          }
+        } else {
+          logAuthError({
+            errorCode: ERROR_CODES.SUPERADMIN_CHECK_FAILED,
+            step: 'superadmin_check_response',
+            error: new Error(`HTTP ${superadminCheckResponse.status}: ${superadminCheckResponse.statusText}`),
+            email: normalizedEmail,
+            additionalData: {
+              httpStatus: superadminCheckResponse.status,
+              httpStatusText: superadminCheckResponse.statusText,
+            },
+          });
+          // Continue with default (not superadmin) if response not ok
+        }
+      }
       
       // Skip Beacon membership check for superadmin
       if (!superadminCheck.skipBeaconCheck) {
         // Call the API route to verify Beacon membership for regular users
-        const checkResponse = await fetch('/auth/beacon/check-membership', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: normalizedEmail }),
-        });
-        
-        if (!checkResponse.ok) {
+        const { response: checkResponse, error: fetchError } = await safeFetch(
+          '/auth/beacon/check-membership',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail }),
+          },
+          ERROR_CODES.BEACON_API_FAILED,
+          'beacon_membership_check',
+          normalizedEmail
+        );
+
+        if (fetchError) {
+          setError(fetchError);
+          setIsLoading(false);
+          return;
+        }
+
+        if (!checkResponse) {
           setError('Unable to verify membership status. Please try again later.');
           setIsLoading(false);
           return;
         }
-        
-        const check = await checkResponse.json();
-        
+
+        if (!checkResponse.ok) {
+          const statusCode = checkResponse.status;
+          const errorCode = statusCode === 500 
+            ? ERROR_CODES.BEACON_API_500 
+            : statusCode === 400 
+            ? ERROR_CODES.BEACON_API_400 
+            : ERROR_CODES.BEACON_API_FAILED;
+
+          logAuthError({
+            errorCode,
+            step: 'beacon_membership_check_response',
+            error: new Error(`HTTP ${statusCode}: ${checkResponse.statusText}`),
+            email: normalizedEmail,
+            additionalData: {
+              httpStatus: statusCode,
+              httpStatusText: checkResponse.statusText,
+            },
+          });
+
+          setError('Unable to verify membership status. Please try again later.');
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: check, error: jsonError } = await safeJsonParse<{
+          ok: boolean;
+          reason?: string;
+        }>(
+          checkResponse,
+          ERROR_CODES.BEACON_JSON_PARSE,
+          'beacon_membership_check',
+          normalizedEmail
+        );
+
+        if (jsonError) {
+          setError(jsonError);
+          setIsLoading(false);
+          return;
+        }
+
+        if (!check) {
+          setError('Unable to verify membership status. Please try again later.');
+          setIsLoading(false);
+          return;
+        }
+
         if (!check.ok) {
+          let errorCode: string = ERROR_CODES.BEACON_NOT_FOUND;
+          let errorMessage = 'Unable to verify membership status. Please try again later.';
+
           if (check.reason === 'beacon-not-found') {
-            setError('No AQR membership found for this email address. Please contact support.');
+            errorCode = ERROR_CODES.BEACON_NOT_FOUND;
+            errorMessage = 'No AQR membership found for this email address. Please contact support.';
           } else if (check.reason === 'no-active-membership') {
-            setError('No active AQR membership found for this email address. Please contact support.');
-          } else {
-            setError('Unable to verify membership status. Please try again later.');
+            errorCode = ERROR_CODES.BEACON_NO_ACTIVE_MEMBERSHIP;
+            errorMessage = 'No active AQR membership found for this email address. Please contact support.';
           }
+
+          logAuthError({
+            errorCode,
+            step: 'beacon_membership_validation',
+            error: new Error(`Beacon check failed: ${check.reason || 'unknown'}`),
+            email: normalizedEmail,
+            additionalData: {
+              reason: check.reason,
+            },
+          });
+
+          setError(errorMessage);
           setIsLoading(false);
           return;
         }
       }
 
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password,
       });
-      if (error) throw error;
+      
+      if (error) {
+        logAuthError({
+          errorCode: ERROR_CODES.SUPABASE_SIGNIN_FAILED,
+          step: 'supabase_signin',
+          error,
+          email: normalizedEmail,
+          additionalData: {
+            supabaseErrorCode: error.status || error.code,
+            supabaseErrorMessage: error.message,
+          },
+        });
+        throw error;
+      }
       
       // Redirect superadmin to superadmin panel, regular users to protected page
       const redirectPath = superadminCheck.skipBeaconCheck ? "/superadmin" : "/protected";
-      router.push(redirectPath);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message + '. Have you created an account already? If not, click the "Sign up" link below the Login button.' : "An error occurred");
-    } finally {
+      try {
+        router.push(redirectPath);
+      } catch (navError) {
+        logAuthError({
+          errorCode: ERROR_CODES.ROUTER_NAVIGATION,
+          step: 'login_redirect',
+          error: navError,
+          email: normalizedEmail,
+          additionalData: {
+            redirectPath,
+          },
+        });
+        // Still show success - navigation failure doesn't mean login failed
+        setError('Login successful, but we encountered an issue redirecting you. Please navigate manually.');
+      }
+    } 
+    catch (error: unknown) {
+      const baseMessage = error instanceof Error ? error.message : "An error occurred";
+      let errorCode: string;
+      let additionalInfo = `.\n\nPlease contact support at admin@aqr.org.uk if you continue to have issues.`;
+
+      // IF INVALID EMAIL OR PASSWORD
+      if (baseMessage.toLowerCase().includes("invalid login credentials")) {
+        errorCode = ERROR_CODES.SUPABASE_SIGNIN_FAILED;
+        additionalInfo = `.\n\nHave you created an account already? If not, click the "Sign up" link below the Login button.`;
+      }
+      // IF EMAIL NOT CONFIRMED
+      else if (baseMessage.toLowerCase().includes("email not confirmed")) {
+        errorCode = ERROR_CODES.SUPABASE_EMAIL_NOT_CONFIRMED;
+        additionalInfo = `.\n\nPlease click on the link in the newest confirmation email you received.\n\n• If you received multiple confirmation emails, only the newest one is valid.\n• If you did not receive a confirmation email, check your SPAM folder or try to sign up again.\n• If you continue to have issues, please contact support.`;
+      }
+      else {
+        errorCode = ERROR_CODES.SUPABASE_SIGNIN_FAILED;
+      }
+
+      // Log error if not already logged (some errors are logged before being thrown)
+      if (!(error instanceof Error && error.message === baseMessage && baseMessage.toLowerCase().includes("invalid login credentials"))) {
+        logAuthError({
+          errorCode,
+          step: 'login_catch_all',
+          error,
+          email: normalizedEmail,
+        });
+      }
+
+      // Don't show error codes - all errors are logged but not shown to users
+      setError(baseMessage + additionalInfo);
+    } 
+    finally {
       setIsLoading(false);
     }
   };
@@ -123,7 +309,7 @@ export function LoginForm({
                   <Label htmlFor="password">Password</Label>
                   <Link
                     href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    className="ml-auto inline-block text-xs underline-offset-4 hover:underline pb-2"
                   >
                     Forgot your password?
                   </Link>
@@ -136,7 +322,12 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500 border border-red-500 p-4 rounded-lg">{error}</p>}
+              {error && (
+                <p className="text-sm text-qaupe font-medium bg-red-500 border border-red-500 p-4 pr-6 rounded-lg flex items-start gap-4">
+                  <TriangleAlert className="w-12" />
+                  <span className="whitespace-pre-line">{error}</span>
+                </p>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>

@@ -5,23 +5,44 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { redirect } from "next/navigation";
 
-export default function Page() {
+interface PageProps {
+  searchParams: Promise<{ token?: string }>;
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const resolvedSearchParams = await searchParams;
+  const token = resolvedSearchParams.token;
+
+  // If no token provided, redirect to sign-up page
+  // Simple check - token just needs to exist (no database verification)
+  if (!token) {
+    redirect("/auth/sign-up?error=invalid_token");
+  }
+
+  // Token exists - show success page
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
+      <div className="w-full max-w-lg">
+        <div className="flex flex-col gap-6 pb-[200px]">
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">
                 Thank you for signing up!
               </CardTitle>
-              <CardDescription>Check your email to confirm</CardDescription>
+              <CardDescription>You&apos;ve successfully signed up. Please check your email to confirm your account before signing in.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                You&apos;ve successfully signed up. Please check your email to
-                confirm your account before signing in.
+            <CardContent className="space-y-3">
+              <p className="text-xs">
+                <strong className="font-semibold">No confirmation email within 20 minutes?</strong>
+                <br /> 
+                Please make sure to check your Spam folder and other inboxes. 
+              </p>
+              <p className="text-xs">
+                <strong className="font-semibold">Still no confirmation email?</strong> 
+                <br />
+                Try signing up again and in case of further issues, contact support.
               </p>
             </CardContent>
           </Card>
