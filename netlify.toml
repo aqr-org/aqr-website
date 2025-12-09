@@ -14,6 +14,8 @@
   # All secrets (SUPABASE_URL, SUPABASE_ANON_KEY, BEACON_API_URL, BEACON_AUTH_TOKEN, STORYBLOK_ACCESS_TOKEN)
   # and optional config (SITE_URL, PRIMARY_SITE_URL) should be set in Netlify Dashboard > Site settings > Environment variables
   # Netlify automatically provides URL env var for the current deployment URL
+  # Omit SUPERADMIN_EMAIL2 from secrets scanning since it's only used server-side and the support email is public
+  SECRETS_SCAN_OMIT_KEYS = "SUPERADMIN_EMAIL2"
 
 [images]
   remote_images = ["https://bhmfxxloeuhdqpgnfweo.supabase.co/storage/v1/object/public/images/.*"]

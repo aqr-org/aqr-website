@@ -233,7 +233,11 @@ export function SignUpForm({
             hasSession: !!data?.session,
           },
         });
-        setError("Failed to create account. Please try again or contact support at admin@aqr.org.uk if the problem persists.");
+        const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+        const errorMessage = supportEmail
+          ? `Failed to create account. Please try again or contact support at ${supportEmail} if the problem persists.`
+          : 'Failed to create account. Please try again or contact support if the problem persists.';
+        setError(errorMessage);
         setIsLoading(false);
         return;
       }
@@ -340,7 +344,11 @@ export function SignUpForm({
                 isNewUser,
               },
             });
-            setError("An account may already exist with this email. Please try signing in, or contact support at admin@aqr.org.uk if you continue to have issues.");
+            const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+            const errorMessage = supportEmail
+              ? `An account may already exist with this email. Please try signing in, or contact support at ${supportEmail} if you continue to have issues.`
+              : 'An account may already exist with this email. Please try signing in, or contact support if you continue to have issues.';
+            setError(errorMessage);
             setIsLoading(false);
             return;
           }
@@ -370,7 +378,11 @@ export function SignUpForm({
               isNewUser,
             },
           });
-          setError("Unable to verify account status. Please contact support at admin@aqr.org.uk and share the steps you took leading up to this error.");
+          const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+          const errorMessage = supportEmail
+            ? `Unable to verify account status. Please contact support at ${supportEmail} and share the steps you took leading up to this error.`
+            : 'Unable to verify account status. Please contact support and share the steps you took leading up to this error.';
+          setError(errorMessage);
           setIsLoading(false);
           return;
         }

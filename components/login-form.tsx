@@ -261,7 +261,10 @@ export function LoginForm({
     catch (error: unknown) {
       const baseMessage = error instanceof Error ? error.message : "An error occurred";
       let errorCode: string;
-      let additionalInfo = `.\n\nPlease contact support at admin@aqr.org.uk if you continue to have issues.`;
+      const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+      let additionalInfo = supportEmail 
+        ? `.\n\nPlease contact support at ${supportEmail} if you continue to have issues.`
+        : `.\n\nPlease contact support if you continue to have issues.`;
 
       // IF INVALID EMAIL OR PASSWORD
       if (baseMessage.toLowerCase().includes("invalid login credentials")) {
