@@ -76,7 +76,7 @@ export default async function DirPage() {
   }, {});
 
   return (
-    <>
+    <article className="animate-fade-in">
       <div className="mb-12 *:[p]:columns-2 max-w-maxwMain">
         <StoryblokStory story={glossaryHomeStory.data.story} />
       </div>
@@ -138,7 +138,7 @@ export default async function DirPage() {
           )}
         </div>
       </Suspense>
-    </>
+    </article>
   );
 }
 

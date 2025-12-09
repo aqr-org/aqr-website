@@ -168,7 +168,7 @@ async function fetchSupabaseMember(slug: string) {
   };
 }
 
-export default async function ComnpaniesPage({
+export default async function MemberPage({
   params
 }: {
   params: Promise<{ slug: string }>
@@ -220,7 +220,7 @@ export default async function ComnpaniesPage({
   
   // Render Supabase member data
   return (
-    <article className='space-y-8'>
+    <article className='space-y-8 animate-fade-in'>
       
       <section>
         <div className='flex flex-col md:flex-row md:items-center md:gap-8'>
