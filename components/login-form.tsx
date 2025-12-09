@@ -14,8 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 import {
   ERROR_CODES,
   logAuthError,
@@ -32,6 +32,23 @@ export function LoginForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Read confirmed parameter once on mount and store in state that won't reset
+  const [isConfirmed] = useState(() => searchParams.get("confirmed") === "true");
+  const hasCleanedUrl = useRef(false);
+
+  // Clean up URL by removing the query parameter after component mounts
+  useEffect(() => {
+    if (isConfirmed && !hasCleanedUrl.current && typeof window !== "undefined") {
+      hasCleanedUrl.current = true;
+      // Use requestAnimationFrame to ensure component has rendered before URL change
+      requestAnimationFrame(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("confirmed");
+        window.history.replaceState({}, "", url.toString());
+      });
+    }
+  }, [isConfirmed]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -282,12 +299,18 @@ export function LoginForm({
     <div className={cn("form flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">
+            {isConfirmed ? "Your email is confirmed!" : "Login"}
+          </CardTitle>
           <CardDescription>
-            <div className="text-sm space-y-1 mt-2 pt-4 border-t border-qlack border-dashed">
-              <p>First time here? <Link href="/auth/sign-up" className="underline underline-offset-4 font-semibold">Sign up</Link> for an account.</p>
-              <p>Not a member yet? <Link href="/members/new-membership-application" className="underline underline-offset-4 font-semibold">Join AQR</Link></p>
-            </div>
+            {isConfirmed ? (
+              "You can now log in with your email and password"
+            ) : (
+              <div className="text-sm space-y-1 mt-2 pt-4 border-t border-qlack border-dashed">
+                <p>First time here? <Link href="/auth/sign-up" className="underline underline-offset-4 font-semibold">Sign up</Link> for an account.</p>
+                <p>Not a member yet? <Link href="/members/new-membership-application" className="underline underline-offset-4 font-semibold">Join AQR</Link></p>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
