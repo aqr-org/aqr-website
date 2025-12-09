@@ -209,7 +209,7 @@ export function SignUpForm({
         });
 
         if (errorCode === 400 && errorMessage.includes("invalid login credentials")) {
-          setError("An account already exists with this email address. Please log in instead.");
+          setError("An account already exists with this email address! Please log in instead.");
           setIsLoading(false);
           return;
         } else {
@@ -267,7 +267,7 @@ export function SignUpForm({
             error: new Error('Account already exists - sign in succeeded during signup'),
             email: normalizedEmail,
           });
-          setError("An account already exists with this email address. Please sign in instead.");
+          setError("An account already exists with this email address, please log in instead.");
           setIsLoading(false);
           return;
         }
@@ -310,7 +310,7 @@ export function SignUpForm({
               error: signInError,
               email: normalizedEmail,
             });
-            setError("An account already exists with this email address. Please sign in instead.");
+            setError("An account already exists with this email address. Please log in instead.");
             setIsLoading(false);
             return;
           }
@@ -431,8 +431,9 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
+                <div className="flex justify-between items-baseline gap-2">
                   <Label htmlFor="password">Password</Label>
+                  <p className="text-xs">At least 6 characters, max 72 characters</p>
                 </div>
                 <Input
                   id="password"
@@ -456,7 +457,7 @@ export function SignUpForm({
               </div>
               { error && 
                 <p className="text-sm text-qaupe font-medium bg-red-500 border border-red-500 p-4 pr-6 rounded-lg flex items-start gap-4">
-                  <TriangleAlert className="w-12" /> 
+                  <TriangleAlert className="w-6 basis-6 shrink-0 grow-0" /> 
                   <span className="whitespace-pre-line">{error}</span> 
                 </p>
               }

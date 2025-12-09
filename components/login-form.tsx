@@ -347,7 +347,7 @@ export function LoginForm({
               </div>
               {error && (
                 <p className="text-sm text-qaupe font-medium bg-red-500 border border-red-500 p-4 pr-6 rounded-lg flex items-start gap-4">
-                  <TriangleAlert className="w-12" />
+                  <TriangleAlert className="w-6 basis-6 shrink-0 grow-0" />
                   <span className="whitespace-pre-line">{error}</span>
                 </p>
               )}
