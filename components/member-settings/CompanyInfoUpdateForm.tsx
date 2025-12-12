@@ -323,6 +323,32 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
     const supabase = createClient();
 
     try {
+      // When creating a new company, automatically populate beacon_id
+      let beaconId: string | null = null;
+      if (!companyData?.id && beaconData?.id) {
+        // First, try to use the organization ID from beaconData (already extracted)
+        beaconId = beaconData?.organizations?.[0]?.id || null;
+        
+        // If not available in beaconData, fetch it from Beacon API using the membership ID
+        if (!beaconId && beaconData.id) {
+          try {
+            const response = await fetch(`/api/beacon/extract-organization-id?membershipId=${encodeURIComponent(beaconData.id)}`);
+            if (response.ok) {
+              const data = await response.json();
+              beaconId = data.organizationId || null;
+              if (beaconId) {
+                console.log(`Extracted beacon_id: ${beaconId} from membership ${beaconData.id}`);
+              }
+            } else {
+              console.warn(`Failed to extract organization ID for membership ${beaconData.id}`);
+            }
+          } catch (error) {
+            console.error(`Error fetching organization ID for membership ${beaconData.id}:`, error);
+            // Continue with creation even if beacon_id extraction fails
+          }
+        }
+      }
+
       const companyDataToSave = {
         name: formValues.companyName.trim(),
         type: formValues.type,
@@ -335,8 +361,11 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
         accred: formValues.accred?.trim() || null,
         // Add the required beacon fields when creating
         ...(companyData?.id ? {} : {
-          beacon_membership_id: beaconData?.organizations?.[0]?.id || null,
+          // beaconData.id is the membership ID, beaconData.organizations[0].id is the organization ID
+          beacon_membership_id: beaconData?.id || null,
           beacon_membership_status: beaconData?.hasCurrentMembership ? 'Active' : null,
+          // Automatically set beacon_id (organization ID) - either from beaconData or fetched from API
+          beacon_id: beaconId,
         })
       };
       

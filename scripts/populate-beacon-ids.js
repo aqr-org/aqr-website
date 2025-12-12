@@ -321,3 +321,9 @@ populateBeaconIds()
     console.error('\nScript failed:', error);
     process.exit(1);
   });
+
+
+
+
+
+
