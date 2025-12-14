@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, Search, UserRound } from 'lucide-react';
+import { Home, Search} from 'lucide-react';
 import { headers } from 'next/headers';
+import SearchButton from '@/components/SearchButton';
 
 export default async function NotFound() {
   const headersList = await headers();
@@ -52,13 +53,13 @@ export default async function NotFound() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
           {isMemberProfile ? 
-            <Button variant="filled" size="lg" className='w-full'>
+            <Button variant="filled">
               <Link href="/members" className="flex items-center gap-2">
                 Go to Members List
               </Link>
             </Button>
           :
-            <Button variant="filled" size="lg" className='w-full'>
+            <Button variant="filled">
               <Link href="/" className="flex items-center gap-2">
                 <Home className="w-5 h-5" />
                 Go to Homepage
@@ -66,12 +67,7 @@ export default async function NotFound() {
             </Button>
           }
           
-          <Button variant="default" size="lg" className='w-full' >
-            <Link href="/search" className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              Search
-            </Link>
-          </Button>
+          <SearchButton variant="button" />
         </div>
 
         {/* Popular Links */}
