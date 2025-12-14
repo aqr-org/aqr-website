@@ -104,6 +104,11 @@ async function fetchSupabaseMember(slug: string) {
     return null;
   }
 
+  // Check if member's beacon_membership_status is 'Active'
+  if (member.data?.beacon_membership_status !== 'Active') {
+    return null;
+  }
+
   // Find the correct image URL with extension
   const validImageUrl = member.data?.id 
     ? await findValidImageUrl(supabase, member.data.id)
