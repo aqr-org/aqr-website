@@ -12,6 +12,8 @@ export default async function ProtectedPage() {
   if (error || !data?.claims) redirect("/auth/login");
 
   const userEmail = data.claims.email;
+  if (!userEmail) redirect("/auth/login");
+
   const userBeaconData = (await beaconDataOf(userEmail)) as UserBeaconData;
 
   const orgName = userBeaconData.organizations?.[0]?.name ?? null;

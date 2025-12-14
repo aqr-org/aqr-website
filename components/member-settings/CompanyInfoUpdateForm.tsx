@@ -30,6 +30,7 @@ interface CompanyInfoUpdateFormProps {
   companyData: CompanyData | null;
   onSuccess?: (companyId: string) => void;
   beaconData?: {
+    id?: string; // Membership ID - used as fallback to fetch organization ID
     organizations: { id: string; name: string }[];
     hasCurrentMembership: boolean;
   };
@@ -325,11 +326,11 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
     try {
       // When creating a new company, automatically populate beacon_id
       let beaconId: string | null = null;
-      if (!companyData?.id && beaconData?.id) {
+      if (!companyData?.id && beaconData) {
         // First, try to use the organization ID from beaconData (already extracted)
-        beaconId = beaconData?.organizations?.[0]?.id || null;
+        beaconId = beaconData.organizations?.[0]?.id || null;
         
-        // If not available in beaconData, fetch it from Beacon API using the membership ID
+        // If not available in beaconData.organizations, fetch it from Beacon API using the membership ID
         if (!beaconId && beaconData.id) {
           try {
             const response = await fetch(`/api/beacon/extract-organization-id?membershipId=${encodeURIComponent(beaconData.id)}`);
@@ -361,10 +362,10 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
         accred: formValues.accred?.trim() || null,
         // Add the required beacon fields when creating
         ...(companyData?.id ? {} : {
-          // beaconData.id is the membership ID, beaconData.organizations[0].id is the organization ID
-          beacon_membership_id: beaconData?.id || null,
+          // beaconData.organizations[0].id is the organization ID
+          beacon_membership_id: null,
           beacon_membership_status: beaconData?.hasCurrentMembership ? 'Active' : null,
-          // Automatically set beacon_id (organization ID) - either from beaconData or fetched from API
+          // Automatically set beacon_id (organization ID) from beaconData
           beacon_id: beaconId,
         })
       };
