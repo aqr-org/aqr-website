@@ -148,6 +148,7 @@ async function searchMembers(query: string): Promise<MemberSearchResult[]> {
   const { data, error } = await supabase
     .from('members')
     .select('id, firstname, lastname, organisation, jobtitle, biognotes, slug')
+    .eq('beacon_membership_status', 'Active')
     .or(`firstname.ilike.%${query}%,lastname.ilike.%${query}%,organisation.ilike.%${query}%,jobtitle.ilike.%${query}%,biognotes.ilike.%${query}%`)
     .limit(100);
 
