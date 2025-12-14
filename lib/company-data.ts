@@ -100,7 +100,8 @@ export const getCompanyData = cache(async (slug: string): Promise<FullCompanyDat
       supabase
         .from('members')
         .select('id, firstname, lastname, organisation, slug')
-        .eq('organisation', companyData.name),
+        .eq('organisation', companyData.name)
+        .eq('beacon_membership_status', 'Active'),
       supabase
         .storage
         .from('images')
