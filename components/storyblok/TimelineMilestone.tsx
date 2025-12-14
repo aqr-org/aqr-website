@@ -35,11 +35,12 @@ function getColorValue(colorName?: string, defaultColor: string = "#7bbd40"): st
 // Generate a deterministic duration based on a string (for consistent SSR/client hydration)
 function getDeterministicDuration(seed: string, min: number = 10, max: number = 20): string {
   // Simple hash function to convert string to number
+  if (!seed || typeof seed !== 'string') return `${min}s`;
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
-    const char = seed.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    const charCode = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + charCode;
+    hash = hash | 0; // Convert to 32-bit integer
   }
   // Normalize to range [min, max]
   const normalized = Math.abs(hash) % 1000 / 1000; // 0-1 range

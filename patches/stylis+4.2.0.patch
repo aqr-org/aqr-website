@@ -1,0 +1,26 @@
+diff --git a/node_modules/stylis/src/Parser.js b/node_modules/stylis/src/Parser.js
+index 68c5c02..ff196fc 100644
+--- a/node_modules/stylis/src/Parser.js
++++ b/node_modules/stylis/src/Parser.js
+@@ -176,7 +176,8 @@ export function ruleset (value, root, parent, index, offset, rules, points, type
+  * @return {object}
+  */
+ export function comment (value, root, parent) {
+-	return node(value, root, parent, COMMENT, from(char()), substr(value, 2, -2), 0)
++	const charFn = typeof char === 'function' ? char : () => 0;
++	return node(value, root, parent, COMMENT, from(charFn()), substr(value, 2, -2), 0)
+ }
+ 
+ /**
+diff --git a/node_modules/stylis/src/Parser.js.patch b/node_modules/stylis/src/Parser.js.patch
+new file mode 100644
+index 0000000..9d4800e
+--- /dev/null
++++ b/node_modules/stylis/src/Parser.js.patch
+@@ -0,0 +1,6 @@
++--- a/node_modules/stylis/src/Parser.js
+++++ b/node_modules/stylis/src/Parser.js
++@@ -176,7 +176,7 @@ export function comment (value, root, parent) {
++-	return node(value, root, parent, COMMENT, from(char()), substr(value, 2, -2), 0)
+++	return node(value, root, parent, COMMENT, from(typeof char === 'function' ? char() : 0), substr(value, 2, -2), 0)
++ }

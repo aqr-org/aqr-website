@@ -39,11 +39,12 @@ export const ERROR_CODES = {
  */
 function hashEmail(email: string): string {
   // Simple hash for logging - not cryptographically secure, just for privacy
+  if (!email || typeof email !== 'string') return 'no_email';
   let hash = 0;
   for (let i = 0; i < email.length; i++) {
-    const char = email.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    const charCode = email.charCodeAt(i);
+    hash = ((hash << 5) - hash) + charCode;
+    hash = hash | 0; // Convert to 32bit integer
   }
   return `email_${Math.abs(hash).toString(16)}`;
 }
@@ -130,7 +131,10 @@ export async function safeJsonParse<T>(
       });
       return {
         data: null,
-        error: 'Failed to parse server response. Please try again or contact support.',
+        error: formatErrorMessage(
+          errorCode,
+          'Failed to parse server response. Please try again or contact support.'
+        ),
       };
     }
   } catch (textError) {
@@ -146,7 +150,10 @@ export async function safeJsonParse<T>(
     });
     return {
       data: null,
-      error: 'Failed to read server response. Please try again or contact support.',
+      error: formatErrorMessage(
+        errorCode,
+        'Failed to read server response. Please try again or contact support.'
+      ),
     };
   }
 }
@@ -192,7 +199,7 @@ export async function safeFetch(
 
     return {
       response: null,
-      error: errorMessage,
+      error: formatErrorMessage(specificErrorCode, errorMessage),
     };
   }
 }

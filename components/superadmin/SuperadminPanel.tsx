@@ -395,33 +395,30 @@ export default function SuperadminPanel() {
     <div className="w-full">
       <Tabs>
         <TabList 
-          className={`
-            flex gap-1 items-end
-            mb-0 
-          `}
+          className="flex gap-1 items-end mb-0"
         >
           <Tab
             className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
+            selectedClassName="!text-qlack !font-bold relative !pb-2 top-[1px] bg-qaupe"
           >
             Edit Company
           </Tab>
           <Tab
             className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
+            selectedClassName="!text-qlack !font-bold relative !pb-2 top-[1px] bg-qaupe"
           >
             Edit Member
           </Tab>
           <Tab
             className="border border-qlack/20 border-b-0 font-normal bg-qlack/5 text-qreen-dark px-4 py-2 pb-1 rounded-t-lg cursor-pointer hover:pb-2 transition-all"
-            selectedClassName="text-qlack! !font-[600] relative !pb-2 top-[1px] !from-qaupe !to-qaupe bg-qaupe!"
+            selectedClassName="!text-qlack !font-bold relative !pb-2 top-[1px] bg-qaupe"
           >
             Board Members
           </Tab>
         </TabList>
 
         <TabPanel 
-          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName="border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe"
         >
           <div className="w-full space-y-6">
             <div>
@@ -500,7 +497,7 @@ export default function SuperadminPanel() {
         </TabPanel>
 
         <TabPanel 
-          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName="border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe"
         >
           <div className="w-full space-y-6">
             <div>
@@ -575,7 +572,7 @@ export default function SuperadminPanel() {
         </TabPanel>
 
         <TabPanel 
-          selectedClassName={` border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe`}
+          selectedClassName="border border-qlack/20 md:rounded-b-lg md:rounded-tr-lg p-8 w-full bg-qaupe"
         >
           <div className="w-full space-y-6">
             <div>
