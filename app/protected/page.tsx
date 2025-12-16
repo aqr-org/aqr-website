@@ -11,7 +11,7 @@ export default async function ProtectedPage() {
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims) redirect("/auth/login");
 
-  const userEmail = 'grahamb@movementresearch.co.uk';
+  const userEmail = data.claims.email;
   // const userEmail = data.claims.email;
   if (!userEmail) redirect("/auth/login");
 
