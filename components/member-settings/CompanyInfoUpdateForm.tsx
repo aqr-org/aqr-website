@@ -11,6 +11,7 @@ import {Checkbox} from "@/components/ui/checkbox";
 import { profOrgsNameMap } from "@/lib/utils";
 import Image from "next/image";
 import MenuBar from "@/components/ui/richtext-editor-menu";
+import { UserBeaconData } from "@/lib/types";
 
 interface CompanyData {
   id?: string;
@@ -24,6 +25,7 @@ interface CompanyData {
   prsaward: string;
   accred: string;
   logo: string;
+  beacon_membership_status?: string | null;
 }
 
 interface CompanyInfoUpdateFormProps {
@@ -35,6 +37,24 @@ interface CompanyInfoUpdateFormProps {
     hasCurrentMembership: boolean;
   };
   isSuperAdmin?: boolean;
+  userBeaconData?: UserBeaconData;
+}
+
+// Helper function to extract membership tier from allMemberships
+function getMembershipTier(allMemberships?: string[]): string | null {
+  if (!allMemberships || allMemberships.length === 0) {
+    return null;
+  }
+
+  if (allMemberships.some(m => m.includes("Business Directory Enhanced"))) {
+    return "Enhanced";
+  } else if (allMemberships.some(m => m.includes("Business Directory Standard"))) {
+    return "Standard";
+  } else if (allMemberships.some(m => m.includes("Business Directory Basic"))) {
+    return "Basic";
+  }
+
+  return null;
 }
 
 const companyTypeValues = [
@@ -66,7 +86,7 @@ const accreditationValues = [
   "ISO 17100"
 ];
 
-export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconData, isSuperAdmin = false }: CompanyInfoUpdateFormProps) {
+export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconData, isSuperAdmin = false, userBeaconData }: CompanyInfoUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -438,7 +458,28 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
       <label htmlFor="companyName" className="group relative">
         <p>Company Name</p>
         {!isSuperAdmin && (
-          <h2 className="text-lg md:text-4xl text-qreen-dark max-w-full text-ellipsis">{formValues.companyName}</h2>
+          <>
+            <h2 className="text-lg md:text-4xl text-qreen-dark max-w-full text-ellipsis">{formValues.companyName}</h2>
+            {/* Display membership tier and status for regular users */}
+            {(userBeaconData || companyData?.beacon_membership_status) && (
+              <div className="flex gap-4 items-center text-sm text-qlack/70 mt-2">
+                {userBeaconData && (
+                  <>
+                    {getMembershipTier(userBeaconData.allMemberships) && (
+                      <span>
+                        <strong>Membership Tier:</strong> {getMembershipTier(userBeaconData.allMemberships)}
+                      </span>
+                    )}
+                  </>
+                )}
+                {companyData?.beacon_membership_status && (
+                  <span>
+                    <strong>Status:</strong> {companyData.beacon_membership_status}
+                  </span>
+                )}
+              </div>
+            )}
+          </>
         )}
         <input
           type="text"

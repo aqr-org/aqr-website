@@ -14,6 +14,7 @@ interface CompanyAreaUpdateFormProps {
   companyAreas: CompanyArea[];
   onSuccess?: () => void;
   userBeaconData?: UserBeaconData;
+  isSuperAdmin?: boolean;
 }
 
 // Function to get area limit based on membership type
@@ -37,7 +38,7 @@ function getAreaLimit(allMemberships?: string[]): number | null {
   return null; // No matching membership found
 }
 
-export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSuccess, userBeaconData }: CompanyAreaUpdateFormProps) {
+export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSuccess, userBeaconData, isSuperAdmin = false }: CompanyAreaUpdateFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [wasUpdated, setWasUpdated] = useState(false);
@@ -49,14 +50,19 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
     return getAreaLimit(userBeaconData?.allMemberships);
   }, [userBeaconData?.allMemberships]);
 
+  // Check if user has Enhanced membership (unlimited)
+  const hasEnhancedMembership = useMemo(() => {
+    return userBeaconData?.allMemberships?.some(m => m.includes("Business Directory Enhanced")) ?? false;
+  }, [userBeaconData?.allMemberships]);
+
   // Calculate total selected count
   const totalSelected = useMemo(() => {
     return Object.values(selectedAreas).flat().length;
   }, [selectedAreas]);
 
-  // Check if over limit
+  // Check if over limit (superadmins are subject to company's membership limits)
   const isOverLimit = useMemo(() => {
-    if (areaLimit === null) return false; // No limit
+    if (areaLimit === null) return false; // No limit for unlimited memberships (Enhanced)
     return totalSelected > areaLimit;
   }, [totalSelected, areaLimit]);
 
@@ -102,7 +108,6 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
         }
 
         setSelectedAreas(selectedByCategory);
-        console.log("Initialized selected areas:", selectedByCategory, "from companyAreas:", companyAreas);
       }
     };
 
@@ -128,7 +133,6 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
     e.preventDefault();
     
     if (!companyId) {
-      console.log("No company ID provided, skipping area update");
       return;
     }
 
@@ -176,7 +180,6 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
         }
       }
 
-      console.log("Company areas updated successfully", { count: allSelectedAreas.length });
       setWasUpdated(true);
       if (onSuccess) {
         onSuccess();
@@ -190,12 +193,14 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
     setIsLoading(false);
   };
 
-  const businessMembershipTier = userBeaconData?.allMemberships?.filter(membership => membership.includes('Business Directory'));
+  const businessMembershipTier = useMemo(() => {
+    return userBeaconData?.allMemberships?.filter(membership => membership.includes('Business Directory')) || [];
+  }, [userBeaconData?.allMemberships]);
 
   return (
     <div className="relative">
       {/* Sticky indicator */}
-      {areaLimit !== null && (
+      {(areaLimit !== null || hasEnhancedMembership || isSuperAdmin) && (
         <div className={`sticky top-32 z-50 mb-4 -mx-4 p-4 rounded-lg border-2 transition-all backdrop-blur-sm shadow-lg ${
           isOverLimit 
             ? 'bg-qrose/95 border-qrose shadow-lg' 
@@ -205,8 +210,12 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
             <div className="flex items-center gap-2 leading-tight">
               {isOverLimit && <AlertTriangle className="w-5 h-5 shrink-0 text-qaupe" />}
               <span className={`font-semibold ${isOverLimit ? 'text-qaupe' : 'text-qaupe'}`}>
-                Search Criteria selected: {totalSelected}/{areaLimit === null ? '∞' : areaLimit} <br /> 
-                <span className="text-xs text-qaupe font-normal">({businessMembershipTier?.join(', ')})</span>
+                Search Criteria selected: {totalSelected}{areaLimit === null ? '' : `/${areaLimit}`} <br /> 
+                <span className="text-xs text-qaupe font-normal">
+                  {isSuperAdmin 
+                    ? `(Superadmin${businessMembershipTier.length > 0 ? ` - ${businessMembershipTier.join(', ')}` : ' - No Business Directory membership found'})` 
+                    : `(${businessMembershipTier.length > 0 ? businessMembershipTier.join(', ') : 'No membership'})`}
+                </span>
               </span>
             </div>
             {isOverLimit && (
@@ -217,6 +226,16 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
             {!isOverLimit && areaLimit !== null && areaLimit > 0 && (
               <span className="text-sm text-qaupe">
                 {areaLimit - totalSelected} remaining
+              </span>
+            )}
+            {!isOverLimit && hasEnhancedMembership && areaLimit === null && (
+              <span className="text-sm text-qaupe">
+                Unlimited areas available
+              </span>
+            )}
+            {!isOverLimit && isSuperAdmin && areaLimit === null && !hasEnhancedMembership && businessMembershipTier.length === 0 && (
+              <span className="text-sm text-qaupe">
+                No Business Directory membership found for this company
               </span>
             )}
           </div>
@@ -237,7 +256,12 @@ export default function CompanyAreaUpdateForm({ companyId, companyAreas, onSucce
                       checked={selectedAreas[category]?.includes(area) || false}
                       onCheckedChange={(checked) => handleAreaChange(category, area, checked === true)}
                     />
-                    <span className="text-sm text-qreen-dark whitespace-nowrap overflow-hidden hover:overflow-visible">{area}</span>
+                    <span className="group text-sm text-qreen-dark whitespace-nowrap mr-2 overflow-hidden hover:overflow-visible hover:z-100 hover:relative">
+                      <span className="relative z-20">
+                        {area}
+                      </span>
+                      <span className="hidden group-hover:block absolute -left-2 -right-2 -top-1 -bottom-1 inset-0 bg-white rounded-md z-10 border-8 border-qaupe shadow-lg" />
+                    </span>
                   </label>
                 ))}
               </div>

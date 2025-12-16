@@ -6,8 +6,8 @@ import { CompanyData, CompanyAreaData, CompanyContactData, UserBeaconData } from
 export default function CompanyUpdateForm({ companyData, companyAreas, contactData, isSuperAdmin = false, userBeaconData }: { companyData: CompanyData; companyAreas: CompanyAreaData[]; contactData: CompanyContactData | null; isSuperAdmin?: boolean; userBeaconData?: UserBeaconData }) {  
   return(
     <>
-        <CompanyInfoUpdateForm companyData={companyData} isSuperAdmin={isSuperAdmin} />
-        <CompanyAreaUpdateForm companyId={companyData.id} companyAreas={companyAreas} userBeaconData={userBeaconData} />
+        <CompanyInfoUpdateForm companyData={companyData} isSuperAdmin={isSuperAdmin} userBeaconData={userBeaconData} />
+        <CompanyAreaUpdateForm companyId={companyData.id} companyAreas={companyAreas} userBeaconData={userBeaconData} isSuperAdmin={isSuperAdmin} />
         <CompanyContactUpdateForm companyId={companyData.id} contactData={contactData} />
     </>
   )
