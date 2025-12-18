@@ -68,6 +68,141 @@ async function fetchBeaconMembershipByEmail(email: string, field: string = 'memb
   return await response.json();
 }
 
+/**
+ * Fetch Beacon person by email (to get personId).
+ */
+async function fetchBeaconPersonByEmail(email: string): Promise<any> {
+  const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
+  const beaconApiUrl = process.env.BEACON_API_URL;
+
+  if (!beaconAuthToken || !beaconApiUrl) {
+    return { results: [] };
+  }
+
+  const bodyData = {
+    filter_conditions: [
+      {
+        field: 'emails.email',
+        operator: '==',
+        value: email
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch(`${beaconApiUrl}/entities/person/filter`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${beaconAuthToken}`,
+        'Beacon-Application': 'developer_api',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(bodyData)
+    });
+
+    if (!response.ok) {
+      return { results: [] };
+    }
+
+    return await response.json();
+  } catch {
+    return { results: [] };
+  }
+}
+
+/**
+ * Fetch Business Directory memberships for orgs where org.primary_contact contains personId.
+ *
+ * Strategy (fast path):
+ * - Filter organizations by primary_contact contains personId
+ * - For each org id, filter memberships by member contains orgId
+ * - Filter returned memberships in code for Active + Business Directory type
+ */
+async function fetchBeaconMembershipsByOrgPrimaryContact(personId: string): Promise<any> {
+  const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
+  const beaconApiUrl = process.env.BEACON_API_URL;
+
+  if (!beaconAuthToken || !beaconApiUrl) {
+    return { results: [] };
+  }
+
+  // 1) Find organizations for this primary contact
+  const orgFilterBody = {
+    filter_conditions: [
+      {
+        field: 'primary_contact',
+        operator: 'contains',
+        value: String(personId)
+      }
+    ]
+  };
+
+  const orgRes = await fetch(`${beaconApiUrl}/entities/organization/filter`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${beaconAuthToken}`,
+      'Beacon-Application': 'developer_api',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(orgFilterBody)
+  });
+
+  if (!orgRes.ok) {
+    return { results: [] };
+  }
+
+  const orgJson = await orgRes.json();
+  const orgIds: string[] = (orgJson?.results ?? [])
+    .map((r: any) => r?.entity?.id)
+    .filter((id: any) => id != null)
+    .map((id: any) => String(id));
+
+  if (orgIds.length === 0) {
+    return { results: [] };
+  }
+
+  // 2) Fetch memberships for those org ids
+  const membershipResults: any[] = [];
+  for (const orgId of orgIds) {
+    const membershipFilterBody = {
+      filter_conditions: [
+        {
+          field: 'member',
+          operator: 'contains',
+          value: orgId
+        }
+      ]
+    };
+
+    const membershipRes = await fetch(`${beaconApiUrl}/entities/membership/filter`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${beaconAuthToken}`,
+        'Beacon-Application': 'developer_api',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(membershipFilterBody)
+    });
+
+    if (!membershipRes.ok) continue;
+
+    const membershipJson = await membershipRes.json();
+    const memberships = membershipJson?.results ?? [];
+
+    const filtered = memberships.filter((m: any) => {
+      const statuses: string[] = m?.entity?.status ?? [];
+      const types: string[] = m?.entity?.type ?? [];
+      const isActive = statuses.includes('Active') || statuses[0] === 'Active';
+      const isBusinessDirectory = types.some((t) => String(t).includes('Business Directory'));
+      return isActive && isBusinessDirectory;
+    });
+
+    membershipResults.push(...filtered);
+  }
+
+  return { results: membershipResults };
+}
+
 // Internal function to fetch Beacon data (not cached)
 async function fetchBeaconDataInternal(email: string): Promise<object> {
   const normalizedEmail = email.trim().toLowerCase();
@@ -84,7 +219,11 @@ async function fetchBeaconDataInternal(email: string): Promise<object> {
     // Continue to try the additional members check
   }
   
-  // This second endpoint checks for memberships where the email is in the additional members field
+  // This second endpoint checks for memberships where the email is in the additional members field.
+  // Note: Even though additional_members appears as an array of numeric IDs in the raw data,
+  // the Beacon API filter (using the 'reference' object) resolves those IDs to person entities
+  // and checks their emails. This is important for company memberships where users are listed
+  // as additional members rather than the primary member.
   try {
     beaconAdditionalMembershipJson = await fetchBeaconMembershipByEmail(normalizedEmail, 'additional_members');
   } catch (error) {
@@ -92,13 +231,29 @@ async function fetchBeaconDataInternal(email: string): Promise<object> {
     // Continue processing with whatever we got from the first call
   }
 
+  // Efficiency: only do the org.primary_contact lookup if the first two checks found nothing.
+  // This still satisfies the "OR" requirements:
+  // - additional_members match => access granted
+  // - org.primary_contact match => access granted
+  // - both => access granted
+  let fetchedPersonEntity: any = null;
+  let beaconOrgPrimaryContactJson: any = { results: [] };
   if (!beaconMembershipJson?.results?.length && !beaconAdditionalMembershipJson?.results?.length) {
-    return {error: "Failed to contact Beacon membership endpoint"};
+    try {
+      const personResult = await fetchBeaconPersonByEmail(normalizedEmail);
+      fetchedPersonEntity = personResult?.results?.[0]?.entity ?? null;
+      if (fetchedPersonEntity?.id) {
+        beaconOrgPrimaryContactJson = await fetchBeaconMembershipsByOrgPrimaryContact(String(fetchedPersonEntity.id));
+      }
+    } catch (error) {
+      console.error('Failed to fetch beacon org primary contact membership:', error);
+    }
   }
 
   const membershipResults: BeaconMembershipResult[] = []
     .concat(beaconMembershipJson?.results ?? [])
-    .concat(beaconAdditionalMembershipJson?.results ?? []);
+    .concat(beaconAdditionalMembershipJson?.results ?? [])
+    .concat(beaconOrgPrimaryContactJson?.results ?? []);
 
   const membershipRecord = membershipResults.length > 0 ? membershipResults[0] : null;
   const extraMembershipRecords = membershipResults.length > 0 ? membershipResults : [];
