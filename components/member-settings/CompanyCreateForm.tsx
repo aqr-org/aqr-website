@@ -6,7 +6,12 @@ import CompanyAreaUpdateForm from "./CompanyAreaUpdateForm";
 import CompanyContactUpdateForm from "./CompanyContactUpdateForm";
 import { UserBeaconData } from "@/lib/types";
 
-export default function CompanyCreateForm(data: UserBeaconData) {
+interface CompanyCreateFormProps extends UserBeaconData {
+  organizationId?: string;
+  organizationName?: string;
+}
+
+export default function CompanyCreateForm(data: CompanyCreateFormProps) {
   const [createdCompanyId, setCreatedCompanyId] = useState<string | null>(null);
 
   const handleCompanyCreated = (companyId: string) => {
@@ -14,9 +19,13 @@ export default function CompanyCreateForm(data: UserBeaconData) {
     console.log("Company created with ID:", companyId);
   };
 
+  // Use the specific organization name if provided, otherwise fall back to first organization
+  const organizationName = data.organizationName || data?.organizations?.[0]?.name || '';
+  const organizationId = data.organizationId || data?.organizations?.[0]?.id || '';
+
   // Create a minimal company data object with prefilled name
   const prefilledCompanyData = {
-    name: data?.organizations?.[0]?.name || '',
+    name: organizationName,
     // Don't set id - this should be null for create mode
     type: '',
     established: 0,
@@ -28,6 +37,14 @@ export default function CompanyCreateForm(data: UserBeaconData) {
     accred: '',
     logo: '',
     // Other fields will use their defaults in CompanyInfoUpdateForm
+  };
+
+  // Create a modified beaconData with only the specific organization
+  const beaconDataForOrganization = {
+    ...data,
+    organizations: organizationId && organizationName 
+      ? [{ id: organizationId, name: organizationName }]
+      : data.organizations || [],
   };
 
   return (
@@ -42,7 +59,7 @@ export default function CompanyCreateForm(data: UserBeaconData) {
       <CompanyInfoUpdateForm 
         companyData={prefilledCompanyData} 
         onSuccess={handleCompanyCreated}
-        beaconData={data}
+        beaconData={beaconDataForOrganization}
       />
       
       {createdCompanyId && (
