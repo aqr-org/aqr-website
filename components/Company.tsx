@@ -177,7 +177,9 @@ export default function Company(props: CompanyProps) {
               :
               <div className="bg-gray-100 aspect-square flex justify-center items-center w-24 text-xs text-center p-4 mb-4">No logo available</div>
             }
-            <p className="text-base uppercase tracking-[0.04rem]">{data.type}</p>
+            <p className="text-base uppercase tracking-[0.04rem]">
+              {data.type === 'Unspecified' ? '' : data.type}
+            </p>
           </div>
           <h1 className="text-6xl md:text-[6.25rem] leading-[0.95] tracking-[-0.1875rem] mb-6">
             <a href={data.contact_info?.website} target="_blank" rel="noopener noreferrer" className="relative">
@@ -205,15 +207,46 @@ export default function Company(props: CompanyProps) {
               </div>
             )}
           </div>
-          <p className="text-[1.375rem] leading-[1.318] max-w-180 mb-12">
-            {data.name} is a {data.type} 
-            {data.established && 
-              <>&nbsp;established in {data.established}</>
+          {(() => {
+            const hasType = data.type && data.type !== 'Unspecified';
+            const hasEstablished = !!data.established;
+            const hasCompanysize = data.companysize && data.companysize !== 'Unspecified';
+            
+            // Only show if at least one piece of information is available
+            if (!hasType && !hasEstablished && !hasCompanysize) {
+              return null;
             }
-            {data.companysize && 
-              <>&nbsp;with {data.companysize} full-time employees</>
-            }.
-          </p>
+            
+            // Build sentence parts
+            const parts: string[] = [];
+            
+            if (hasType) {
+              parts.push(`is a ${data.type}`);
+            } else if (hasEstablished) {
+              parts.push('was');
+            } else if (hasCompanysize) {
+              // If only companysize, use "has" instead of "was"
+              parts.push('has');
+            }
+            
+            if (hasEstablished) {
+              parts.push(`established in ${data.established}`);
+            }
+            
+            if (hasCompanysize && data.companysize !== 'Sole operator') {
+              if (hasType || hasEstablished) {
+                parts.push(`with ${data.companysize} full-time employees`);
+              } else {
+                parts.push(`${data.companysize} full-time employees`);
+              }
+            }
+            
+            return (
+              <p className="text-[1.375rem] leading-[1.318] max-w-180 mb-12">
+                {data.name} {parts.join(' ')}.
+              </p>
+            );
+          })()}
         </section>
 
         <section id="contact-info">
