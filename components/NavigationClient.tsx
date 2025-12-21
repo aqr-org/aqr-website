@@ -35,9 +35,9 @@ export default function NavigationClient({ links }: NavigationClientProps) {
       <nav 
         className={cn(
           isScrolled ? 
-          '-translate-y-full sticky top-0 z-40 w-full flex justify-center bg-qaupe transition-all duration-500 ease-in-out' 
+          '-translate-y-full sticky top-0 z-40 w-full flex justify-center bg-qaupe transition-all duration-150 ease-linear' 
           : 
-          'sticky translate-y-0 top-0 z-40 w-full flex justify-center bg-qaupe transition-all duration-500 ease-in-out'
+          'sticky translate-y-0 top-0 z-40 w-full flex justify-center bg-qaupe transition-all duration-150 ease-out'
         )} 
         aria-label="Main navigation"
       >
