@@ -231,7 +231,7 @@ export default async function MemberPage({
         <div className='flex flex-col md:flex-row md:items-center md:gap-8'>
           {memberData.image && (
             <div>
-              <figure className='relative bg-[#EEEEEE] aspect-square w-[160px] h-[160px] rounded-full overflow-hidden'>
+              <figure className='relative aspect-square w-[160px] h-[160px] rounded-full overflow-hidden bg-linear-to-r from-qreen/20 via-qaupe/20 to-qreen/20 bg-size-[200%_100%] animate-shimmer'>
                 <Image 
                   src={memberData.image} 
                   alt={`${memberData.firstname} ${memberData.lastname}`} 
