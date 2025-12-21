@@ -8,7 +8,6 @@ import DesktopNavigation from "./navigation/DesktopNavigation";
 import MobileNavigation from "./navigation/MobileNavigation";
 import NavigationToggle from "./navigation/NavigationToggle";
 import NavigationRightSide from "./navigation/NavigationRightSide";
-import { AuthButton } from "./auth-button";
 import SearchButton from "./SearchButton";
 
 interface NavigationClientProps {
