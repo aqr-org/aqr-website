@@ -12,6 +12,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
   const [isCreating, setIsCreating] = useState(false);
   const [wasCreated, setWasCreated] = useState(false);
   const [createdMemberId, setCreatedMemberId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Controlled state for form values - all empty initially
   const [formValues, setFormValues] = useState<MemberFormData>({
@@ -42,14 +43,23 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
 
   const handleSubmit = async (biognotes: string) => {
     if (isCreating) {
+      console.warn("Member profile creation already in progress, ignoring duplicate submission");
       return;
     }
 
+    // Clear any previous error messages
+    setErrorMessage(null);
     setIsCreating(true);
     
+    console.log("Starting member profile creation for:", userEmail);
+    console.log("Form values:", formValues);
+    
     if (!formValues.firstname.trim() || !formValues.lastname.trim()) {
-      alert("Please fill in your First Name and Last Name (required fields)");
+      const msg = "Please fill in your First Name and Last Name (required fields)";
+      console.error("Validation failed:", msg);
+      setErrorMessage(msg);
       setIsCreating(false);
+      alert(msg);
       return;
     }
 
@@ -57,19 +67,29 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
 
     try {
       // Pre-insert check - verify member doesn't already exist
-      const { data: existingMemberByEmail } = await supabase
+      console.log("Checking for existing member by email:", userEmail);
+      const { data: existingMemberByEmail, error: emailCheckError } = await supabase
         .from("members")
         .select("id, email, beacon_id, beacon_membership")
         .eq("email", userEmail)
         .maybeSingle();
 
+      if (emailCheckError) {
+        console.error("Error checking existing member by email:", emailCheckError);
+      }
+
       let existingMemberByBeacon = null;
       if (formValues.beacon_id) {
-        const { data: memberByBeacon } = await supabase
+        console.log("Checking for existing member by beacon_id:", formValues.beacon_id);
+        const { data: memberByBeacon, error: beaconCheckError } = await supabase
           .from("members")
           .select("id, email, beacon_id, beacon_membership")
           .eq("beacon_id", formValues.beacon_id)
           .maybeSingle();
+        
+        if (beaconCheckError) {
+          console.error("Error checking existing member by beacon_id:", beaconCheckError);
+        }
         
         if (memberByBeacon) {
           existingMemberByBeacon = memberByBeacon;
@@ -78,11 +98,16 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
 
       let existingMemberByMembership = null;
       if (formValues.beacon_membership) {
-        const { data: memberByMembership } = await supabase
+        console.log("Checking for existing member by beacon_membership:", formValues.beacon_membership);
+        const { data: memberByMembership, error: membershipCheckError } = await supabase
           .from("members")
           .select("id, email, beacon_id, beacon_membership")
           .eq("beacon_membership", formValues.beacon_membership)
           .maybeSingle();
+        
+        if (membershipCheckError) {
+          console.error("Error checking existing member by beacon_membership:", membershipCheckError);
+        }
         
         if (memberByMembership) {
           existingMemberByMembership = memberByMembership;
@@ -92,7 +117,11 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
       const existingMember = existingMemberByEmail || existingMemberByBeacon || existingMemberByMembership;
       
       if (existingMember) {
+        console.log("Existing member found:", existingMember);
+        const msg = "A member record already exists for your account. The page will refresh to show your profile.";
+        setErrorMessage(msg);
         setIsCreating(false);
+        alert(msg);
         setTimeout(() => {
           router.refresh();
         }, 500);
@@ -124,15 +153,61 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         legacy_member_id: null,
       };
 
+      console.log("Attempting to insert member profile with data:", insertData);
       const { data, error } = await supabase
         .from("members")
         .insert(insertData)
         .select()
         .single();
       
+      if (error) {
+        console.error("Error creating member profile:", error);
+        console.error("Error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        console.error("Insert data that failed:", insertData);
+        
+        const isDuplicateError = error.code === '23505' || 
+                                  error.message?.includes('duplicate key') ||
+                                  error.message?.includes('unique constraint') ||
+                                  error.message?.includes('members_member_id_key');
+
+        if (isDuplicateError) {
+          const msg = "A member record already exists for your account. The page will refresh to show your profile.";
+          console.log("Duplicate member detected, refreshing page");
+          setErrorMessage(msg);
+          setIsCreating(false);
+          alert(msg);
+          setTimeout(() => {
+            router.refresh();
+          }, 500);
+          return;
+        }
+
+        // Create a detailed error message for debugging
+        const errorDetails = [
+          `Error Code: ${error.code || 'N/A'}`,
+          `Message: ${error.message || 'No error message'}`,
+          error.hint ? `Hint: ${error.hint}` : '',
+          error.details ? `Details: ${error.details}` : ''
+        ].filter(Boolean).join('\n');
+        
+        const userFriendlyMsg = `Failed to create member profile. Error: ${error.message || 'Unknown error'}. Please contact support with this error code: ${error.code || 'N/A'}`;
+        console.error("Full error details:", errorDetails);
+        setErrorMessage(userFriendlyMsg);
+        setIsCreating(false);
+        alert(userFriendlyMsg);
+        return;
+      }
+      
       if (data && data.id) {
+        console.log("Member profile created successfully:", data);
         setWasCreated(true);
         setCreatedMemberId(data.id);
+        setErrorMessage(null);
         setIsCreating(false);
         
         setTimeout(() => {
@@ -141,42 +216,36 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         return;
       }
 
-      if (error) {
-        const isDuplicateError = error.code === '23505' || 
-                                  error.message?.includes('duplicate key') ||
-                                  error.message?.includes('unique constraint') ||
-                                  error.message?.includes('members_member_id_key');
-
-        if (isDuplicateError) {
-          setIsCreating(false);
-          alert(
-            "A member record already exists for your account. The page will refresh to show your profile."
-          );
-          setTimeout(() => {
-            router.refresh();
-          }, 500);
-          return;
-        }
-
-        alert(`Failed to create member record: ${error.message || 'Unknown error'}`);
-        setIsCreating(false);
-        return;
-      }
-
-      if (!data || !data.id) {
-        alert("Member record creation completed but no data was returned. Please refresh the page.");
-        setIsCreating(false);
-      }
+      // This case should not happen, but handle it
+      const msg = "Member record creation completed but no data was returned. Please refresh the page and try again.";
+      console.error("No data returned from insert, but no error either. This is unexpected.");
+      console.error("Response data:", data);
+      setErrorMessage(msg);
+      setIsCreating(false);
+      alert(msg);
 
     } catch (error) {
+      console.error("Unexpected error during member profile creation:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      console.error("Form values at time of error:", formValues);
+      
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+      
       if (errorMessage.includes('duplicate') || errorMessage.includes('unique constraint')) {
+        const msg = "A member record already exists. Refreshing page...";
+        console.log("Duplicate detected in catch block, refreshing");
+        setErrorMessage(msg);
         setIsCreating(false);
         router.refresh();
         return;
       }
-      alert(`An unexpected error occurred while creating your member record: ${errorMessage}`);
+      
+      const userFriendlyMsg = `An unexpected error occurred: ${errorMessage}. Please contact support with this error.`;
+      console.error("Full error:", { errorMessage, errorStack });
+      setErrorMessage(userFriendlyMsg);
       setIsCreating(false);
+      alert(userFriendlyMsg);
     }
   };
 
@@ -200,6 +269,17 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         </p>
       </div>
 
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-700 font-medium">
+            <strong>Error:</strong> {errorMessage}
+          </p>
+          <p className="text-xs text-red-600 mt-2">
+            Please check the browser console (F12) for more details. If this problem persists, please contact support with the error details.
+          </p>
+        </div>
+      )}
+
       <MemberFormFields
         formValues={formValues}
         onFormChange={setFormValues}
@@ -213,6 +293,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         memberId={createdMemberId || undefined}
         currentPortrait={undefined}
         onPortraitUploaded={handlePortraitUploaded}
+        userBeaconData={userBeaconData}
       />
 
       {wasCreated && (

@@ -426,6 +426,19 @@ export default function MemberFormFields({
   const organisationRequired = isCreateMode;
   const countryRequired = isCreateMode;
 
+  // Validate required fields for create mode
+  const isFormValid = useMemo(() => {
+    if (!isCreateMode) return true; // No validation needed for update mode
+    
+    return !!(
+      formValues.firstname?.trim() &&
+      formValues.lastname?.trim() &&
+      formValues.jobtitle?.trim() &&
+      formValues.organisation?.trim() &&
+      formValues.country?.trim()
+    );
+  }, [isCreateMode, formValues.firstname, formValues.lastname, formValues.jobtitle, formValues.organisation, formValues.country]);
+
   return (
     <form onSubmit={handleSubmit} className="form flex flex-col gap-4 space-y-8">
       
@@ -765,19 +778,24 @@ export default function MemberFormFields({
         </>
       )}
       
-      <div className="flex justify-end">
+      <div className="flex flex-col items-end gap-2">
         <div className="flex items-center gap-1 w-full md:w-auto">
           {wasSuccessful && !isLoading && successIcon && (
             <span className="text-green-600">{successIcon}</span>
           )}
           <Button 
             type="submit" 
-            disabled={isLoading || wasSuccessful}
-            className="px-6 py-2 bg-qreen border-qreen text-qaupe w-full md:w-auto"
+            disabled={isLoading || wasSuccessful || !isFormValid}
+            className="px-6 py-2 bg-qreen border-qreen text-qaupe w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitButtonText}
           </Button>
         </div>
+        {isCreateMode && !isFormValid && !isLoading && !wasSuccessful && (
+          <p className="text-xs text-qreen-dark text-right w-full md:w-auto">
+            Please fill in all required fields (marked with *) to create your profile
+          </p>
+        )}
       </div>
     </form>
   );
