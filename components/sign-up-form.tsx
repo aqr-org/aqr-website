@@ -188,7 +188,7 @@ export function SignUpForm({
         email: normalizedEmail,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/login?confirmed=true`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       
