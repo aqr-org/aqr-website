@@ -35,12 +35,34 @@ export default function CallbackClient({ next }: { next?: string }) {
 
       if (accessToken && refreshToken) {
         try {
-          const { error } = await supabase.auth.setSession({
+          const { error, data } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
           if (!error) {
+            // Check if this is a signup confirmation
+            if (type === "signup") {
+              // This is a signup confirmation - redirect to success page
+              router.push("/auth/confirm-success");
+              return;
+            }
+            
+            // Check if user's email was just confirmed (within last 30 seconds)
+            // This helps detect signup confirmations even if the type parameter isn't preserved
+            if (data?.user?.email_confirmed_at) {
+              const confirmedAt = new Date(data.user.email_confirmed_at).getTime();
+              const now = Date.now();
+              const timeSinceConfirmation = now - confirmedAt;
+              
+              // If email was confirmed within the last 30 seconds and it's not a recovery or magic link flow,
+              // treat as signup confirmation
+              if (timeSinceConfirmation < 30000 && type !== "recovery" && type !== "magiclink" && next !== "/auth/update-password") {
+                router.push("/auth/confirm-success");
+                return;
+              }
+            }
+            
             if (type === "recovery" || next === "/auth/update-password") {
               router.push("/auth/update-password");
             } else {

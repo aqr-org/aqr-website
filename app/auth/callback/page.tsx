@@ -23,9 +23,30 @@ export default async function CallbackPage({
 
   if (code) {
     const supabase = await createClient();
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { error: exchangeError, data } = await supabase.auth.exchangeCodeForSession(code);
     
     if (!exchangeError) {
+      // Check if this is a signup confirmation
+      // If type is "signup", or we can detect a newly confirmed email, show confirmation page
+      if (type === "signup") {
+        // This is a signup confirmation - redirect to success page
+        return redirect("/auth/confirm-success");
+      }
+      
+      // Check if user's email was just confirmed (within last 30 seconds)
+      // This helps detect signup confirmations even if the type parameter isn't preserved
+      if (data?.user?.email_confirmed_at) {
+        const confirmedAt = new Date(data.user.email_confirmed_at).getTime();
+        const now = Date.now();
+        const timeSinceConfirmation = now - confirmedAt;
+        
+        // If email was confirmed within the last 30 seconds and it's not a recovery flow,
+        // treat as signup confirmation
+        if (timeSinceConfirmation < 30000 && !next && type !== "recovery" && type !== "magiclink") {
+          return redirect("/auth/confirm-success");
+        }
+      }
+      
       // After successful code exchange, determine redirect path
       if (type === "recovery" || next === "/auth/update-password") {
         return redirect("/auth/update-password");
