@@ -50,3 +50,5 @@ performance-reports/
 certificates
 # Local Netlify folder
 .netlify
+
+.idea
