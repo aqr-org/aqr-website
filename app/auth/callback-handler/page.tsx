@@ -12,7 +12,7 @@ function CallbackHandlerContent() {
     const handleCallback = async () => {
       const supabase = createClient();
 
-      // Check for hash fragments FIRST (PKCE flow with access_token)
+      // Check for hash fragments FIRST (Implicit flow or some recovery flows)
       // Supabase redirects with hash fragments like: #access_token=...&refresh_token=...&type=recovery
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const accessToken = hashParams.get("access_token");
@@ -30,7 +30,7 @@ function CallbackHandlerContent() {
         return;
       }
 
-      // Priority 1: Hash fragments with tokens (most common for PKCE recovery)
+      // Priority 1: Hash fragments with tokens
       if (accessToken && refreshToken) {
         try {
           // Set the session using the tokens from hash fragments
@@ -58,35 +58,30 @@ function CallbackHandlerContent() {
         }
       }
 
-      // Priority 2: Check for query code parameter
-      // Note: For PKCE recovery flow, Supabase redirects with hash fragments, not query code
-      // If we have a code but no hash fragments, it might be from a different flow
-      // However, code exchange requires code verifier which isn't available in redirect context
-      // So we skip code exchange and check for session instead
+      // Priority 2: Check for query code parameter (PKCE flow)
       const code = searchParams.get("code");
-      if (code && !accessToken) {
-        // Code present but no hash fragments - this shouldn't happen for PKCE recovery
-        // Check if session was already set by middleware or Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Only redirect to password reset if next parameter explicitly says so
-          if (next === "/auth/update-password") {
-            router.push("/auth/update-password");
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) {
+            // After successful code exchange, check if we need to redirect to password reset
+            if (next === "/auth/update-password" || type === "recovery") {
+              router.push("/auth/update-password");
+            } else {
+              router.push(next);
+            }
+            return;
           } else {
-            router.push(next);
+            router.push(`/auth/error?error=${encodeURIComponent(error.message)}`);
+            return;
           }
+        } catch (err) {
+          router.push(`/auth/error?error=${encodeURIComponent(err instanceof Error ? err.message : "Failed to exchange code")}`);
           return;
         }
-        // If no session and we have a code but can't exchange it, it's an error
-        if (next === "/auth/update-password") {
-          router.push("/auth/error?error=Invalid recovery link. Please request a new password reset email.");
-        } else {
-          router.push("/auth/error?error=Invalid confirmation link. Please try again.");
-        }
-        return;
       }
 
-      // Priority 3: Check if user already has a session (might have been set by middleware or previous step)
+      // Priority 3: Check if user already has a session
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         // Only redirect to password reset if next parameter explicitly says so

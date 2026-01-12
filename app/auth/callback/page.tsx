@@ -30,7 +30,7 @@ function CallbackPageContent() {
         return;
       }
 
-      // Priority 1: Hash fragments with tokens (PKCE flow)
+      // Priority 1: Hash fragments with tokens (Implicit flow or some recovery flows)
       if (accessToken && refreshToken) {
         try {
           // Set the session using the tokens from hash fragments
@@ -58,7 +58,30 @@ function CallbackPageContent() {
         }
       }
 
-      // Priority 2: Check if user already has a session (might have been set by middleware)
+      // Priority 2: Check for code parameter (PKCE flow)
+      const code = searchParams.get("code");
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!error) {
+            // After successful code exchange, redirect to next or protected
+            if (next === "/auth/update-password") {
+               router.push("/auth/update-password");
+            } else {
+               router.push(next);
+            }
+            return;
+          } else {
+            router.push(`/auth/error?error=${encodeURIComponent(error.message)}`);
+            return;
+          }
+        } catch (err) {
+          router.push(`/auth/error?error=${encodeURIComponent(err instanceof Error ? err.message : "Failed to exchange code")}`);
+          return;
+        }
+      }
+
+      // Priority 3: Check if user already has a session (might have been set by middleware)
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         // Only redirect to password reset if next parameter explicitly says so
