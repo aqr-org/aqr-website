@@ -17,13 +17,16 @@ export default function ConfirmSuccessPage() {
                   Email Confirmed Successfully!
                 </CardTitle>
               </div>
-              <CardDescription>
+              {/* <CardDescription>
                 Your email address has been verified and your account is now active.
-              </CardDescription>
+              </CardDescription> */}
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                You can now access all member features by logging in to your account with your email and password.
+              <p className="text-muted-foreground">
+                Your email address has been verified and your account is now active.
+              </p>
+              <p className="test-sm text-muted-foreground">
+                Your one-time confirmation link has been used and is now invalid, you can access your account by logging in with your email and password.
               </p>
               <div className="flex justify-between gap-4 pt-4">
                 <Button className="flex-1" asChild>
