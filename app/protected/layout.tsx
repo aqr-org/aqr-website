@@ -1,8 +1,5 @@
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Suspense } from "react";
 import { LoadingAnimation } from "@/components/ui/loading-animation";
-// import { Metadata } from "next";
-// import Link from "next/link";
 
 export default function ProtectedLayout({
   children,

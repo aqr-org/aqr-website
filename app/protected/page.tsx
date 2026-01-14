@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { beaconDataOf } from "@/lib/utils";
 import { UserBeaconData } from "@/lib/types";
 import ProtectedTabs from "@/components/member-settings/protected-tabs";
-import Background from "@/components/Background";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
