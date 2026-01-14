@@ -35,6 +35,7 @@ export function LoginForm({
   const searchParams = useSearchParams();
   // Read confirmed parameter once on mount and store in state that won't reset
   const [isConfirmed] = useState(() => searchParams.get("confirmed") === "true");
+  const nextParam = searchParams.get("next");
   const hasCleanedUrl = useRef(false);
 
   // Clean up URL by removing the query parameter after component mounts
@@ -241,7 +242,7 @@ export function LoginForm({
       }
       
       // Redirect superadmin to superadmin panel, regular users to protected page
-      const redirectPath = superadminCheck.skipBeaconCheck ? "/superadmin" : "/protected";
+      const redirectPath = nextParam || (superadminCheck.skipBeaconCheck ? "/superadmin" : "/protected");
       try {
         router.push(redirectPath);
       } catch (navError) {

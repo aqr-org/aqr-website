@@ -9,11 +9,11 @@ export default async function ProtectedPage() {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect("/auth/login");
+  if (error || !data?.claims) redirect("/auth/login?next=/protected");
 
   const userEmail = data.claims.email;
   // const userEmail = data.claims.email;
-  if (!userEmail) redirect("/auth/login");
+  if (!userEmail) redirect("/auth/login?next=/protected");
 
   const userBeaconData = (await beaconDataOf(userEmail)) as UserBeaconData;
 
