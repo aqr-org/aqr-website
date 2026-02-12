@@ -80,10 +80,14 @@ function getSeason(dateString: string): Season {
   return 'Winter'; // December, January, February
 }
 
-function getYearFromDate(dateString: string): number {
-  if (!dateString) return new Date().getFullYear();
-  const date = new Date(dateString);
-  return date.getFullYear();
+function getSeasonYear(dateString?: string): number {
+  const date = dateString ? new Date(dateString) : new Date();
+  const month = date.getMonth() + 1; // 1-12
+  const year = date.getFullYear();
+
+  // Winter spans two years. Use the December year as the season year.
+  if (month <= 2) return year - 1;
+  return year;
 }
 
 function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
@@ -93,7 +97,7 @@ function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
     const dateString = event.content?.date;
     if (dateString) {
       const season = getSeason(dateString);
-      const year = getYearFromDate(dateString);
+      const year = season === 'Winter' ? getSeasonYear(dateString) : new Date(dateString).getFullYear();
       const key = `${year}-${season}`;
       
       if (!grouped[key]) {
@@ -102,7 +106,7 @@ function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
       grouped[key].push(event);
     } else {
       // If no date, add to current year Winter as default
-      const year = new Date().getFullYear();
+      const year = getSeasonYear();
       const key = `${year}-Winter`;
       if (!grouped[key]) {
         grouped[key] = [];
@@ -117,7 +121,7 @@ function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
 function getCurrentSeason(): { season: Season; year: number } {
   const now = new Date();
   const month = now.getMonth() + 1; // 1-12
-  const year = now.getFullYear();
+  const seasonYear = getSeasonYear(now.toISOString());
 
   let season: Season;
   if (month >= 3 && month <= 5) season = 'Spring';
@@ -125,7 +129,7 @@ function getCurrentSeason(): { season: Season; year: number } {
   else if (month >= 9 && month <= 11) season = 'Autumn';
   else season = 'Winter';
 
-  return { season, year };
+  return { season, year: seasonYear };
 }
 
 function getFollowingSeason(currentSeason: Season, currentYear: number): { season: Season; year: number } {
@@ -145,6 +149,13 @@ function getFollowingSeason(currentSeason: Season, currentYear: number): { seaso
   const followingYear = currentSeason === 'Winter' ? currentYear + 1 : currentYear;
 
   return { season: followingSeason, year: followingYear };
+}
+
+function getSeasonDisplayName(season: Season, year: number): string {
+  if (season === 'Winter') {
+    return `Winter calendar ${String(year).slice(-2)}/${String(year + 1).slice(-2)}`;
+  }
+  return `${season} calendar ${year}`;
 }
 
 export default async function LatestSeasonCalendar({ blok, events: eventsProp }: LatestSeasonCalendarProps) {
@@ -197,7 +208,7 @@ export default async function LatestSeasonCalendar({ blok, events: eventsProp }:
     seasonsToDisplay.push({
       key: currentKey,
       events: currentSeasonEvents,
-      displayName: `${currentSeasonInfo.season} calendar ${currentSeasonInfo.year}`
+      displayName: getSeasonDisplayName(currentSeasonInfo.season, currentSeasonInfo.year)
     });
   }
 
@@ -206,7 +217,7 @@ export default async function LatestSeasonCalendar({ blok, events: eventsProp }:
     seasonsToDisplay.push({
       key: followingKey,
       events: followingSeasonEvents,
-      displayName: `${followingSeasonInfo.season} calendar ${followingSeasonInfo.year}`
+      displayName: getSeasonDisplayName(followingSeasonInfo.season, followingSeasonInfo.year)
     });
   }
 
@@ -222,7 +233,7 @@ export default async function LatestSeasonCalendar({ blok, events: eventsProp }:
       <div className="relative z-10 w-full max-w-maxw mx-auto px-container py-36">
         <div className="md:flex md:gap-4">
           <h2 className="uppercase tracking-[0.03em] basis-36 shrink-0">Events</h2>
-          <div>
+          <div className="space-y-24">
             {seasonsToDisplay.map((seasonData, seasonIndex) => (
               <div key={seasonData.key}>
                 <h2 className="text-6xl tracking-tight mb-18">
