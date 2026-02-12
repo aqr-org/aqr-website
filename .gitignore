@@ -50,5 +50,6 @@ performance-reports/
 certificates
 # Local Netlify folder
 .netlify
-
+.ai
+.cursor
 .idea
