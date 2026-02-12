@@ -39,10 +39,15 @@ function getSeason(dateString: string): Season {
   return 'Winter'; // December, January, February
 }
 
-function getYearFromDate(dateString: string): number {
-  if (!dateString) return new Date().getFullYear();
-  const date = new Date(dateString);
-  return date.getFullYear();
+function getSeasonYear(dateString?: string): number {
+  const date = dateString ? new Date(dateString) : new Date();
+  const month = date.getMonth() + 1; // 1-12
+  const year = date.getFullYear();
+
+  // Winter spans two years: Dec belongs with Jan/Feb of next year.
+  // Use the December year as the winter group year.
+  if (month <= 2) return year - 1;
+  return year;
 }
 
 function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
@@ -52,7 +57,7 @@ function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
     const dateString = event.content?.date;
     if (dateString) {
       const season = getSeason(dateString);
-      const year = getYearFromDate(dateString);
+      const year = season === 'Winter' ? getSeasonYear(dateString) : new Date(dateString).getFullYear();
       const key = `${year}-${season}`;
       
       if (!grouped[key]) {
@@ -61,7 +66,7 @@ function groupEventsByYearAndSeason(events: any[]): Record<string, Event[]> {
       grouped[key].push(event);
     } else {
       // If no date, add to current year Winter as default
-      const year = new Date().getFullYear();
+      const year = getSeasonYear();
       const key = `${year}-Winter`;
       if (!grouped[key]) {
         grouped[key] = [];
@@ -128,7 +133,10 @@ export default async function CalendarPage() {
       <div className="space-y-12">
         {sortedGroups.map(({ key, events: seasonEvents }, index) => {
           const [year, season] = key.split('-');
-          const displayName = `${season} calendar ${year}`;
+          const yearNum = Number.parseInt(year, 10);
+          const displayName = season === 'Winter'
+            ? `Winter calendar ${String(yearNum).slice(-2)}/${String(yearNum + 1).slice(-2)}`
+            : `${season} calendar ${year}`;
           
           return (
             <section key={key}>
