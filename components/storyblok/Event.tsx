@@ -16,6 +16,7 @@ interface EventProps {
     admission: string;
     admission_link: {
       cached_url: string;
+      target: string;
     };
     venue: string;
     venue_link: {
@@ -112,7 +113,7 @@ export default function Event({ blok }: EventProps) {
               )}
             </div>
             {blok.admission_link && (
-              <Link href={blok.admission_link.cached_url}>
+              <Link href={blok.admission_link.cached_url} target={blok.admission_link.target ? blok.admission_link.target : "_self"}>
                 <Button variant="qaupe" className="w-full">
                   Sign up
                 </Button>
