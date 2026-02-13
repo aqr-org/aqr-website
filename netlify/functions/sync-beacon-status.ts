@@ -31,7 +31,7 @@ interface ChangedMembership {
 
 /**
  * Fetches changed memberships from BeaconCRM API
- * Returns memberships with status != 'Active' that were updated in the last 7 days
+ * Returns memberships updated in the last 7 days (any status, so renewals Expired→Active are synced)
  */
 async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMembership[]> {
   const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
@@ -130,7 +130,7 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
           break;
         }
 
-        // Filter memberships that don't have 'Active' status AND were updated in last 7 days
+        // Include memberships updated in last 7 days (any status), so renewals (Expired→Active) are synced
         const pageMemberships: ChangedMembership[] = results
           .map((result: any) => {
             const entity = result.entity;
@@ -152,11 +152,7 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
               console.log(`[DEBUG] Membership ${entity.id}: status=${JSON.stringify(entity.status)}, updated_at=${updatedAt}`);
             }
             
-            // Filter out memberships that have 'Active' in status array
             const statusArray = entity.status || [];
-            if (statusArray.includes('Active')) {
-              return null;
-            }
             
             // Extract member emails and organization IDs/names from references
             const references = result.references || [];
@@ -209,7 +205,7 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
           })
           .filter((membership: ChangedMembership | null) => membership !== null);
 
-        console.log(`[DEBUG] After filtering out 'Active' statuses: ${pageMemberships.length} membership(s)`);
+        console.log(`[DEBUG] Memberships updated in last 7 days: ${pageMemberships.length} membership(s)`);
         allChangedMemberships.push(...pageMemberships);
 
         // Since Beacon API might not support pagination, we'll only fetch once
@@ -218,7 +214,7 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
       }
 
       // Successfully fetched all pages
-      console.log(`Found ${allChangedMemberships.length} changed membership(s) in Beacon (status != 'Active', updated in last 7 days)`);
+      console.log(`Found ${allChangedMemberships.length} changed membership(s) in Beacon (updated in last 7 days)`);
       return allChangedMemberships;
     } catch (error) {
       if (attempt < retries) {
@@ -438,7 +434,7 @@ async function syncBeaconStatuses(
     }
 
     if (changedMemberships.length === 0) {
-      console.log('No changed memberships found in Beacon (status != "Active", updated in last 7 days)');
+      console.log('No changed memberships found in Beacon (updated in last 7 days)');
       console.log('=== Function ran successfully: No changes to sync ===');
       return {
         statusCode: 200,
