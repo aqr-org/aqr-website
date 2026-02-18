@@ -212,8 +212,8 @@ export default async function LatestSeasonCalendar({ blok, events: eventsProp }:
     });
   }
 
-  // Show following season only if current season also has events
-  if (hasFollowingEvents && hasCurrentEvents) {
+  // Show following season only if following season has events
+  if (hasFollowingEvents) {
     seasonsToDisplay.push({
       key: followingKey,
       events: followingSeasonEvents,
