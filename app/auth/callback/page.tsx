@@ -53,6 +53,16 @@ export default async function CallbackPage({
       }
       return redirect(next || "/protected");
     } else {
+      const exchangeErrorMessage = exchangeError.message.toLowerCase();
+      // The confirmation can still succeed even when PKCE flow state is unavailable
+      // (e.g. link opened in a different browser/profile or clicked after state expiry).
+      // In that case, send the user to login with the confirmed banner.
+      if (
+        exchangeErrorMessage.includes("invalid flow state") ||
+        exchangeErrorMessage.includes("flow state has expired")
+      ) {
+        return redirect("/auth/login?confirmed=true");
+      }
       // If code exchange fails, redirect to error page with the message
       return redirect(`/auth/error?error=${encodeURIComponent(exchangeError.message)}`);
     }

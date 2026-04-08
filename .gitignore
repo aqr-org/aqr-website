@@ -46,6 +46,8 @@ next-env.d.ts
 
 performance-reports/
 
+# MCP settings
+.mcp.json
 
 certificates
 # Local Netlify folder
