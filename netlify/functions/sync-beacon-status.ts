@@ -1,6 +1,5 @@
 import { schedule } from '@netlify/functions';
 import { createClient } from '../../lib/supabase/serverless';
-import type { BeaconMembershipEntity } from '../../lib/types/beacon';
 
 interface Member {
   id: string;
@@ -30,8 +29,8 @@ interface ChangedMembership {
 }
 
 /**
- * Fetches changed memberships from BeaconCRM API
- * Returns memberships updated in the last 7 days (any status, so renewals Expired→Active are synced)
+ * Fetches Business Directory + Individual/Group memberships from BeaconCRM API.
+ * We compare Beacon status to Supabase status on every run.
  */
 async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMembership[]> {
   const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
@@ -47,61 +46,48 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
     return [];
   }
 
-  // Calculate date 7 days ago
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const sevenDaysAgoISO = sevenDaysAgo.toISOString();
-
-  // Note: Beacon API doesn't support date operators (>=, >, etc.) in filters
-  // So we'll fetch memberships without date filtering and filter in code
-  // Build empty filter body (or we could filter by other fields if needed)
-  const filterBody = {
-    filter_conditions: []
-  };
+  // Use list endpoint with pagination so we deterministically fetch all records.
+  // Beacon docs: up to 300 requests/minute, per_page max 200.
+  // We use max page size to minimize calls and pace requests to stay safe.
+  const perPage = 200;
+  const interPageDelayMs = 250; // 4 req/s = 240 req/min, below 300 req/min limit
 
   const allChangedMemberships: ChangedMembership[] = [];
-  let page = 1;
-  const perPage = 100; // Reasonable page size
-  let hasMorePages = true;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      // Reset pagination on retry
+      // Reset on retry
       if (attempt > 0) {
-        page = 1;
         allChangedMemberships.length = 0;
-        hasMorePages = true;
       }
 
-      // Fetch pages until no more results
-      // Note: Beacon API might not support pagination via query params, so we'll try without them first
-      while (hasMorePages) {
-        // Try with pagination params, but Beacon might ignore them
-        const filterUrl = `${beaconApiUrl}/entities/membership/filter`;
-        const response = await fetch(filterUrl, {
-          method: 'POST',
+      let page = 1;
+      let expectedTotal: number | null = null;
+
+      while (true) {
+        const listUrl = `${beaconApiUrl}/entities/membership?page=${page}&per_page=${perPage}&sort_by=id&sort_direction=asc`;
+        const response = await fetch(listUrl, {
           headers: {
             'Authorization': `Bearer ${beaconAuthToken}`,
             'Beacon-Application': 'developer_api',
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(filterBody)
+          }
         });
 
         if (response.status === 429) {
           // Rate limited - wait and retry
-          const waitTime = (attempt + 1) * 2000; // Exponential backoff: 2s, 4s
-          console.warn(`Rate limited for membership filter, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`);
+          const waitTime = (attempt + 1) * 5000; // 5s, 10s, 15s
+          console.warn(`Rate limited for memberships list page ${page}, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`);
           if (attempt < retries) {
             await new Promise(resolve => setTimeout(resolve, waitTime));
-            break; // Break out of pagination loop to retry
+            break; // retry whole fetch pass
           }
-          console.error(`Failed to fetch changed memberships after ${retries} retries: 429 Rate Limited`);
+          console.error(`Failed to fetch memberships after ${retries} retries: 429 Rate Limited`);
           return allChangedMemberships; // Return what we have so far
         }
 
         if (!response.ok) {
-          console.error(`Failed to fetch changed memberships page ${page}: ${response.status} ${response.statusText}`);
+          console.error(`Failed to fetch memberships page ${page}: ${response.status} ${response.statusText}`);
           // Try to get error details
           try {
             const errorData = await response.text();
@@ -118,38 +104,27 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
         }
 
         const data = await response.json();
-        
-        // Extract membership entities from results
-        // The API returns { results: [{ entity: {...}, references: [...] }] }
         const results = data.results || [];
-        
-        console.log(`[DEBUG] Beacon filter API returned ${results.length} result(s) on page ${page}`);
-        
+        const total = typeof data.total === 'number' ? data.total : null;
+        if (expectedTotal === null && total !== null) {
+          expectedTotal = total;
+        }
+
+        console.log(`[DEBUG] Beacon memberships page ${page}: ${results.length} result(s), total=${total ?? 'unknown'}`);
+
         if (results.length === 0) {
-          hasMorePages = false;
           break;
         }
 
-        // Include memberships updated in last 7 days (any status), so renewals (Expired→Active) are synced
+        // Keep all memberships from Beacon response for full comparison.
         const pageMemberships: ChangedMembership[] = results
           .map((result: any) => {
             const entity = result.entity;
             if (!entity) return null;
-            
-            // Filter by date: only include memberships updated in last 7 days
-            const updatedAt = entity.updated_at || entity.updatedAt;
-            if (!updatedAt) {
-              return null; // Skip memberships without updated_at
-            }
-            
-            const updatedDate = new Date(updatedAt);
-            if (isNaN(updatedDate.getTime()) || updatedDate < sevenDaysAgo) {
-              return null; // Skip memberships older than 7 days
-            }
-            
+
             // Log first few memberships for debugging
             if (allChangedMemberships.length < 3) {
-              console.log(`[DEBUG] Membership ${entity.id}: status=${JSON.stringify(entity.status)}, updated_at=${updatedAt}`);
+              console.log(`[DEBUG] Membership ${entity.id}: status=${JSON.stringify(entity.status)}, updated_at=${entity.updated_at || entity.updatedAt}`);
             }
             
             const statusArray = entity.status || [];
@@ -205,25 +180,34 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
           })
           .filter((membership: ChangedMembership | null) => membership !== null);
 
-        console.log(`[DEBUG] Memberships updated in last 7 days: ${pageMemberships.length} membership(s)`);
+        console.log(`[DEBUG] Memberships on this page: ${pageMemberships.length} membership(s)`);
         allChangedMemberships.push(...pageMemberships);
 
-        // Since Beacon API might not support pagination, we'll only fetch once
-        // If we got results, assume we got them all (or Beacon will return all in one call)
-        hasMorePages = false;
+        // Stop when we've reached the documented total.
+        if (expectedTotal !== null && allChangedMemberships.length >= expectedTotal) {
+          break;
+        }
+
+        // If this page is short, we're at the end.
+        if (results.length < perPage) {
+          break;
+        }
+
+        page++;
+        await new Promise(resolve => setTimeout(resolve, interPageDelayMs));
       }
 
-      // Successfully fetched all pages
-      console.log(`Found ${allChangedMemberships.length} changed membership(s) in Beacon (updated in last 7 days)`);
+      // Successfully fetched all pages for this attempt
+      console.log(`Found ${allChangedMemberships.length} membership(s) in Beacon for status comparison (expected total: ${expectedTotal ?? 'unknown'})`);
       return allChangedMemberships;
     } catch (error) {
       if (attempt < retries) {
-        const waitTime = (attempt + 1) * 1000;
-        console.warn(`Error fetching changed memberships, retrying in ${waitTime}ms...`);
+        const waitTime = (attempt + 1) * 2000;
+        console.warn(`Error fetching memberships, retrying in ${waitTime}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
-      console.error(`Error fetching changed memberships:`, error);
+      console.error(`Error fetching memberships:`, error);
       // Return what we have so far instead of empty array
       return allChangedMemberships;
     }
@@ -231,78 +215,6 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
 
   // Return what we have if we exhausted retries
   return allChangedMemberships;
-}
-
-/**
- * Fetches a membership entity from BeaconCRM API with retry logic for rate limits
- */
-async function fetchBeaconMembership(membershipId: string, retries = 2): Promise<BeaconMembershipEntity | null> {
-  const beaconAuthToken = process.env.BEACON_AUTH_TOKEN;
-  const beaconApiUrl = process.env.BEACON_API_URL;
-
-  if (!beaconAuthToken) {
-    console.error('BEACON_AUTH_TOKEN not configured');
-    return null;
-  }
-
-  if (!beaconApiUrl) {
-    console.error('BEACON_API_URL not configured');
-    return null;
-  }
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const response = await fetch(`${beaconApiUrl}/entity/membership/${membershipId}`, {
-        headers: {
-          'Authorization': `Bearer ${beaconAuthToken}`,
-          'Beacon-Application': 'developer_api',
-          'Content-Type': 'application/json'
-        },
-      });
-
-      if (response.status === 429) {
-        // Rate limited - wait and retry
-        const waitTime = (attempt + 1) * 2000; // Exponential backoff: 2s, 4s
-        console.warn(`Rate limited for membership ${membershipId}, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`);
-        if (attempt < retries) {
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-          continue;
-        }
-        console.error(`Failed to fetch Beacon membership ${membershipId} after ${retries} retries: 429 Rate Limited`);
-        return null;
-      }
-
-      if (!response.ok) {
-        console.error(`Failed to fetch Beacon membership ${membershipId}: ${response.status} ${response.statusText}`);
-        return null;
-      }
-
-      const data = await response.json();
-      
-      // Debug logging for API response structure (only log first 500 chars to avoid spam)
-      if (membershipId === '8996') {
-        console.log(`[DEBUG] API response for membership ${membershipId}:`, {
-          hasEntity: !!data.entity,
-          entityStatus: data.entity?.status,
-          entityId: data.entity?.id,
-          responsePreview: JSON.stringify(data).substring(0, 500)
-        });
-      }
-      
-      return data.entity as BeaconMembershipEntity;
-    } catch (error) {
-      if (attempt < retries) {
-        const waitTime = (attempt + 1) * 1000;
-        console.warn(`Error fetching Beacon membership ${membershipId}, retrying in ${waitTime}ms...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-        continue;
-      }
-      console.error(`Error fetching Beacon membership ${membershipId}:`, error);
-      return null;
-    }
-  }
-
-  return null;
 }
 
 /**
@@ -434,12 +346,12 @@ async function syncBeaconStatuses(
     }
 
     if (changedMemberships.length === 0) {
-      console.log('No changed memberships found in Beacon (updated in last 7 days)');
+      console.log('No memberships found in Beacon');
       console.log('=== Function ran successfully: No changes to sync ===');
       return {
         statusCode: 200,
         body: JSON.stringify({ 
-          message: 'No changed memberships found', 
+          message: 'No memberships found', 
           changedMemberships: 0,
           updated: 0 
         }),

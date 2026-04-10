@@ -3,6 +3,7 @@ export interface UserBeaconData {
   id: string;
   email: string;
   hasCurrentMembership: boolean;
+  membershipStatus?: string | null;
   hasOrg: boolean;
   allMemberships?: string[];
   organizations: { id: string; name: string }[];

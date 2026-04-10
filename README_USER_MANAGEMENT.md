@@ -42,7 +42,7 @@ In `CompanyInfoUpdateForm` create mode (`components/member-settings/CompanyInfoU
 1. Form submits to Supabase `companies.insert(...)`.
 2. On create, it sets Beacon-related columns as:
    - `beacon_membership_id: null`
-   - `beacon_membership_status: 'Active'` if `beaconData.hasCurrentMembership` is true, else `null`
+   - `beacon_membership_status`: carries through Beacon status when provided (e.g. `Active`, `Expired`, etc.); otherwise falls back to `'Active'` if `beaconData.hasCurrentMembership` is true, else `null`
    - `beacon_id`: Beacon organization ID (preferred from `beaconData.organizations[0].id`)
 3. If org ID is missing, fallback API call:
    - `GET /api/beacon/extract-organization-id?membershipId=...`
@@ -76,29 +76,45 @@ In `CompanyInfoUpdateForm` create mode (`components/member-settings/CompanyInfoU
   - Enhanced: unlimited
 - Regular users cannot change company name.
 
-## 6) Superadmin edit flow and Beacon lookup
+## 6) Superadmin edit flow, Beacon candidates, and manual status testing
 
 `components/superadmin/EditCompanyTab.tsx`:
 
-1. Loads any company from Supabase.
-2. Calls `POST /api/beacon/company-membership` with:
+1. Loads all companies from Supabase (`id`, `name`, `beacon_id`, `beacon_membership_status`).
+2. Calls `GET /api/beacon/active-directory-companies` to fetch Beacon Business Directory organizations not yet in Supabase.
+   - Endpoint now returns Business Directory memberships regardless of status, and includes `membershipStatus`.
+   - Response is server-cached (`unstable_cache`, 5-minute revalidate) to reduce Beacon rate-limit pressure.
+3. Excludes Beacon orgs that already exist in Supabase (by `beacon_id`, with normalized name fallback).
+4. Displays grouped selector:
+   - Existing in Supabase
+   - Beacon Business Directory (create in SB)
+5. Every option shows a status pill:
+   - `Active` → qreen styling
+   - `Expired` → qrose styling
+   - all other statuses → qeal styling
+6. For existing Supabase companies, status pill uses the Supabase value (`companies.beacon_membership_status`) as-is.
+7. For Beacon-only companies, selecting an option opens `CompanyCreateForm` with Beacon org + status prefilled.
+8. For existing Supabase companies, the tab still calls `POST /api/beacon/company-membership` with:
    - `companyName`
    - optional `beaconMembershipId`
-3. API fetches Beacon memberships and tries to determine Business Directory type.
-4. Result is converted to minimal `UserBeaconData`-like object for display + area-limit logic in forms.
+   Result is converted to minimal `UserBeaconData`-like object for display + area-limit logic in forms.
+9. Superadmins can manually set `beacon_membership_status` from a dropdown (for testing). This writes directly to Supabase and can be overwritten by the next scheduled Beacon sync.
 
 ## 7) Ongoing status sync Beacon → Supabase
 
 Scheduled Netlify function: `netlify/functions/sync-beacon-status.ts`.
 
-1. Daily job fetches recently changed Beacon memberships (last 7 days).
-2. Splits memberships:
+1. Daily job fetches Beacon memberships using the list endpoint with pagination (`page`, `per_page=200`).
+2. It processes all pages (using Beacon `total` + page length checks), not just recent changes.
+3. Requests are paced (`~250ms` between pages) and include retry/backoff for `429` to stay within Beacon limits.
+4. Splits memberships:
    - Business Directory → company updates
    - Individual/Group → member updates
-3. Company matching priority:
+5. Company matching priority:
    - `companies.beacon_membership_id` first
    - fallback to `companies.beacon_id` (Beacon organization ID)
-4. Updates `companies.beacon_membership_status` when changed.
+6. Updates `companies.beacon_membership_status` whenever Beacon and Supabase differ.
+7. This keeps Beacon as the source of truth while still allowing temporary manual superadmin status overrides for testing.
 
 ## 8) Data model relationship summary
 
@@ -114,3 +130,4 @@ Current practical relationship between BeaconCRM and Supabase companies is:
 1. New company creation currently does **not** persist `beacon_membership_id` (explicitly set `null`), so long-term sync relies heavily on `beacon_id`.
 2. Protected page matching uses **organization name equality** for existing row discovery; naming drift can cause “not created yet” behavior even if same org exists under a different name.
 3. Beacon membership context is used for permissions/limits in UI, while Supabase remains source of truth for saved profile/contact/areas data.
+4. Directory/search visibility still requires `companies.beacon_membership_status = 'Active'`; records with other statuses exist in Supabase but are hidden from public directory/search.

@@ -35,6 +35,7 @@ interface CompanyInfoUpdateFormProps {
     id?: string; // Membership ID - used as fallback to fetch organization ID
     organizations: { id: string; name: string }[];
     hasCurrentMembership: boolean;
+    membershipStatus?: string | null;
   };
   isSuperAdmin?: boolean;
   userBeaconData?: UserBeaconData;
@@ -384,7 +385,7 @@ export default function CompanyInfoUpdateForm({ companyData, onSuccess, beaconDa
         ...(companyData?.id ? {} : {
           // beaconData.organizations[0].id is the organization ID
           beacon_membership_id: null,
-          beacon_membership_status: beaconData?.hasCurrentMembership ? 'Active' : null,
+          beacon_membership_status: beaconData?.membershipStatus || (beaconData?.hasCurrentMembership ? 'Active' : null),
           // Automatically set beacon_id (organization ID) from beaconData
           beacon_id: beaconId,
         })
