@@ -78,6 +78,8 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         console.error("Error checking existing member by email:", emailCheckError);
       }
 
+      // Group memberships share one beacon_membership ID across multiple people — only
+      // email and beacon_id (person) uniquely identify an account's member record.
       let existingMemberByBeacon = null;
       if (formValues.beacon_id) {
         console.log("Checking for existing member by beacon_id:", formValues.beacon_id);
@@ -96,25 +98,7 @@ export default function MemberCreateForm({ userBeaconData }: MemberCreateFormPro
         }
       }
 
-      let existingMemberByMembership = null;
-      if (formValues.beacon_membership) {
-        console.log("Checking for existing member by beacon_membership:", formValues.beacon_membership);
-        const { data: memberByMembership, error: membershipCheckError } = await supabase
-          .from("members")
-          .select("id, email, beacon_id, beacon_membership")
-          .eq("beacon_membership", formValues.beacon_membership)
-          .maybeSingle();
-        
-        if (membershipCheckError) {
-          console.error("Error checking existing member by beacon_membership:", membershipCheckError);
-        }
-        
-        if (memberByMembership) {
-          existingMemberByMembership = memberByMembership;
-        }
-      }
-
-      const existingMember = existingMemberByEmail || existingMemberByBeacon || existingMemberByMembership;
+      const existingMember = existingMemberByEmail || existingMemberByBeacon;
       
       if (existingMember) {
         console.log("Existing member found:", existingMember);
