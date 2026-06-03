@@ -244,6 +244,7 @@ export function LoginForm({
       // Redirect superadmin to superadmin panel, regular users to protected page
       const redirectPath = nextParam || (superadminCheck.skipBeaconCheck ? "/superadmin" : "/protected");
       try {
+        router.refresh();
         router.push(redirectPath);
       } catch (navError) {
         logAuthError({
