@@ -5,6 +5,7 @@ import { draftMode } from 'next/headers';
 import { generatePageMetadata } from '@/lib/metadata';
 import { notFound, redirect } from 'next/navigation';
 import { checkStoryblokPageAuth, isStoryblokEditor } from '@/lib/auth-utils';
+import { unstable_cache } from 'next/cache';
 
 interface PageProps {
   params: Promise<{ parent: string; child: string }> | { parent: string; child: string };
@@ -16,9 +17,10 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
+    const { isEnabled } = await draftMode();
     const parentMetaPromise = typeof parent === 'function' ? parent() : parent;
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(resolvedParams.parent, resolvedParams.child),
+      fetchStoryblokData(resolvedParams.parent, resolvedParams.child, isEnabled),
       parentMetaPromise
     ]);
     // Handle storyblok result
@@ -53,10 +55,11 @@ export async function generateMetadata(
 
 export default async function SlugPage({ params }: PageProps) {
   const resolvedParams = params instanceof Promise ? await params : params;
+  const { isEnabled } = await draftMode();
   let storyBlokStory;
-  
+
   try {
-    const storyblok = await fetchStoryblokData(resolvedParams.parent, resolvedParams.child);
+    const storyblok = await fetchStoryblokData(resolvedParams.parent, resolvedParams.child, isEnabled);
     storyBlokStory = storyblok?.data.story;
     if (!storyBlokStory) {
       notFound();
@@ -83,10 +86,9 @@ export default async function SlugPage({ params }: PageProps) {
   );
 }
 
-async function fetchStoryblokData(parent: string, child: string) {
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (parent: string, child: string, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     const response = await storyblokApi.get(
       `cdn/stories/${parent}/${child}`,
@@ -144,4 +146,4 @@ async function fetchStoryblokData(parent: string, child: string) {
     // Re-throw original error to preserve stack trace
     throw error;
   }
-}
+}, ['story-parent-child'], { revalidate: 300, tags: ['pages'] });

@@ -4,6 +4,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation'
 import { generatePageMetadata } from '@/lib/metadata';
+import { unstable_cache } from 'next/cache';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -15,10 +16,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     const theseParams = await params;
-    
+    const { isEnabled } = await draftMode();
+
     // Run in parallel with individual error handling
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(theseParams),
+      fetchStoryblokData(theseParams, isEnabled),
       parent
     ]);
     
@@ -57,7 +59,8 @@ export async function generateMetadata(
 export default async function SlugPage({ params }: PageProps) {
   try {
     const resolvedParams = await params;
-    const storyblok = await fetchStoryblokData(resolvedParams);
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams, isEnabled);
     const storyBlokStory = storyblok.data.story;
 
     return (
@@ -73,18 +76,17 @@ export default async function SlugPage({ params }: PageProps) {
   }
 }
 
-async function fetchStoryblokData(params: { slug: string }) {
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (params: { slug: string }, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
-    
-    const response = await storyblokApi.get(`cdn/stories/calendar/${params.slug}`, { 
+
+    const response = await storyblokApi.get(`cdn/stories/calendar/${params.slug}`, {
       version: isDraftMode ? 'draft' : 'published'
     });
-    
+
     return response;
-  } 
+  }
   catch (error) {
     console.error('Storyblok API Error Details:');
     console.error('- Error type:', typeof error);
@@ -94,4 +96,4 @@ async function fetchStoryblokData(params: { slug: string }) {
     console.error('- Slug being requested:', params.slug);
     throw new Error(`Failed to fetch story: ${params.slug}`);
   }
-}
+}, ['calendar-story'], { revalidate: 300, tags: ['calendar'] });

@@ -72,7 +72,7 @@ const fetchNavigationData = unstable_cache(
   },
   ['main-navigation'],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 3600, // Fallback window; webhook revalidates the 'navigation' tag on publish
     tags: ['navigation'],
   }
 );
@@ -109,7 +109,7 @@ const fetchFooterData = unstable_cache(
   },
   ['footer-data'],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 3600, // Fallback window; webhook revalidates the 'footer' tag on publish
     tags: ['footer'],
   }
 );

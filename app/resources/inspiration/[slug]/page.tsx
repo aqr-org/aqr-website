@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 
 interface ArticlePageProps {
   params: Promise<{ slug: string }>;
@@ -23,7 +24,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     // read route params
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
     return await generatePageMetadata(
@@ -42,7 +45,9 @@ export async function generateMetadata(
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
   try {
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const story = storyblok.data.story;
     const author = await searchMembersForAuthor(story.content.author);
 
@@ -50,7 +55,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       story.content.authorLink = `/members/${author.slug}`;
       story.content.authorName = author.firstname + ' ' + author.lastname;
       story.content.authorImage = await findValidImageUrl(author.id);
-      story.content.authorArticles = await findAllArticlesForAuthor(author.firstname + ' ' + author.lastname);
+      story.content.authorArticles = await findAllArticlesForAuthor(author.firstname + ' ' + author.lastname, isEnabled);
       story.content.authorBiognotes = author.biognotes;
       story.content.slug = story.slug;
     }
@@ -108,13 +113,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 }
 
-async function fetchStoryblokData(params: ArticlePageProps['params']) {
-  const resolvedParams = await params;
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (slug: string, isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/resources/inspiration/${resolvedParams.slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  return await storyblokApi.get(`cdn/stories/resources/inspiration/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
+}, ['inspiration-story'], { revalidate: 300, tags: ['inspiration'] });
 
 async function searchMembersForAuthor(authorName: string) {
   const supabase = await createClient();
@@ -203,12 +206,10 @@ async function findValidImageUrl(memberId: string) {
   }
 }
 
-async function findAllArticlesForAuthor(author: string) {
-  //search storyblok for all articles with the author name field author
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const findAllArticlesForAuthor = unstable_cache(async (author: string, isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  const articles = await storyblokApi.get(`cdn/stories`, { 
+  const articles = await storyblokApi.get(`cdn/stories`, {
     starts_with: 'resources/inspiration/',
     version: isDraftMode ? 'draft' : 'published',
     filter_query: {
@@ -219,4 +220,4 @@ async function findAllArticlesForAuthor(author: string) {
   });
 
   return articles.data.stories;
-}
+}, ['inspiration-articles-by-author-resources-page'], { revalidate: 300, tags: ['inspiration'] });

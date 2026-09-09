@@ -3,7 +3,6 @@ import { StoryblokStory, storyblokEditable } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { HomepageDataProvider } from '@/components/storyblok/HomepageDataContext';
 import { unstable_cache } from 'next/cache';
-import { cache } from 'react';
 
 interface Event {
   id: string;
@@ -97,7 +96,7 @@ const fetchNextUpcomingEvent = unstable_cache(
   },
   ['next-upcoming-event'],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 900, // Fallback window; webhook revalidates the 'events' tag on publish
     tags: ['events'],
   }
 );
@@ -199,7 +198,7 @@ const fetchLatestWebinar = unstable_cache(
   },
   ['latest-webinar'],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 900, // Fallback window; webhook revalidates the 'webinars' tag on publish
     tags: ['webinars'],
   }
 );
@@ -227,7 +226,7 @@ const fetchAllEvents = unstable_cache(
   },
   ['homepage-events'],
   {
-    revalidate: 300, // Cache for 5 minutes
+    revalidate: 900, // Fallback window; webhook revalidates the 'events' tag on publish
     tags: ['events'],
   }
 );
@@ -249,14 +248,14 @@ async function fetchPhoneticForGlossary(glossaryTermPromise: Promise<GlossaryTer
 export default async function Home() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
-  
+
   // Create promises for glossary term and phonetic spelling
   const glossaryTermPromise = fetchGlossaryTermOfTheDay(isDraftMode);
   const phoneticPromise = fetchPhoneticForGlossary(glossaryTermPromise);
-  
+
   // Fetch all data in parallel (including phonetic spelling)
   const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents, phoneticGlossaryTerm] = await Promise.all([
-    fetchStoryblokData(),
+    fetchStoryblokData(isDraftMode),
     fetchNextUpcomingEvent(isDraftMode),
     glossaryTermPromise,
     fetchLatestWebinar(isDraftMode),
@@ -285,13 +284,11 @@ export default async function Home() {
 }
 
 
-// Cache Storyblok homepage fetch with React cache for request deduplication
-const fetchStoryblokData = cache(async () => {
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
+// Cache Storyblok homepage fetch across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/home`, { 
+  return await storyblokApi.get(`cdn/stories/home`, {
     version: isDraftMode ? 'draft' : 'published',
     resolve_links: 'url' // Only resolve links when needed
   });
-});
+}, ['homepage-story'], { revalidate: 3600, tags: ['homepage'] });

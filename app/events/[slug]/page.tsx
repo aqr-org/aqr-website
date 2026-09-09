@@ -5,6 +5,7 @@ import { storyblokEditable } from '@storyblok/react/rsc';
 import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 
 interface EventProps {
   params: Promise<{ slug: string }>;
@@ -21,7 +22,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     // read route params
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
     return await generatePageMetadata(
@@ -40,9 +43,9 @@ export async function generateMetadata(
 
 export default async function GlossaryPage({ params }: EventProps) {
   try {
+    const resolvedParams = await params;
     const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
-    const storyblok = await fetchStoryblokData(params);
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const content = storyblok.data.story;
 
     return (
@@ -61,10 +64,8 @@ export default async function GlossaryPage({ params }: EventProps) {
   }
 }
 
-async function fetchStoryblokData(params: EventProps['params']) {
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
-  const resolvedParams = await params;
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (slug: string, isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/events/${resolvedParams.slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  return await storyblokApi.get(`cdn/stories/events/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
+}, ['event-story'], { revalidate: 300, tags: ['events'] });

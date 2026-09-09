@@ -6,6 +6,7 @@ import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { checkStoryblokPageAuth, isStoryblokEditor } from '@/lib/auth-utils';
+import { unstable_cache } from 'next/cache';
 
 interface WebinarPageProps {
   params: Promise<{ slug: string }>;
@@ -22,7 +23,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     // read route params
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
     return await generatePageMetadata(
@@ -43,9 +46,9 @@ export default async function GlossaryPage({ params }: WebinarPageProps) {
   let storyBlokStory;
   
   try {
+    const resolvedParams = await params;
     const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
-    const storyblok = await fetchStoryblokData(params);
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     storyBlokStory = storyblok.data.story;
   } catch (error: any) {
     // Check if it's a 404 error
@@ -74,10 +77,8 @@ export default async function GlossaryPage({ params }: WebinarPageProps) {
   );
 }
 
-async function fetchStoryblokData(params: WebinarPageProps['params']) {
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
-  const resolvedParams = await params;
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (slug: string, isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/events/thehub/${resolvedParams.slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  return await storyblokApi.get(`cdn/stories/events/thehub/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
+}, ['webinar-story'], { revalidate: 300, tags: ['webinars'] });

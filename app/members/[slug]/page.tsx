@@ -7,6 +7,7 @@ import { StoryblokStory } from '@storyblok/react/rsc';
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { ArrowUpRight } from 'lucide-react';
+import { unstable_cache } from 'next/cache';
 
 async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   try {
@@ -47,24 +48,22 @@ async function findValidImageUrl(supabase: SupabaseClient, memberId: string) {
   }
 }
 
-// Try to fetch Storyblok story first
-async function fetchStoryblokStory(slug: string) {
+// Try to fetch Storyblok story first. Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokStory = unstable_cache(async (slug: string, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
-    
-    const response = await storyblokApi.get(`cdn/stories/members/${slug}`, { 
+
+    const response = await storyblokApi.get(`cdn/stories/members/${slug}`, {
       version: isDraftMode ? 'draft' : 'published'
     });
-    
+
     return response.data.story;
   } catch (error) {
     // Storyblok story not found, return null
     console.log(`No Storyblok story found for members/${slug}`);
     return null;
   }
-}
+}, ['member-story'], { revalidate: 300, tags: ['members'] });
 
 // Check if maintag is an active company and fetch company name
 async function fetchActiveCompany(supabase: SupabaseClient, maintag: string) {
@@ -179,9 +178,10 @@ export default async function MemberPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const { isEnabled } = await draftMode();
 
   // First, try to fetch from Storyblok
-  const storyblokStory = await fetchStoryblokStory(slug);
+  const storyblokStory = await fetchStoryblokStory(slug, isEnabled);
 
   if (storyblokStory) {
     // Render Storyblok story
@@ -201,7 +201,7 @@ export default async function MemberPage({
 
   // Fetch inspiration articles by this member
   const authorFullName = `${memberData.firstname} ${memberData.lastname}`;
-  const inspirationArticles = await fetchInspirationArticlesByAuthor(authorFullName);
+  const inspirationArticles = await fetchInspirationArticlesByAuthor(authorFullName, isEnabled);
 
   const formattedJoinedDate = memberData.joined ? (() => {
     // Check if it's the legacy format (MM/YYYY) or ISO date string
@@ -363,13 +363,12 @@ export default async function MemberPage({
   )
 }
 
-async function fetchInspirationArticlesByAuthor(authorName: string) {
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchInspirationArticlesByAuthor = unstable_cache(async (authorName: string, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
-    
-    const response = await storyblokApi.get(`cdn/stories`, { 
+
+    const response = await storyblokApi.get(`cdn/stories`, {
       starts_with: 'resources/inspiration/',
       version: isDraftMode ? 'draft' : 'published',
       filter_query: {
@@ -384,4 +383,4 @@ async function fetchInspirationArticlesByAuthor(authorName: string) {
     console.error('Error fetching inspiration articles by author:', error);
     return [];
   }
-}
+}, ['inspiration-articles-by-author-member-page'], { revalidate: 300, tags: ['inspiration'] });

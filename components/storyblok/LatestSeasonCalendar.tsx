@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ArrowUpRight } from 'lucide-react';
 import { type Event } from './HomepageDataContext';
 import { getStoryblokApi } from '@/lib/storyblok';
+import { unstable_cache } from 'next/cache';
 
 type Season = 'Spring' | 'Summer' | 'Autumn' | 'Winter';
 
@@ -31,8 +32,9 @@ async function getDraftMode(): Promise<boolean> {
   }
 }
 
-// Fetch events in batches instead of getAll() to reduce bandwidth
-async function fetchAllEventsInternal(isDraftMode: boolean): Promise<Event[]> {
+// Fetch events in batches instead of getAll() to reduce bandwidth. Cached across requests,
+// revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchAllEventsInternal = unstable_cache(async (isDraftMode: boolean): Promise<Event[]> => {
   const storyblokApi = getStoryblokApi();
   try {
     // Fetch events in batches
@@ -67,7 +69,7 @@ async function fetchAllEventsInternal(isDraftMode: boolean): Promise<Event[]> {
     console.error("Error fetching all events:", error);
     return [];
   }
-}
+}, ['latest-season-calendar-events'], { revalidate: 900, tags: ['events'] });
 
 function getSeason(dateString: string): Season {
   if (!dateString) return 'Winter'; // default

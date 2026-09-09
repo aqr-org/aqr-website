@@ -5,6 +5,7 @@ import { draftMode } from 'next/headers';
 import { generatePageMetadata } from '@/lib/metadata';
 import { notFound, redirect } from 'next/navigation';
 import { checkStoryblokPageAuth, isStoryblokEditor } from '@/lib/auth-utils';
+import { unstable_cache } from 'next/cache';
 
 interface PageProps {
   params: Promise<{ parent: string; child: string; grandchild: string }> | { parent: string; child: string; grandchild: string };
@@ -22,9 +23,10 @@ export async function generateMetadata(
       return await generatePageMetadata({}, {});
     }
 
+    const { isEnabled } = await draftMode();
     const parentMetaPromise = typeof parent === 'function' ? parent() : parent;
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(resolvedParams.parent, resolvedParams.child, resolvedParams.grandchild),
+      fetchStoryblokData(resolvedParams.parent, resolvedParams.child, resolvedParams.grandchild, isEnabled),
       parentMetaPromise
     ]);
     // Handle storyblok result
@@ -65,10 +67,11 @@ export default async function SlugPage({ params }: PageProps) {
     notFound();
   }
   
+  const { isEnabled } = await draftMode();
   let storyBlokStory;
-  
+
   try {
-    const storyblok = await fetchStoryblokData(resolvedParams.parent, resolvedParams.child, resolvedParams.grandchild);
+    const storyblok = await fetchStoryblokData(resolvedParams.parent, resolvedParams.child, resolvedParams.grandchild, isEnabled);
     storyBlokStory = storyblok?.data.story;
     if (!storyBlokStory) {
       notFound();
@@ -95,10 +98,9 @@ export default async function SlugPage({ params }: PageProps) {
   );
 }
 
-async function fetchStoryblokData(parent: string, child: string, grandchild: string) {
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (parent: string, child: string, grandchild: string, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
     const response = await storyblokApi.get(
       `cdn/stories/${parent}/${child}/${grandchild}`,
@@ -156,7 +158,7 @@ async function fetchStoryblokData(parent: string, child: string, grandchild: str
     // Re-throw original error to preserve stack trace
     throw error;
   }
-}
+}, ['story-parent-child-grandchild'], { revalidate: 300, tags: ['pages'] });
 
 
 

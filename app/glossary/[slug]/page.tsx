@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { draftMode } from 'next/headers';
+import { unstable_cache } from 'next/cache';
 interface GlossaryPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -22,7 +23,9 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     // read route params
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const { meta_title, meta_description, og_image } = storyblok.data.story.content;
  
     return await generatePageMetadata(
@@ -41,7 +44,9 @@ export async function generateMetadata(
 
 export default async function GlossaryPage({ params }: GlossaryPageProps) {
   try {
-    const storyblok = await fetchStoryblokData(params);
+    const resolvedParams = await params;
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams.slug, isEnabled);
     const content = storyblok.data.story;
 
     return (
@@ -60,10 +65,8 @@ export default async function GlossaryPage({ params }: GlossaryPageProps) {
   }
 }
 
-async function fetchStoryblokData(params: GlossaryPageProps['params']) {
-  const resolvedParams = await params;
-  const { isEnabled } = await draftMode();
-  const isDraftMode = isEnabled;
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (slug: string, isDraftMode: boolean) => {
   const storyblokApi = getStoryblokApi();
-  return await storyblokApi.get(`cdn/stories/glossary/${resolvedParams.slug}`, { version: isDraftMode ? 'draft' : 'published' });
-}
+  return await storyblokApi.get(`cdn/stories/glossary/${slug}`, { version: isDraftMode ? 'draft' : 'published' });
+}, ['glossary-story'], { revalidate: 300, tags: ['glossary'] });

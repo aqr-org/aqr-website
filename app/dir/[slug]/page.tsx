@@ -4,6 +4,7 @@ import { Metadata, ResolvingMetadata } from 'next'
 import { draftMode } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { generatePageMetadata } from '@/lib/metadata';
+import { unstable_cache } from 'next/cache';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -15,10 +16,11 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     const theseParams = await params;
-    
+    const { isEnabled } = await draftMode();
+
     // Run in parallel with individual error handling
     const [storyblokResult, parentMetadata] = await Promise.allSettled([
-      fetchStoryblokData(theseParams),
+      fetchStoryblokData(theseParams, isEnabled),
       parent
     ]);
     
@@ -57,7 +59,8 @@ export async function generateMetadata(
 export default async function SlugPage({ params }: PageProps) {
   try {
     const resolvedParams = await params;
-    const storyblok = await fetchStoryblokData(resolvedParams);
+    const { isEnabled } = await draftMode();
+    const storyblok = await fetchStoryblokData(resolvedParams, isEnabled);
     const storyBlokStory = storyblok?.data.story;
 
     if (!storyBlokStory) {
@@ -75,19 +78,18 @@ export default async function SlugPage({ params }: PageProps) {
   }
 }
 
-async function fetchStoryblokData(params: { slug: string }) {
+// Cached across requests, revalidated on publish via the Storyblok webhook (app/api/revalidate/route.ts)
+const fetchStoryblokData = unstable_cache(async (params: { slug: string }, isDraftMode: boolean) => {
   try {
-    const { isEnabled } = await draftMode();
-    const isDraftMode = isEnabled;
     const storyblokApi = getStoryblokApi();
-    
-    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, { 
+
+    const response = await storyblokApi.get(`cdn/stories/dir/${params.slug}`, {
       version: isDraftMode ? 'draft' : 'published',
       resolve_links: 'url'
     });
-    
+
     return response;
-  } 
+  }
   catch (error: any) {
     // Try to extract meaningful error information
     let errorMessage = 'Unknown error';
@@ -140,4 +142,4 @@ async function fetchStoryblokData(params: { slug: string }) {
     // Re-throw original error to preserve stack trace
     throw error;
   }
-}
+}, ['dir-story'], { revalidate: 300, tags: ['directory'] });
