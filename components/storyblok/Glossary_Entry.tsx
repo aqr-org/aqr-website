@@ -1,6 +1,6 @@
 import { storyblokEditable } from "@storyblok/react/rsc";
 import { render } from "storyblok-rich-text-react-renderer";
-import { getPhoneticSpelling } from '@/lib/phonetic';
+import PhoneticSpelling from './PhoneticSpelling';
 
 interface Glossary_EntryProps {
   blok: {
@@ -17,13 +17,12 @@ interface Glossary_EntryProps {
 
 export default function Glossary_Entry({ blok }: Glossary_EntryProps) {
   const content = blok;
-  const phoneticSpelling = getPhoneticSpelling(content.name);
   return (
     <div {...storyblokEditable(blok)}>
       <h1 className='text-4xl md:text-6xl tracking-[-0.07125rem] mb-8'>
         {content.name}
         <span className='text-xl text-qreen-dark block mt-2 tracking-normal'>
-          {phoneticSpelling}
+          <PhoneticSpelling word={content.name} />
         </span>
       </h1>
       <div className='prose'>

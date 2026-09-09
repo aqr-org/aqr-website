@@ -231,38 +231,19 @@ const fetchAllEvents = unstable_cache(
   }
 );
 
-// Helper function to fetch phonetic spelling in parallel with other data
-async function fetchPhoneticForGlossary(glossaryTermPromise: Promise<GlossaryTerm | null>): Promise<string | null> {
-  const glossaryTerm = await glossaryTermPromise;
-  if (!glossaryTerm) {
-    return null;
-  }
-  const termName = glossaryTerm.content?.name || glossaryTerm.name || "";
-  if (!termName) {
-    return null;
-  }
-  const { getPhoneticSpelling } = await import('@/lib/phonetic');
-  return getPhoneticSpelling(termName);
-}
-
 export default async function Home() {
   const { isEnabled } = await draftMode();
   const isDraftMode = isEnabled;
 
-  // Create promises for glossary term and phonetic spelling
-  const glossaryTermPromise = fetchGlossaryTermOfTheDay(isDraftMode);
-  const phoneticPromise = fetchPhoneticForGlossary(glossaryTermPromise);
-
-  // Fetch all data in parallel (including phonetic spelling)
-  const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents, phoneticGlossaryTerm] = await Promise.all([
+  // Fetch all data in parallel
+  const [storyblok, nextEvent, glossaryTerm, latestWebinar, allEvents] = await Promise.all([
     fetchStoryblokData(isDraftMode),
     fetchNextUpcomingEvent(isDraftMode),
-    glossaryTermPromise,
+    fetchGlossaryTermOfTheDay(isDraftMode),
     fetchLatestWebinar(isDraftMode),
     fetchAllEvents(isDraftMode),
-    phoneticPromise,
   ]);
-  
+
   const storyBlokStory = storyblok.data.story;
 
   return (
@@ -272,7 +253,6 @@ export default async function Home() {
         nextEvent={nextEvent}
         glossaryTerm={glossaryTerm}
         latestWebinar={latestWebinar}
-        phoneticGlossaryTerm={phoneticGlossaryTerm}
       >
         {/* Reserve space to prevent footer layout shift during initial render */}
         <div className="w-full min-h-[1000px] md:min-h-[1200px]">

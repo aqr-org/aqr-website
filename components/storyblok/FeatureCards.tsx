@@ -4,7 +4,7 @@ import FeatureCardsClient from "./FeatureCardsClient";
 import Image from "next/image";
 import MemberCardBG from "@/components/svgs/MemberCardBG";
 import { getStoryblokApi } from "@/lib/storyblok";
-import { getPhoneticSpelling } from "@/lib/phonetic";
+import PhoneticSpelling from "./PhoneticSpelling";
 import { unstable_cache } from "next/cache";
 
 // Helper function to get draft mode dynamically (avoids build errors when component is imported in client contexts)
@@ -68,7 +68,6 @@ interface FeatureCardsProps {
   nextEvent?: Event | null;
   glossaryTerm?: GlossaryTerm | null;
   latestWebinar?: Webinar | null;
-  phoneticGlossaryTerm?: string | null;
 }
 
 function formatEventDate(dateString?: string, hideTime?: boolean): string {
@@ -203,62 +202,42 @@ async function fetchLatestWebinarInternal(isDraftMode: boolean): Promise<Webinar
   }
 }
 
-export default async function FeatureCards({ 
-  blok, 
-  nextEvent: nextEventProp, 
-  glossaryTerm: glossaryTermProp, 
+export default async function FeatureCards({
+  blok,
+  nextEvent: nextEventProp,
+  glossaryTerm: glossaryTermProp,
   latestWebinar: latestWebinarProp,
-  phoneticGlossaryTerm: phoneticGlossaryTermProp 
 }: FeatureCardsProps) {
   // If props are not provided (rendered through Storyblok), fetch data ourselves
   const needsDataFetch = nextEventProp === undefined;
-  
+
   let nextEvent: Event | null;
   let glossaryTerm: GlossaryTerm | null;
   let latestWebinar: Webinar | null;
-  let phoneticGlossaryTerm: string | null;
 
   if (needsDataFetch) {
     // Fetch data internally - need to get draft mode first
     const isDraftMode = await getDraftMode();
-    
-    // Create promises for glossary term and phonetic spelling to parallelize
-    const glossaryTermPromise = fetchGlossaryTermOfTheDayInternal(isDraftMode);
-    const phoneticPromise = glossaryTermPromise.then(async (term) => {
-      if (!term) return null;
-      const termName = term.content?.name || term.name || "";
-      if (!termName) return null;
-      try {
-        return await getPhoneticSpelling(termName);
-      } catch (error) {
-        console.error("Error fetching phonetic spelling:", error);
-        return null;
-      }
-    });
-    
-    // Fetch all data in parallel (including phonetic spelling)
-    const [fetchedEvent, fetchedGlossary, fetchedWebinar, fetchedPhonetic] = await Promise.all([
+
+    // Fetch all data in parallel. Phonetic spelling is fetched client-side
+    // (see PhoneticSpelling) since it hits a third-party API with no SLA and
+    // must never block the page render (was seen hanging 20s+).
+    const [fetchedEvent, fetchedGlossary, fetchedWebinar] = await Promise.all([
       fetchNextUpcomingEventInternal(isDraftMode),
-      glossaryTermPromise,
+      fetchGlossaryTermOfTheDayInternal(isDraftMode),
       fetchLatestWebinarInternal(isDraftMode),
-      phoneticPromise,
     ]);
 
     nextEvent = fetchedEvent;
     glossaryTerm = fetchedGlossary;
     latestWebinar = fetchedWebinar;
-    phoneticGlossaryTerm = fetchedPhonetic;
-    
+
   } else {
     // Use provided props (optimized path from page level)
     nextEvent = nextEventProp ?? null;
     glossaryTerm = glossaryTermProp ?? null;
     latestWebinar = latestWebinarProp ?? null;
-    phoneticGlossaryTerm = phoneticGlossaryTermProp ?? null;
   }
-
-  // Use phonetic spelling
-  const phoneticTerm = phoneticGlossaryTerm || "";
 
   const cards = [];
 
@@ -338,7 +317,9 @@ export default async function FeatureCards({
           <h4 className="max-[370px]:text-xl text-2xl md:text-[2.375rem] tracking-[-0.07125rem] leading-none text-qaupe group-hover:text-qlack transition-all duration-300">
             {glossaryTerm.content.name || glossaryTerm.name}
           </h4>
-          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-base md:text-[1.375rem] leading-[1.2] mt-2 mb-8">{phoneticTerm}</p>
+          <p className="text-qaupe  group-hover:text-qlack transition-all duration-300 text-base md:text-[1.375rem] leading-[1.2] mt-2 mb-8">
+            <PhoneticSpelling word={glossaryTerm.content.name || glossaryTerm.name} />
+          </p>
           <p className="text-qaupe leading-[1.31] px-4 group-hover:text-qlack transition-all duration-300 line-clamp-4 @[280px]:line-clamp-8">
             {getDescriptionText(glossaryTerm.content.description)}
           </p>

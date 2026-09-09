@@ -56,7 +56,6 @@ interface HomepageData {
   nextEvent: Event | null;
   glossaryTerm: GlossaryTerm | null;
   latestWebinar: Webinar | null;
-  phoneticGlossaryTerm: string | null;
 }
 
 const HomepageDataContext = createContext<HomepageData | null>(null);
@@ -67,7 +66,6 @@ export interface HomepageDataProviderProps {
   nextEvent: Event | null;
   glossaryTerm: GlossaryTerm | null;
   latestWebinar: Webinar | null;
-  phoneticGlossaryTerm: string | null;
 }
 
 export function HomepageDataProvider({
@@ -76,14 +74,12 @@ export function HomepageDataProvider({
   nextEvent,
   glossaryTerm,
   latestWebinar,
-  phoneticGlossaryTerm,
 }: HomepageDataProviderProps) {
   const value: HomepageData = {
     allEvents,
     nextEvent,
     glossaryTerm,
     latestWebinar,
-    phoneticGlossaryTerm,
   };
 
   return (
