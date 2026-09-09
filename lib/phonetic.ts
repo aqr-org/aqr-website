@@ -40,10 +40,13 @@ async function getSingleWordPhonetic(word: string): Promise<string | null> {
   const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(normalizedWord)}`;
 
   try {
-    // Fetch with Next.js caching (24 hour revalidation)
+    // Fetch with Next.js caching (24 hour revalidation). This is a third-party
+    // API with no SLA - cap the wait so a slow response can't block the page
+    // it's rendered on (was seen hanging 20s+, see AbortError incident).
     const response = await fetch(apiUrl, {
       cache: 'force-cache',
       next: { revalidate: 86400 }, // 24 hours
+      signal: AbortSignal.timeout(3000),
     });
 
     if (!response.ok) {
