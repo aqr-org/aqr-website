@@ -10,7 +10,7 @@
   edge_functions = false
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "24"
   # All secrets (SUPABASE_URL, SUPABASE_ANON_KEY, BEACON_API_URL, BEACON_AUTH_TOKEN, STORYBLOK_ACCESS_TOKEN)
   # and optional config (SITE_URL, PRIMARY_SITE_URL) should be set in Netlify Dashboard > Site settings > Environment variables
   # Netlify automatically provides URL env var for the current deployment URL
