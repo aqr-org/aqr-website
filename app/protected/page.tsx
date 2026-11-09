@@ -97,8 +97,18 @@ export default async function ProtectedPage() {
     });
   });
 
-  // 2) Parallelize fetching members (independent)
-  const membersInfo = await supabase.from("members").select("*").eq("email", userEmail);
+  // 2) Find the member profile by Beacon person ID, which survives an email change.
+  //    members.email is only a snapshot written at creation, so keying on it breaks
+  //    as soon as someone's address is corrected in Beacon. Fall back to email for
+  //    rows that have no beacon_id yet.
+  const beaconPersonId = userBeaconData?.personId ? String(userBeaconData.personId) : null;
+  let membersInfo = beaconPersonId
+    ? await supabase.from("members").select("*").eq("beacon_id", beaconPersonId)
+    : null;
+
+  if (!membersInfo || membersInfo.error || !membersInfo.data?.length) {
+    membersInfo = await supabase.from("members").select("*").eq("email", userEmail);
+  }
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12">
