@@ -126,13 +126,20 @@ async function fetchBeaconMembershipsByOrgPrimaryContact(personId: string): Prom
     return { results: [] };
   }
 
+  // Beacon reference filters require a numeric value. A string is rejected with a
+  // 400 validation_error, so this lookup must never send one.
+  const primaryContactId = Number(personId);
+  if (!Number.isFinite(primaryContactId)) {
+    return { results: [] };
+  }
+
   // 1) Find organizations for this primary contact
   const orgFilterBody = {
     filter_conditions: [
       {
         field: 'primary_contact',
         operator: 'contains',
-        value: String(personId)
+        value: primaryContactId
       }
     ]
   };
@@ -148,6 +155,7 @@ async function fetchBeaconMembershipsByOrgPrimaryContact(personId: string): Prom
   });
 
   if (!orgRes.ok) {
+    console.error(`Beacon organization primary_contact filter failed: ${orgRes.status}`);
     return { results: [] };
   }
 
@@ -164,12 +172,15 @@ async function fetchBeaconMembershipsByOrgPrimaryContact(personId: string): Prom
   // 2) Fetch memberships for those org ids
   const membershipResults: any[] = [];
   for (const orgId of orgIds) {
+    const numericOrgId = Number(orgId);
+    if (!Number.isFinite(numericOrgId)) continue;
+
     const membershipFilterBody = {
       filter_conditions: [
         {
           field: 'member',
           operator: 'contains',
-          value: orgId
+          value: numericOrgId
         }
       ]
     };
