@@ -13,6 +13,7 @@ Scheduled function that syncs Beacon CRM membership statuses with Supabase membe
    - `SUPABASE_ANON_KEY` - Your Supabase anon/public key (or `SUPABASE_SERVICE_ROLE_KEY` for bypassing RLS)
    - `BEACON_AUTH_TOKEN` - Your BeaconCRM API authentication token
    - `BEACON_API_URL` - Your BeaconCRM API URL (e.g., `https://api.beaconcrm.org/v1/account/30435`)
+   - `SYNC_MIRROR_AUTH_EMAIL` - Set to `true` to rename Supabase auth users when their email changes in Beacon. When unset the sync only logs the pending rename, because this moves a login credential.
 
 2. **Database Migrations**: 
    - Run the SQL migrations in order on your Supabase database:
@@ -26,10 +27,13 @@ Scheduled function that syncs Beacon CRM membership statuses with Supabase membe
 
 ### Functionality
 
-- Fetches all members from Supabase with a `beacon_membership` field
-- Fetches all companies from Supabase with a `beacon_membership_id` field
-- For each member and company, queries BeaconCRM API to get current membership status
+- Fetches membership records from BeaconCRM (Business Directory and Individual/Group)
+- Matches members on `beacon_id` (the Beacon person ID), so correcting an address in Beacon does not detach the member; falls back to the stored email for rows without `beacon_id`
+- Matches companies on `beacon_membership_id`, falling back to the organization `beacon_id`
 - Updates `beacon_membership_status` in Supabase only if the status has changed
+- Rewrites `members.email` from Beacon when the two disagree, so the stored address follows Beacon
+- Renames the Supabase auth user to match Beacon only when `SYNC_MIRROR_AUTH_EMAIL=true`; otherwise logs the pending rename
+- Skips a rename when the old address has no auth user, or the new address already belongs to a different one
 - Logs all status updates to `beacon_sync_logs` table (with entity type: member or company)
 - Automatically cleans up logs older than 7 days
 - Processes both members and companies within the same scheduled run

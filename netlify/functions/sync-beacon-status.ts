@@ -8,6 +8,7 @@ interface Member {
   lastname?: string;
   beacon_membership: string;
   beacon_membership_status?: string | null;
+  beacon_id?: string | null; // Person ID from Beacon (the stable key across email changes)
 }
 
 interface Company {
@@ -24,6 +25,8 @@ interface ChangedMembership {
   type: string[];
   updated_at: string;
   memberEmails: string[]; // Emails of referenced persons (for Individual/Group memberships)
+  memberIds: string[]; // Person IDs of referenced persons, stable across email changes
+  memberEmailsById: { [personId: string]: string }; // Primary Beacon email per person ID
   organizationIds: string[]; // IDs of referenced organizations (for Business Directory memberships)
   organizationNames: string[]; // Names of referenced organizations (for Business Directory memberships)
 }
@@ -132,6 +135,8 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
             // Extract member emails and organization IDs/names from references
             const references = result.references || [];
             const memberEmails: string[] = [];
+            const memberIds: string[] = [];
+            const memberEmailsById: { [personId: string]: string } = {};
             const organizationIds: string[] = [];
             const organizationNames: string[] = [];
             
@@ -143,11 +148,19 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
               // 268434 = person (member)
               // 268431 = organization (company)
               if (refEntity.entity_type_id === 268434) {
-                // Person entity - extract emails
+                // Person entity - extract the ID and emails
+                if (refEntity.id != null) {
+                  memberIds.push(String(refEntity.id));
+                }
                 if (refEntity.emails && Array.isArray(refEntity.emails)) {
                   refEntity.emails.forEach((emailObj: any) => {
                     if (emailObj.email) {
-                      memberEmails.push(emailObj.email.toLowerCase().trim());
+                      const normalized = emailObj.email.toLowerCase().trim();
+                      memberEmails.push(normalized);
+                      // Beacon returns the primary address first
+                      if (refEntity.id != null && !memberEmailsById[String(refEntity.id)]) {
+                        memberEmailsById[String(refEntity.id)] = normalized;
+                      }
                     }
                   });
                 }
@@ -174,6 +187,8 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
               type: entity.type || [],
               updated_at: entity.updated_at || entity.updatedAt || '',
               memberEmails,
+              memberIds,
+              memberEmailsById,
               organizationIds,
               organizationNames
             };
@@ -224,7 +239,8 @@ async function fetchChangedBeaconMemberships(retries = 2): Promise<ChangedMember
 async function updateMemberStatus(
   member: Member,
   newStatus: string | null,
-  supabaseClient: ReturnType<typeof createClient>
+  supabaseClient: ReturnType<typeof createClient>,
+  beaconEmail?: string
 ): Promise<{
   entity_type: 'member';
   member_id: string;
@@ -233,20 +249,33 @@ async function updateMemberStatus(
   old_status: string | null;
   new_status: string;
   beacon_membership_id: string;
+  old_email?: string;
+  new_email?: string;
 } | null> {
   const currentStatus = member.beacon_membership_status || null;
   const normalizedNewStatus = newStatus?.trim() || null;
   const normalizedCurrentStatus = currentStatus?.trim() || null;
 
-  // Only update if status has changed
-  if (normalizedNewStatus === normalizedCurrentStatus) {
+  const currentEmail = (member.email || '').toLowerCase().trim();
+  const mirroredEmail = beaconEmail?.toLowerCase().trim() || null;
+  const emailChanged = Boolean(mirroredEmail && mirroredEmail !== currentEmail);
+
+  // Only update if status or email has changed
+  if (normalizedNewStatus === normalizedCurrentStatus && !emailChanged) {
     return null; // No change needed
   }
 
-  // Update member status in Supabase
+  const updatePayload: { beacon_membership_status: string | null; email?: string } = {
+    beacon_membership_status: normalizedNewStatus,
+  };
+  if (emailChanged && mirroredEmail) {
+    updatePayload.email = mirroredEmail;
+  }
+
+  // Update member status (and email, when Beacon disagrees) in Supabase
   const { error: updateError } = await supabaseClient
     .from('members')
-    .update({ beacon_membership_status: normalizedNewStatus })
+    .update(updatePayload)
     .eq('id', member.id);
 
   if (updateError) {
@@ -262,12 +291,121 @@ async function updateMemberStatus(
     old_status: normalizedCurrentStatus,
     new_status: normalizedNewStatus || '',
     beacon_membership_id: member.beacon_membership,
+    ...(emailChanged && mirroredEmail ? { old_email: currentEmail, new_email: mirroredEmail } : {}),
   };
 
   console.log(`[STATUS_UPDATE] ${JSON.stringify(updateDetail)}`);
   console.log(`Updated member ${member.id} (${member.email}): ${normalizedCurrentStatus} → ${normalizedNewStatus}`);
+
+  if (emailChanged && mirroredEmail) {
+    console.log(`[EMAIL_UPDATE] Member ${member.id}: ${currentEmail} → ${mirroredEmail}`);
+  }
   
   return updateDetail;
+}
+
+let cachedAuthEmailMap: Map<string, string> | null = null;
+
+/**
+ * Lists Supabase auth users once per run and caches the email -> id mapping.
+ * Returns null when the service role key is unavailable, since auth.users is not
+ * reachable with the anon key.
+ */
+async function getAuthEmailMap(
+  supabaseClient: ReturnType<typeof createClient>
+): Promise<Map<string, string> | null> {
+  if (cachedAuthEmailMap) {
+    return cachedAuthEmailMap;
+  }
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[AUTH_SYNC] SUPABASE_SERVICE_ROLE_KEY not configured, skipping auth email mirroring');
+    return null;
+  }
+
+  const map = new Map<string, string>();
+  const perPage = 1000;
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await supabaseClient.auth.admin.listUsers({ page, perPage });
+
+    if (error) {
+      console.error('[AUTH_SYNC] Failed to list auth users:', error.message);
+      return null;
+    }
+
+    (data?.users ?? []).forEach(user => {
+      if (user.email) {
+        map.set(user.email.toLowerCase().trim(), user.id);
+      }
+    });
+
+    if (!data?.users || data.users.length < perPage) {
+      break;
+    }
+    page++;
+  }
+
+  cachedAuthEmailMap = map;
+  return map;
+}
+
+/**
+ * Mirrors a Beacon email change onto the Supabase auth user, which is the actual
+ * login credential. Guards keep it from touching an address that already belongs
+ * to someone else; anything skipped is logged for manual follow-up.
+ */
+type AuthRenameOutcome = 'renamed' | 'dry-run' | 'no-auth-user' | 'conflict' | 'failed';
+
+async function renameAuthUserEmail(
+  supabaseClient: ReturnType<typeof createClient>,
+  oldEmail: string,
+  newEmail: string,
+  memberId: string
+): Promise<AuthRenameOutcome> {
+  const normalizedOld = oldEmail.toLowerCase().trim();
+  const normalizedNew = newEmail.toLowerCase().trim();
+
+  const authEmailMap = await getAuthEmailMap(supabaseClient);
+  if (!authEmailMap) {
+    return 'failed';
+  }
+
+  const userId = authEmailMap.get(normalizedOld);
+  if (!userId) {
+    console.log(`[AUTH_SYNC] No auth user for ${normalizedOld}, nothing to rename (member ${memberId})`);
+    return 'no-auth-user';
+  }
+
+  const conflictingUserId = authEmailMap.get(normalizedNew);
+  if (conflictingUserId && conflictingUserId !== userId) {
+    console.error(`[AUTH_SYNC] Refusing to rename ${normalizedOld} -> ${normalizedNew}: address already belongs to auth user ${conflictingUserId}`);
+    return 'conflict';
+  }
+
+  // Renaming an auth address moves someone's login credential, so it stays opt-in.
+  // Any Beacon data-entry mistake would otherwise propagate straight to sign-in,
+  // including handing a shared company mailbox to whoever replaced it.
+  if (process.env.SYNC_MIRROR_AUTH_EMAIL !== 'true') {
+    console.log(`[AUTH_SYNC] DRY RUN (set SYNC_MIRROR_AUTH_EMAIL=true to apply): would rename auth user ${userId} ${normalizedOld} -> ${normalizedNew} (member ${memberId})`);
+    return 'dry-run';
+  }
+
+  const { error } = await supabaseClient.auth.admin.updateUserById(userId, {
+    email: normalizedNew,
+    email_confirm: true,
+  });
+
+  if (error) {
+    console.error(`[AUTH_SYNC] Failed to rename auth user ${userId} (${normalizedOld} -> ${normalizedNew}):`, error.message);
+    return 'failed';
+  }
+
+  authEmailMap.delete(normalizedOld);
+  authEmailMap.set(normalizedNew, userId);
+  console.log(`[AUTH_SYNC] Renamed auth user ${userId}: ${normalizedOld} -> ${normalizedNew} (member ${memberId})`);
+  return 'renamed';
 }
 
 /**
@@ -463,6 +601,65 @@ async function syncBeaconStatuses(
       }
     }
 
+    // Query members by beacon_id as well. That is the key that survives an email
+    // change, so a member whose address was corrected in Beacon is still matched
+    // and their members.email can be re-synced from the authoritative value.
+    const memberIdToMembershipMap = new Map<string, ChangedMembership>();
+    const personIdToBeaconEmail = new Map<string, string>();
+    const personIdsToUpdate = new Set<string>();
+
+    individualGroupMemberships.forEach(membership => {
+      membership.memberIds.forEach(personId => personIdsToUpdate.add(personId));
+      Object.entries(membership.memberEmailsById).forEach(([personId, email]) => {
+        personIdToBeaconEmail.set(personId, email);
+      });
+    });
+
+    if (personIdsToUpdate.size > 0) {
+      const personIdArray = Array.from(personIdsToUpdate);
+      const BATCH_SIZE = 100;
+
+      for (let i = 0; i < personIdArray.length; i += BATCH_SIZE) {
+        const batch = personIdArray.slice(i, i + BATCH_SIZE);
+
+        const { data: members, error: membersError } = await supabase
+          .from('members')
+          .select('id, email, firstname, lastname, beacon_membership, beacon_membership_status, beacon_id')
+          .in('beacon_id', batch);
+
+        if (membersError) {
+          console.error(`Failed to fetch members by beacon_id batch:`, membersError);
+          continue;
+        }
+
+        console.log(`[DEBUG] Matched ${(members || []).length} member(s) by beacon_id`);
+
+        (members || []).forEach(member => {
+          const personId = String(member.beacon_id);
+
+          const matchingMemberships = individualGroupMemberships.filter(m =>
+            m.memberIds.includes(personId)
+          );
+
+          if (matchingMemberships.length === 0) {
+            return;
+          }
+
+          const mostRecent = matchingMemberships.reduce((latest, current) => {
+            const latestDate = new Date(latest.updated_at);
+            const currentDate = new Date(current.updated_at);
+            return currentDate > latestDate ? current : latest;
+          });
+
+          memberIdToMembershipMap.set(member.id, mostRecent);
+
+          if (!allMembers.some(existing => existing.id === member.id)) {
+            allMembers.push(member);
+          }
+        });
+      }
+    }
+
     // Query companies for Business Directory memberships
     // Match by beacon_membership_id first, then by organization ID (beacon_id field) if available
     if (businessDirectoryIds.length > 0) {
@@ -561,6 +758,8 @@ async function syncBeaconStatuses(
       old_status: string | null;
       new_status: string;
       beacon_membership_id: string;
+      old_email?: string;
+      new_email?: string;
     }> = [];
 
     // Process members in batches
@@ -569,11 +768,34 @@ async function syncBeaconStatuses(
       const updatePromises = batch.map(async (member) => {
         try {
           const normalizedEmail = member.email.toLowerCase().trim();
-          const membership = memberEmailToMembershipMap.get(normalizedEmail);
+          // Prefer the beacon_id match: it survives an email change, whereas the
+          // email map only matches while members.email still equals Beacon's value.
+          const membership = memberIdToMembershipMap.get(member.id)
+            || memberEmailToMembershipMap.get(normalizedEmail);
           
           if (membership) {
             const newStatus = membership.status?.[0] || null;
-            const updateDetail = await updateMemberStatus(member, newStatus, supabase);
+            const beaconEmail = member.beacon_id
+              ? personIdToBeaconEmail.get(String(member.beacon_id))
+              : undefined;
+
+            // Rename the auth user first: it is the login credential. If that is
+            // blocked, leave members.email alone too, so the next run retries both
+            // instead of the row silently agreeing with Beacon while sign-in lags.
+            let emailMirrorWritable = true;
+            if (beaconEmail && beaconEmail !== normalizedEmail) {
+              const outcome = await renameAuthUserEmail(supabase, member.email, beaconEmail, member.id);
+              if (outcome === 'failed' || outcome === 'conflict') {
+                emailMirrorWritable = false;
+              }
+            }
+
+            const updateDetail = await updateMemberStatus(
+              member,
+              newStatus,
+              supabase,
+              emailMirrorWritable ? beaconEmail : undefined
+            );
             if (updateDetail) {
               updatedMemberCount++;
               updateDetails.push({
