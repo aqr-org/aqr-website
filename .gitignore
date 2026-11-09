@@ -55,3 +55,6 @@ certificates
 .ai
 .cursor
 .idea
+# Local agent tooling (Mistral Vibe skills), not part of the app
+.vibe/
+skills-lock.json
